@@ -1,0 +1,956 @@
+\chapter{Практика: Библиотека для генерации HTML, Компилятор.}
+\label{ch:31}
+
+Теперь вы готовы к тому, чтобы увидеть как работает компилятор FOO. Основное различие
+между компилятором и интерпретатором заключается в том, что интерпретатор обрабтывает
+программу и сразу производит какие-то действия~--- генерирует HTML, в случае интерпретатора
+FOO, а компилятор обрабатывает ту же самую прогрумму, и генерирует код на каком-то другом
+языке, который будет производить те же самые действия.  В языке FOO компилятор является
+макросом Common Lisp, который транслирует инструкции FOO в код на Common Lisp, так что он
+может быть встроен в программы на Common Lisp. В общем, компиляторы имеют преимущества над
+интерпретаторами, поскольку компиляция происходит заранее, так что они могут потратить
+некоторое количество времени оптимизуя генерируемый код, делая его более эффективным.  Это
+же делает компилятор FOO, объединяя текстовые строки насколько это возможно, чтобы
+выдавать точно такой же HTML с меньшим количеством операций записи по сравнению с
+интерпретатором.  Когда компилятор является макросом Common Lisp, вы также имеете
+преимущества, поскольку компилятор сможет обрабатывать вставленные куски кода на Common
+Lisp~--- компилятору нужно лишь распознать их и вставить в правильное место генерируемого
+кода.  Компилятор FOO получит некоторые преимущества от использования этой возможности.
+
+\section{Компилятор}
+
+Базовая архитектура компилятора состоит из трех уровней.  Сначала вы реализуете класс
+\code{html-compiler} который имеет один слот, который содержит расширяемый вектор, который
+используется для накопления кодов операций (ops), представляющих вызовы сделанные к
+обобщенным функциям FIXME backend при выполнении \code{process}.
+
+Затем вы реализуете методы для обобщенных функций FIXME backend interface, которые будут
+сохранять последовательность действий в векторе.  Каждый код операции представлен списком
+состоящим из ключевого слова, именующего операцию, и аргументов, переданных функции,
+которая сгенерировала этот код операции.  Функция \code{sexp->ops} реализует первую стадию
+компиляции~--- преобразование списка выражений FOO путем вызова \code{process} для каждого
+выражения с объектом \code{html-compiler}.
+
+Этот вектор с кодами операций, созданный компилятором, затем передается функции, которая
+оптимизирует его, объединяя последовательные операции \code{raw-string} в одну операцию,
+которая выдаст объединенную строку за один вызов. Функция оптимизации, также может, не
+обязательно, отбросить операции, которые необходимы только для выдачи хорошо
+отформатированного кода, что является достаточно важным, поскольку это позволит объединить
+большее количество операций \code{raw-string}.
+
+И в заключение, оптимизированный вектор с кодами операций передается третьей функции,
+\code{generate-code}, которая возвращает список выражений Common Lisp, выполнение которых
+приведет к выводу HTML.  Когда переменная \code{*pretty*} имеет истинное значение, то
+\code{generate-code} генерирует код, который использует методы, специализированные для
+\code{html-pretty-printer}, для того, чтобы вывести хорошо отформатированный HTML. Когда
+\code{*pretty*} равна \code{NIL}, то эта функция генерирует код, который будет выводить
+данные напрямую в поток \code{*html-output*}.
+
+Макрос \code{html} в действительности генерирует тело выражения, которое содержит два
+раскрытия кода~--- одно для случая, когда \code{*pretty*} равно \code{T}, и второе для
+случая, когда \code{*pretty*} равно \code{NIL}.  То, какое выражение будет использоваться,
+определяется во время выполнения в зависимости от значения переменной \code{*pretty*}.
+Таким образом, любая функция, которая содержит вызов \code{html}, будет иметь код для
+генерации компактного и хорошо оформленного вывода.
+
+Другим важным отличием между компилятором и интерпретатором является то, что компилятор
+может внедрять выражения на Lisp в генерируемый код.  Чтобы воспользоваться этим
+преимуществом, вам необходимо изменить функцию \code{process} таким образом, чтобы она
+вызывала функции \code{embed-code} и \code{embed-value} в тех случаях, когда ее просят
+обработать выражение, которое не является выражением FOO. Поскольку, все FIXME
+self-evaluating объекты являются допустимыми выражениями FOO, единственными выражениями,
+которое не будет передано \code{process-sexp-html} являются списки, которые не
+соответствуют синтаксису выражений-ячеек (FIXME cons forms) FOO и не-именованным символам
+-- единственным атомам, которые не вычисляются сами в себя FIXME self-evaluating.  Вы
+можете предположить, что любой список не относящийся к FOO является кодом, который
+необходимо выполнять, а все символы являются переменными, чьи значения вы должны вставить
+в генерируемый код.
+
+\begin{lstlisting}
+(defun process (processor form)
+  (cond
+    ((sexp-html-p form) (process-sexp-html processor form))
+    ((consp form)       (embed-code processor form))
+    (t                  (embed-value processor form))))
+\end{lstlisting}
+
+Теперь давайте взглянем на код компилятора.  Во первых вы должны определить две функции,
+которые абстрагируют вектор, который вы будете использовать для хранения кодов операций в
+первых двух стадиях компиляции.
+
+\begin{lstlisting}
+(defun make-op-buffer () (make-array 10 :adjustable t :fill-pointer 0))
+
+(defun push-op (op ops-buffer) (vector-push-extend op ops-buffer))
+\end{lstlisting}
+
+Затем, вы можете определить класс \code{html-compiler} и методы, специализированные для
+него, реализующие FIXME backend interface.
+
+\begin{lstlisting}
+(defclass html-compiler ()
+  ((ops :accessor ops :initform (make-op-buffer))))
+
+(defmethod raw-string ((compiler html-compiler) string &optional newlines-p)
+  (push-op `(:raw-string ,string ,newlines-p) (ops compiler)))
+
+(defmethod newline ((compiler html-compiler))
+  (push-op '(:newline) (ops compiler)))
+
+(defmethod freshline ((compiler html-compiler))
+  (push-op '(:freshline) (ops compiler)))
+
+(defmethod indent ((compiler html-compiler))
+  (push-op `(:indent) (ops compiler)))
+
+(defmethod unindent ((compiler html-compiler))
+  (push-op `(:unindent) (ops compiler)))
+
+(defmethod toggle-indenting ((compiler html-compiler))
+  (push-op `(:toggle-indenting) (ops compiler)))
+
+(defmethod embed-value ((compiler html-compiler) value)
+  (push-op `(:embed-value ,value ,*escapes*) (ops compiler)))
+
+(defmethod embed-code ((compiler html-compiler) code)
+  (push-op `(:embed-code ,code) (ops compiler)))
+\end{lstlisting}
+
+После определения этих методов, вы можете реализовать первую стадию компиляции~---
+\code{sexp->ops}.
+
+\begin{lstlisting}
+(defun sexp->ops (body)
+  (loop with compiler = (make-instance 'html-compiler)
+     for form in body do (process compiler form)
+     finally (return (ops compiler))))
+\end{lstlisting}
+
+Во время этой фазы, вам нет необходимости учитывать значение переменной \code{*pretty*}:
+просто записывайте все функции вызванные функцией \code{process}.  Вот что
+\code{sexp->ops} сделает из простого выражения FOO:
+
+\begin{lstlisting}
+  HTML> (sexp->ops '((:p "Foo")))
+  #((:FRESHLINE) (:RAW-STRING "<p" NIL) (:RAW-STRING ">" NIL)
+    (:RAW-STRING "Foo" T) (:RAW-STRING "</p>" NIL) (:FRESHLINE))
+\end{lstlisting}
+
+На следующей фазе, функция \code{optimize-static-output} принимает вектор кодов операций,
+и возвращает новый вектор, содержащий оптимизированную версию.  Алгоритм очень прост~---
+для каждой операции \code{:raw-string}, функция записывает строку во временный строковый
+буфер. Таким образом, последовательные вызовы \code{:raw-string} приведут к построению
+одной строки, содержащих объединение всех строк, которые должны быть выведены. Когда вы
+встречаете код операции, отличный от кода \code{:raw-string}, то вы преобразуете созданную
+строку в последовательность операций \code{:raw-string} и \code{:newline} используя
+вспомогательную функцию \code{compile-buffer}, и затем добавляете новый код операции.  В
+этой функции вы также отбрасываете "красивое" форматирование, если значением
+\code{*pretty*} является \code{NIL}.
+
+\begin{lstlisting}
+(defun optimize-static-output (ops)
+  (let ((new-ops (make-op-buffer)))
+    (with-output-to-string (buf)
+      (flet ((add-op (op) 
+               (compile-buffer buf new-ops)
+               (push-op op new-ops)))
+        (loop for op across ops do
+             (ecase (first op)
+               (:raw-string (write-sequence (second op) buf))
+               ((:newline :embed-value :embed-code) (add-op op))
+               ((:indent :unindent :freshline :toggle-indenting)
+                (when *pretty* (add-op op)))))
+        (compile-buffer buf new-ops)))
+    new-ops))
+
+(defun compile-buffer (buf ops)
+  (loop with str = (get-output-stream-string buf)
+     for start = 0 then (1+ pos)
+     for pos = (position #\Newline str :start start)
+     when (< start (length str))
+     do (push-op `(:raw-string ,(subseq str start pos) nil) ops)
+     when pos do (push-op '(:newline) ops)
+     while pos))
+\end{lstlisting}
+
+Последним шагом является преобразование кодов операций в соответствующий код Common
+Lisp. Эта фаза также учитывает значение переменной \code{*pretty*}. Когда \code{*pretty*}
+имеет истинное значение, то функция генерирует код, который вызывает функции используя
+переменную \code{*html-pretty-printer*}, которая содержит экземпляр класса
+\code{html-pretty-printer}.  А когда значение \code{*pretty*} равно \code{NIL}, то функция
+генерирует код, который выводит данные прямо в поток, указанный переменной
+\code{*html-output*}.
+
+Реализация функции \code{generate-code} крайне проста.
+
+\begin{lstlisting}
+(defun generate-code (ops)
+  (loop for op across ops collect (apply #'op->code op)))
+\end{lstlisting}
+
+Вся работа выполняется методами обобщенной функции \code{op->code} специализированной для
+аргумента \code{op} со специализатором \code{EQL} для имени операции.
+
+\begin{lstlisting}
+(defgeneric op->code (op &rest operands))
+
+(defmethod op->code ((op (eql :raw-string)) &rest operands)
+  (destructuring-bind (string check-for-newlines) operands
+    (if *pretty*
+      `(raw-string *html-pretty-printer* ,string ,check-for-newlines)
+      `(write-sequence ,string *html-output*))))
+
+(defmethod op->code ((op (eql :newline)) &rest operands)
+  (if *pretty*
+    `(newline *html-pretty-printer*)
+    `(write-char #\Newline *html-output*)))    
+
+(defmethod op->code ((op (eql :freshline)) &rest operands)
+  (if *pretty*
+    `(freshline *html-pretty-printer*)
+    (error "Bad op when not pretty-printing: ~a" op)))
+
+(defmethod op->code ((op (eql :indent)) &rest operands)
+  (if *pretty*
+    `(indent *html-pretty-printer*)
+    (error "Bad op when not pretty-printing: ~a" op)))
+
+(defmethod op->code ((op (eql :unindent)) &rest operands)
+  (if *pretty*
+    `(unindent *html-pretty-printer*)
+    (error "Bad op when not pretty-printing: ~a" op)))
+
+(defmethod op->code ((op (eql :toggle-indenting)) &rest operands)
+  (if *pretty*
+    `(toggle-indenting *html-pretty-printer*)
+    (error "Bad op when not pretty-printing: ~a" op)))
+\end{lstlisting}
+
+Два наиболее интересных метода \code{op->code}~--- это те, которые генерируют код для
+операций \code{:embed-value} и \code{:embed-code}.  В методе \code{:embed-value}, вы
+можете генерировать немного отличающийся код в зависимости от значения аргумента
+\code{escapes}, поскольку, если \code{escapes} равен \code{NIL}, то вам нет необходимости
+генерировать вызов \code{escape}.  И когда и \code{*pretty*}, и \code{escapes} равны
+\code{NIL}, то вы можете сгенерировать код, который будет использовать функцию
+\code{PRINC} для вывода значения напрямую в поток.
+
+\begin{lstlisting}
+(defmethod op->code ((op (eql :embed-value)) &rest operands)
+  (destructuring-bind (value escapes) operands
+    (if *pretty*
+      (if escapes
+        `(raw-string *html-pretty-printer* (escape (princ-to-string ,value) ,escapes) t)
+        `(raw-string *html-pretty-printer* (princ-to-string ,value) t))
+      (if escapes
+        `(write-sequence (escape (princ-to-string ,value) ,escapes) *html-output*)
+        `(princ ,value *html-output*)))))
+\end{lstlisting}
+
+Так, что что-то подобное вот такому коду:
+
+\begin{lstlisting}
+HTML> (let ((x 10)) (html (:p x)))
+<p>10</p>
+NIL
+\end{lstlisting}
+
+будет работать, поскольку \code{html} преобразует \code{(:p x)} в что-то наподобие вот
+этого:
+
+\begin{lstlisting}
+(progn
+  (write-sequence "<p>" *html-output*)
+  (write-sequence (escape (princ-to-string x) "<>&") *html-output*)
+  (write-sequence "</p>" *html-output*))
+\end{lstlisting}
+
+Так, что когда будет сгенерирован код, заменяющий вызов \code{html} в контексте
+\code{LET}, то вы получите следующий результат:
+
+\begin{lstlisting}
+(let ((x 10))
+  (progn
+    (write-sequence "<p>" *html-output*)
+    (write-sequence (escape (princ-to-string x) "<>&") *html-output*)
+    (write-sequence "</p>" *html-output*)))
+\end{lstlisting}
+
+и ссылки на \code{x} в сгенерированном коде превратятся в ссылки на лексическую переменную
+из выражения \code{LET}, окружающего выражение \code{html}.
+
+С другой стороны, метод \code{:embed-code} интересен, поскольку она крайне примитивен.
+Поскольку функция \code{process} передала выражаение функции \code{embed-code}, которая
+сохранила его в операции \code{:embed-code}, то все, что вам нужно сделать~--- извлечь и
+вернуть это выражение.
+
+\begin{lstlisting}
+(defmethod op->code ((op (eql :embed-code)) &rest operands)
+  (first operands))
+\end{lstlisting}
+
+Это позволяет использовать, например, вот такой код:
+
+\begin{lstlisting}
+HTML> (html (:ul (dolist (x '(foo bar baz)) (html (:li x)))))
+<ul>
+  <li>FOO</li>
+  <li>BAR</li>
+  <li>BAZ</li>
+</ul>
+NIL
+\end{lstlisting}
+
+Внешний вызов \code{html} раскрывается в код, который делает что-то подобное следующему коду:
+
+\begin{lstlisting}
+(progn
+  (write-sequence "<ul>" *html-output*)
+  (dolist (x '(foo bar baz)) (html (:li x)))
+  (write-sequence "</ul>" *html-output*))))
+\end{lstlisting}
+
+И затем, если вы раскроете вызов \code{html} в теле \code{DOLIST}, то вы получите что-то подобное следующему код:
+
+\begin{lstlisting}
+(progn
+  (write-sequence "<ul>" *html-output*)
+  (dolist (x '(foo bar baz))
+    (progn
+      (write-sequence "<li>" *html-output*)
+      (write-sequence (escape (princ-to-string x) "<>&") *html-output*)
+      (write-sequence "</li>" *html-output*)))
+  (write-sequence "</ul>" *html-output*))
+\end{lstlisting}
+
+Этот код, будет генерировать результат, который вы уже видели выше.
+
+\section{Специальные операторы FOO}
+
+Вы можете остановиться на этом~--- язык FOO достаточно выразителен для генерации
+практически любого HTML какой вы можете придумать.  Однако, вы можете добавить две новых
+возможности к языку с помощью небольшого количества кода, который сделает язык более
+мощным: специальные операторы и макросы.
+
+Специальные операторы FOO аналогичны специальным операторам в Common Lisp. Специальные
+операторы обеспечивают возможность выражения тех вещей, которые не могут быть выражены на
+языке, поддерживающем только базовые правила вычисления выражений.  Или, если посмотреть с
+другой стороны, специальные операторы предоставляют доступ к примитивам, используемым
+ядром языка, вычисляющем выражения.\footnote{Аналогия между специальными операторами и
+  макросами FOO, которые я буду обсуждать в следующем разделе, и этими же вещами в Lisp
+  является красивым звуком (FIXME is fairly sound).  В действительности, понимание того,
+  как работают специальные операторы и макросы FOO, могут дать вам некоторое представление
+  о том, почему Common Lisp объединил их именно таким образом.}
+
+В качестве простого примера, в компиляторе FOO, ядро языка использует функцию
+\code{embed-value} для генерации кода, который будет вставлять значение переменной в
+генерируемый HTML.  Однако, поскольку \code{embed-value} передаются только символы, то не
+существует способа (в том языке, который я описывал) включить значение произвольного
+выражения Common Lisp; в этом случае функция \code{process} передает пары значений функции
+\code{embed-code}, а не \code{embed-value}, так что возвращаемые значения игнорируются.
+Обычно, это то, что нам надо, поскольку главной причиной вставки кода на Lisp в программу
+на a FOO является возможность использования управляющих конструкций Lisp.  Однако, иногда
+вы захотите вставить значение вычисленного выражения в сгенерированный HTML.  Например, вы
+можете захотеть, чтобы программа на FOO генерировала параграф, содержащий случайное число:
+
+\begin{lstlisting}
+(:p (random 10))
+\end{lstlisting}
+
+Но это не будет работать, поскольку код будет вычислен и его значение будет отброшено.
+
+\begin{lstlisting}
+HTML> (html (:p (random 10)))
+<p></p>
+NIL
+\end{lstlisting}
+
+В реализованном нами языке, вы можете обойти это путем вычисления значения вне вызова
+\code{html}, и затем вствки его используя переменную.
+
+\begin{lstlisting}
+HTML> (let ((x (random 10))) (html (:p x)))
+<p>1</p>
+NIL
+\end{lstlisting}
+
+Но это будет раздражать, особенно когда вы считаете, что если бы вы могли бы передать
+выражение \code{(random 10)} функции \code{embed-value} вместо \code{embed-code}, то это
+было бы то, что надо.  Так что вы можете определить специальный оператор \code{:print},
+который будет обрабатываться ядром языка FOO с использованием правила, отличного от правил
+для обычных выражений FOO.  А именно, вместо генерации элемента \code{<print>}, он будет
+передавать выражение, заданное в его теле, функции \code{embed-value}.  Так что вы сможете
+вывести параграф, содержащий случайное число с помощью вот такого вот кода:
+
+\begin{lstlisting}
+HTML> (html (:p (:print (random 10))))
+<p>9</p>
+NIL
+\end{lstlisting}
+
+Понятно, что это специальный оператор полезен только в скомпилированном коде на FOO,
+поскольку \code{embed-value} не работает в режиме интерпретации.  Еще одним специальным
+оператором, который может быть использован и в режиме компиляции, и в режиме
+интерпретации, является оператор \code{:format}, который позволяет вам генерировать вывод
+используя функцию \code{FORMAT}.  Аргментами специального оператора \code{:format}
+являются строка, управляющая форматом вывода данных, и за ней, любые аргументы.  Когда все
+аргументы \code{:format} являются само-вычисляемыми FIXME self-evaluating объектами, то
+строка генерируется путем передачи аргументов функции \code{FORMAT}, и полученная строка
+затем выводится также как и любая другая строка.  Это позволяет использовать выражения
+\code{:format} в выражениях FOO, переданных функции \code{emit-html}.  В скомпилированном
+коде FOO, аргументами \code{:format} могут быть любые выражения Lisp.
+
+Другие специальные операторы обеспечивают контроль за тем, какие символы будут
+автоматически преобразовываться, а также использоваться для вывода символов новой строки:
+специальный оператор \code{:noescape} приводит к вычислению всех выражений, но при этом
+переменная \code{*escapes*} получает значение \code{NIL}, в то время, как
+\code{:attribute} вычисляет все выражения с \code{*escapes*} равным
+\code{*attribute-escapes*}.  А оператор \code{:newline} преобразуется в код, который
+выдает явный перевод строки.
+
+Так что, как вы будете определять специальные операторы?  Существует два аспекта обработки
+специальных операторов: как обработчик языка распознает формы, которые используются для
+представлени специальных операторов и как он будет знать, какой код выполнять для
+обработки каждого из специальных операторов?
+
+Вы можете изменить функцию \code{process-sexp-html} чтобы она распозновала каждый их
+специальных операторов и обрабатывала их соответствующим образом~--- с логической точки
+зрения, специальные операторы являются частью реализации языка, и их не будет очень
+много. Однако, было бы удобно иметь модульный способ добавления новых специальных
+операторов~--- не потому-что пользователи FOO будут иметь возможность их добавления, а
+просто для нашего собственного удобства.
+
+Определим специальное выражение как список, чьим значением \code{CAR} является символ,
+представляющий имя специального оператора.  Вы можете пометить имена специальных
+операторов путем добавления не-\code{NIL} значения к списку свойств символов принадлежащем
+пункту FIXME key \code{html-special-operator}.  Так что вы можете определить функцию,
+которая проверяет, является ли данное выражение, выражением специального оператора,
+примерно вот так:
+
+\begin{lstlisting}
+(defun special-form-p (form)
+  (and (consp form) (symbolp (car form)) (get (car form) 'html-special-operator)))
+\end{lstlisting}
+
+Код, реализующий каждый из специальных операторов, также ответственен за получение
+оставшейся части списка FIXME операндов?? и выполнения того, чего требует семантика
+специального оператора.  Предполагая, что вы также определили функцию
+\code{process-special-form}, которая принимает в качестве аргументов обработчик язык и
+выражение со специальным оператором, и выполняет соответствующий код для генерации
+последовательности вызовов для объекта \code{processor}, то вы можете расширить функцию
+\code{process} обработкой специальных операторов следующим образом:
+
+\begin{lstlisting}
+(defun process (processor form)
+  (cond
+    ((special-form-p form) (process-special-form processor form))
+    ((sexp-html-p form)    (process-sexp-html processor form))
+    ((consp form)          (embed-code processor form))
+    (t                     (embed-value processor form))))
+\end{lstlisting}
+
+Вы должны в начале добавить вызов \code{special-form-p} поскольку специальные операторы
+могут выглядеть также как обычные выражения FOO, точно также как специальные операторы
+Common Lisp выглядят также как вызовы обычных функций.
+
+Теперь вам нужно лишь реализовать \code{process-special-form}.  Вместо того, чтобы
+определять одну монолитную функцию, которая реализует все специальные операторы, вы должны
+определить макрос, который позволит вам определять специальные операторы, практически
+также как обычные функции, и который возьмет на себя заботу о добавлении записи
+\code{html-special-operator} в список свойств имен специальных операторов.  В
+действительности, значением которое вы сохраняете в списке свойств может быть функция,
+которая реализует специальный оператор.  Вот определение соответствующего макроса:
+
+\begin{lstlisting}
+(defmacro define-html-special-operator (name (processor &rest other-parameters) &body body)
+  `(eval-when (:compile-toplevel :load-toplevel :execute)
+     (setf (get ',name 'html-special-operator)
+           (lambda (,processor ,@other-parameters) ,@body))))
+\end{lstlisting}
+
+Это достаточно сложный вид макроса, но если вы будете изучать по одной строке за раз, то
+вы не найдете ничего сложного.  Для того, чтобы увидеть как он работает, рассмотрим
+простое использование этого макроса~--- определение специального оператора
+\code{:noescape}, и посмотрим на раскрытие этого макроса.  Если вы напишите вот так:
+
+\begin{lstlisting}
+(define-html-special-operator :noescape (processor &rest body)
+  (let ((*escapes* nil))
+    (loop for exp in body do (process processor exp))))
+\end{lstlisting}
+
+то это приведет к получению следующего кода:
+
+\begin{lstlisting}
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (get ':noescape 'html-special-operator)
+        (lambda (processor &rest body)
+          (let ((*escapes* nil))
+            (loop for exp in body do (process processor exp))))))
+\end{lstlisting}
+
+Специальный оператор \code{EVAL-WHEN}, как обсуждалось в главе\ref{ch:20}, используется
+для того, чтобы быть уверенными, что данный код будет виден во время компиляции с помощью
+функции \code{COMPILE-FILE}.  Это нужно, если вы захотите определить
+\code{define-html-special-operator} в файле, и затем использовать только что определенный
+специальный специальный оператор в том же самом файле.
+
+Затем, выражение \code{SETF} устанавливает значение для свойства
+\code{html-special-operator} символа \code{:noescape} чтобы оно содержало анонимную
+функцию, с тем же списком параметров, как это было определено в
+\code{define-html-special-operator}.  За счет того, что для
+\code{define-html-special-operator} параметры разбиваются на две части~--- \code{processor}
+и все остальное, вы будете уверены в том, что все специальные аргументы будут принимать
+как минимум один аргумент.
+
+Тело анонимной функции является выражением, передаваемым
+\code{define-html-special-operator}.  Задачей анонимной функции является реализация
+действия специального оператора путем вызова соответствующих функций интерфейса FIXME
+backend для генерации корректного HTML или кода, который будет генерировать этот HTML.
+Она также использует \code{process} для вычисления выражения как выражения FOO.
+
+Специальный оператор \code{:noescape} является достаточно простым~--- все что он делает,
+это передача выражения в функцию \code{process} с переменной \code{*escapes*}
+установленной в \code{NIL}.  Другими словами, этот специальный оператор запрещает
+стандартное маскирование символов, выполняемое \code{process-sexp-html}.
+
+При использовании специальных операторов определенных таким образом, все что нужно делать
+\code{process-special-form}~--- всего лишь найти анонимную функцию в списке свойств символа
+с именем оператора, и применить ее (с помощью \code{APPLY}) к списку из обработчика и
+оставшейся части выражения.
+
+\begin{lstlisting}
+(defun process-special-form (processor form)
+  (apply (get (car form) 'html-special-operator) processor (rest form)))
+\end{lstlisting}
+
+Теперь вы готовы к тому, чтобы определить пять оставшихся специальных операторов FOO.
+Похожим на \code{:noescape} является \code{:attribute}, который вычисляет заданные
+выражения с переменной \code{*escapes*} равной \code{*attribute-escapes*}.  Этот
+специальный оператор полезен, если вы хотите написать вспомогательную функцию, которая
+будет выдавать значения атрибутов.  Если вы напишите вот такую вот функцию:
+
+\begin{lstlisting}
+(defun foo-value (something)
+  (html (:print (frob something))))
+\end{lstlisting}
+
+то макрос\code{html} сгенерирует код, который выполнит маскирование символов, указанных в
+\code{*element-escapes*}.  Но если вы планируете использовать \code{foo-value} следующим
+образом:
+
+\begin{lstlisting}
+(html (:p :style (foo-value 42) "Foo"))
+\end{lstlisting}
+
+то вы захотите, чтобы генерировался код, который бы использовал данные из переменной uses
+\code{*attribute-escapes*}.  Так что вместо этого, вы можете написать нечто
+подобное:\footnote{\code{:noescape} и \code{:attribute} должны быть определены как
+  специальные операторы, поскольку FOO определяет список маскируемых символов во время
+  компиляции, а не во время выполнения.  Это позволяет FOO выполнять маскирование строк во
+  время компиляции, что более эффективно по сравнению с проверкой всего вывода во время
+  выполнения.}
+
+\begin{lstlisting}
+(defun foo-value (something)
+  (html (:attribute (:print (frob something)))))
+\end{lstlisting}
+
+Определение \code{:attribute} выглядит следующим образом:
+
+\begin{lstlisting}
+(define-html-special-operator :attribute (processor &rest body)
+  (let ((*escapes* *attribute-escapes*))
+    (loop for exp in body do (process processor exp))))
+\end{lstlisting}
+
+Два других специальных оператора~--- \code{:print} и \code{:format}, используются для
+вывода значений.  Специальный оператор \code{:print}, как обсуждалось ранее, используется
+в скомпилированных программах на FOO для вставки значения произвольного выражения Lisp.
+Специальный оператор \code{:format} соответствует операции генерации строки с помощью
+выражения \code{(format nil ...)} и последующей вставки этой строки в вывод.  Основной
+причиной определения \code{:format} как специального оператора является удобство.  Так:
+
+\begin{lstlisting}
+(:format "Foo: ~d" x)
+\end{lstlisting}
+
+лучше выглядит чем:
+
+\begin{lstlisting}
+(:print (format nil "Foo: ~d" x))
+\end{lstlisting}
+
+Есть также небольшое преимущество если вы используете \code{:format} с само-вычисляемыми
+аргументами FIXME self-evaluating, то FOO может вычислить \code{:format} во время
+компиляции, а не ждать выполнения программы.  Определения для \code{:print} и
+\code{:format} выглядят вот так:
+
+\begin{lstlisting}
+(define-html-special-operator :print (processor form)
+  (cond
+    ((self-evaluating-p form)
+     (warn "Redundant :print of self-evaluating form ~s" form)
+     (process-sexp-html processor form))
+    (t
+     (embed-value processor form))))
+
+(define-html-special-operator :format (processor &rest args)
+  (if (every #'self-evaluating-p args)
+    (process-sexp-html processor (apply #'format nil args))
+    (embed-value processor `(format nil ,@args))))
+\end{lstlisting}
+
+Специальный оператор \code{:newline} приводит к выводу знака новой строки, что иногда удобно.
+
+\begin{lstlisting}
+(define-html-special-operator :newline (processor)
+  (newline processor))
+\end{lstlisting}
+
+В заключение, специальный оператор \code{:progn} аналогичен специальному оператору
+\code{PROGN} в Common Lisp.  Он просто последовательно обрабатывает выражения внутри
+своего тела.
+
+\begin{lstlisting}
+(define-html-special-operator :progn (processor &rest body)
+  (loop for exp in body do (process processor exp)))
+\end{lstlisting}
+
+Другими словами, следующий код:
+
+\begin{lstlisting}
+(html (:p (:progn "Foo " (:i "bar") " baz")))
+\end{lstlisting}
+
+сгенерирует тот же код, что и:
+
+\begin{lstlisting}
+(html (:p "Foo " (:i "bar") " baz"))
+\end{lstlisting}
+
+Это может быть показаться странным, поскольку обычное выражение FOO может иметь любое
+количество выражений внутри своего тела.  Однако специальный оператор удобен в одной
+ситуации~--- при написании макросов FOO, что приводит нас к последней возможности языка,
+которую нам надо реализовать.
+
+\section{Макросы FOO}
+
+Макросы FOO аналогичны по духу макросам Common Lisp.  Макрос FOO является отрывком кода,
+который принимает в качестве аргумента выражение на FOO, и возвращает в качестве
+результата новое выражение на FOO, которое затем вычисляется в соответствии со
+стандартными правилами вычисления выражений на FOO.  Реализация очень похожа на реализацию
+специальных операторов.
+
+Также как и для специальных операторов вы можете определить функцию-предикат, которая
+будет проверять~--- является ли заданное выражение макросом.
+
+\begin{lstlisting}
+(defun macro-form-p (form)
+  (cons-form-p form #'(lambda (x) (and (symbolp x) (get x 'html-macro)))))
+\end{lstlisting}
+
+Тут мы используем функцию \code{cons-form-p}, определенную выше, поскольку мы хотим
+позволить использовать любой синтаксис FOO выражений.  Однако, вам нужно передать другую
+функцию-предикат, которая будет проверять~--- является ли имя выражения символом с
+не-\code{NIL} свойством \code{html-macro}.  Также, как и при реализации специальных
+операторов, мы определим макрос для определения макросов FOO, которая будет отвечать за
+сохранение функции в списке свойств символа с именем макроса (имя свойства будет равно
+\code{html-macro}).  Однако, определение макроса немного более сложное, поскольку FOO
+поддерживает использование двух видов макросов. Некоторые из макросов, которые вы будете
+определять будут вести себя как обычные элементы HTML, и вам может понадобиться упрощенный
+доступ к списку аттрибутов.  Другие макросы будут требовать упрощенного доступа к
+элементам их тела.
+
+Вы можете сделать различие между двумя видами макросов неявным: когда вы определяете
+макрос FOO, то список параметров может включать параметр \lstinline!&attributes!.  Если он
+будет указан, то макро-выражение будет рассматриваться как обычное выражение-ячейка, и
+макро-функция будет получать два значения~--- список свойств-аттрибутов, и список выражений
+из которых состоит тело выражения.  Макро-выражение без параметра \lstinline!&attributes!
+будет разбираться как не имеющее аттрибутов, и макро-функция будет принимать один параметр
+-- список, содержащий выражения составляющие тело макроса.  Первый вид полезен для
+шаблонов HTML. Например:
+
+\begin{lstlisting}
+(define-html-macro :mytag (&attributes attrs &body body)
+  `((:div :class "mytag" ,@attrs) ,@body))
+\end{lstlisting}
+
+\begin{verbatim}
+HTML> (html (:mytag "Foo"))
+<div class='mytag'>Foo</div>
+NIL
+HTML> (html (:mytag :id "bar" "Foo"))
+<div class='mytag' id='bar'>Foo</div>
+NIL
+HTML> (html ((:mytag :id "bar") "Foo"))
+<div class='mytag' id='bar'>Foo</div>
+NIL
+\end{verbatim}
+
+Последний вид макросов более полезен для написания макросов, которые манипулируют
+выражениями, составляющими их тело.  Этот тип макросов может работать как управляющие
+конструкции HTML. В качестве простого примера рассмотрим следующий макрос, который
+реализует конструкцию \code{:if}:
+
+\begin{lstlisting}
+(define-html-macro :if (test then else)
+  `(if ,test (html ,then) (html ,else)))
+\end{lstlisting}
+
+Этот макрос позволит вам писать так:
+
+\begin{lstlisting}
+(:p (:if (zerop (random 2)) "Heads" "Tails"))
+\end{lstlisting}
+
+вместо такой, более многословной версии:
+
+\begin{lstlisting}
+(:p (if (zerop (random 2)) (html "Heads") (html "Tails")))
+\end{lstlisting}
+
+Для того, чтобы определить какой тип макроса вы должны генерировать, вам необходима
+функция, которая выполнит разбор списка параметров, переданных \code{define-html-macro}.
+Эта функция возвращает два значения: имя параметра \lstinline!&attributes!, или
+\code{NIL}, если он не указан, и список всех элементов \code{args} оставшихся после
+удаления маркера \lstinline!&attributes! и последующих элементов
+списка.\footnote{Заметьте, что \lstinline!&attributes! это лишь обычный символ, нет ничего
+  специального в символах, чьи имена начинаются с \lstinline!&!.}
+
+\begin{lstlisting}
+(defun parse-html-macro-lambda-list (args)
+  (let ((attr-cons (member '&attributes args)))
+    (values 
+     (cadr attr-cons)
+     (nconc (ldiff args attr-cons) (cddr attr-cons)))))
+\end{lstlisting}
+
+\begin{lstlisting}
+HTML> (parse-html-macro-lambda-list '(a b c))
+NIL
+(A B C)
+HTML> (parse-html-macro-lambda-list '(&attributes attrs a b c))
+ATTRS
+(A B C)
+HTML> (parse-html-macro-lambda-list '(a b c &attributes attrs))
+ATTRS
+(A B C)
+\end{lstlisting}
+
+Элемент, следующий за \lstinline!&attributes! в списке параметров, также может быть
+списком параметров.
+
+\begin{lstlisting}
+HTML> (parse-html-macro-lambda-list '(&attributes (&key x y) a b c))
+(&KEY X Y)
+(A B C)
+\end{lstlisting}
+
+Теперь у вас все готово для написания \code{define-html-macro}.  В зависимости от того,
+были ли указан параметр \lstinline!&attributes! вам нужно сгенерировать один или другой из
+видов HTML макросов, так что главный макрос просто определяет что он должен генерировать,
+и затем вызывает вспомогательную функцию, которая будет генерировать нужный код.
+
+\begin{lstlisting}
+(defmacro define-html-macro (name (&rest args) &body body)
+  (multiple-value-bind (attribute-var args)
+      (parse-html-macro-lambda-list args)
+    (if attribute-var
+      (generate-macro-with-attributes name attribute-var args body)
+      (generate-macro-no-attributes name args body))))
+\end{lstlisting}
+
+Функции, которые генерируют соответствующий код выглядят вот так:
+
+\begin{lstlisting}
+(defun generate-macro-with-attributes (name attribute-args args body)
+  (with-gensyms (attributes form-body)
+    (if (symbolp attribute-args) (setf attribute-args `(&rest ,attribute-args)))
+    `(eval-when (:compile-toplevel :load-toplevel :execute)
+       (setf (get ',name 'html-macro-wants-attributes) t)
+       (setf (get ',name 'html-macro) 
+             (lambda (,attributes ,form-body)
+               (destructuring-bind (,@attribute-args) ,attributes
+                 (destructuring-bind (,@args) ,form-body
+                   ,@body)))))))
+
+(defun generate-macro-no-attributes (name args body)
+  (with-gensyms (form-body)
+    `(eval-when (:compile-toplevel :load-toplevel :execute)
+       (setf (get ',name 'html-macro-wants-attributes) nil)
+       (setf (get ',name 'html-macro)
+             (lambda (,form-body)
+               (destructuring-bind (,@args) ,form-body ,@body)))))
+\end{lstlisting}
+
+Функции, которые вы определите, принимают либо один, либо два аргумента, и затем
+используют \code{DESTRUCTURING-BIND} для их разделения, и связывания их с параметрами,
+определенными в вызове к \code{define-html-macro}.  В обоих раскрытиях выражений вам
+необходимо сохранить макро-функции в списке свойств символа, используя имя свойства равное
+\code{html-macro}, а также логическое значение, указывающее на то, принимает ли макрос
+параметр \lstinline!&attributes!, в свойстве \code{html-macro-wants-attributes}.  Вы
+используете это свойство в следующей функции, \code{expand-macro-form}, для того, чтобы
+определить как макро-функция должна быть запущена:
+
+\begin{lstlisting}
+(defun expand-macro-form (form)
+  (if (or (consp (first form))
+          (get (first form) 'html-macro-wants-attributes))
+    (multiple-value-bind (tag attributes body) (parse-cons-form form)
+      (funcall (get tag 'html-macro) attributes body))
+    (destructuring-bind (tag &body body) form
+      (funcall (get tag 'html-macro) body))))
+\end{lstlisting}
+
+Нам надо сделать последний шаг для интеграции макросов в наш язык путем добавления
+соответствующей ветки в \code{COND} в функции \code{process}.
+
+\begin{lstlisting}
+(defun process (processor form)
+  (cond
+    ((special-form-p form) (process-special-form processor form))
+    ((macro-form-p form)   (process processor (expand-macro-form form)))
+    ((sexp-html-p form)    (process-sexp-html processor form))
+    ((consp form)          (embed-code processor form))
+    (t                     (embed-value processor form))))
+\end{lstlisting}
+
+Это окончательная версия \code{process}.
+
+\section{Публичный интерфейс разработчика (API)}
+
+Теперь вы готовы к реализации макроса \code{html}~--- основной точке входа компилятора
+FOO. Другими частями публичного интерфейса разработчика являются \code{emit-html} и
+\code{with-html-output}, которые мы обсуждали в предыдущей главе, и
+\code{define-html-macro}, которую мы обсуждали в предыдущем разделе. Макрос
+\code{define-html-macro} должен быть частью интерфейса разработчика, поскольку
+пользователи FOO захотят писать свои собственные макросы. С другой стороны,
+\code{define-html-special-operator} не является частью интерфейса, поскольку он требует
+слишком глубоко знания внутреннего устройства FOO для определения нового специального
+оператора. И должно быть очень мало вещей которые не смогут быть сделаны при наличии
+существующих возможностей языка и специальных операторов.\footnote{Одним из элементов,
+  который в настоящее время не доступен через специальный оператор~--- это расстановка
+  отступов.  Если вы захотите сделать FOO более гибким, хотя и ценой того, что его
+  интерфейс разработчика будет более сложным, вы можете добавить специальный оператор,
+  который будет управлять расстановкой отступов.  Но кажется, что цена того, что
+  потребуется объяснять наличие дополнительных операторов, будет перевешивать относительно
+  небольшое преимущество в выразительности.}
+
+Последним элементом публичного интерфейса, который мы рассмотрим до \code{html}, является
+еще один макрос~--- \code{in-html-style}.  Этот макрос контролирует то, должен ли FOO
+генерировать XHTML или простой HTML путем установки переменной \code{*xhtml*}.  Причиной
+того, что вам нужен макрос, является то, что вы можете захотеть обернуть код, который
+устанавливает \code{*xhtml*} в \code{EVAL-WHEN}, так что вы можете установить его в файл,
+и это будет влиять на поведение макроса \code{html} находящегося в том же файле.
+
+\begin{lstlisting}
+(defmacro in-html-style (syntax)
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    (case syntax
+      (:html (setf *xhtml* nil))
+      (:xhtml (setf *xhtml* t)))))
+\end{lstlisting}
+
+И в заключение, давайте рассмотрим \code{html}.  Единственная нестандартность в реализации
+\code{html} возникает из необходимости генерировать код, который будет использоваться для
+генерации и компактного, и "красивого" FIXME pretty вывода, в зависимости от значения
+переменной \code{*pretty*} во время выполнения.  Таким образом в \code{html} требуется
+генерировать раскрытие, которое будет содержать выражение \code{IF}и две версии кода~---
+одну скомпилированную с \code{*pretty*} равным истине, и одну~--- для значения переменной
+равной \code{NIL}.  Также составляет сложность то, что достаточно часто один вызов
+\code{html} содержит вложенные вызовы \code{html}, например вот так:
+
+\begin{lstlisting}
+(html (:ul (dolist (item stuff)) (html (:li item))))
+\end{lstlisting}
+
+Если внешний вызов \code{html} раскрывается в выражение \code{IF} с двумя версиями кода,
+одним для случая, когда переменная \code{*pretty*} имеет истинное значение, и вторым,
+когда она имеет ложное, то будет глупо, если вложенные выражения \code{html} также будут
+раскрываться в две версии.  В действительности это будет вести к экспоненциальному росту
+кода, поскольку вложенные \code{html} уже будут раскрыты дважды~--- один раз для ветви
+\code{*pretty*-is-true}, и один раз для ветви \code{*pretty*-is-false}.  Если каждое из
+раскрытий сгенерирует две версии, то вы будете иметь 4 версии кода.  А если вложенное
+выражение \code{html} содержит еще одно вложенное выражение \code{html}, то вы получите
+восемь версий.  Если компилятор достаточно умен, то он может распознать, что большая часть
+кода не будет использована, и удалит ее, но распознание таких ситуаций займет достаточно
+большое время, замедляя компиляцию любой функции, которая использует вложенные вызовы
+\code{html}.
+
+К счастью вы можете легко избежать это разрастание ненужного кода путем генерации
+раскрытия, которое локально переопределяет макрос \code{html} используя \code{MACROLET},
+для того, чтобы генерировать только нужный вид кода.  Сначала вы определяете
+вспомогательную функцию, которая получает вектор кодов операций, возвращаемы
+\code{sexp->ops} и прогоняет его через функции \code{optimize-static-output} и
+\code{generate-code} (две стадии, на которые влияет значение переменной \code{*pretty*}) с
+переменной \code{*pretty*} установленной в нужное значение, и затем собирает
+результирующий код в \code{PROGN}. (\code{PROGN} возвращает \code{NIL} лишь для унификации
+результатов.).
+
+\begin{lstlisting}
+(defun codegen-html (ops pretty)
+  (let ((*pretty* pretty))
+    `(progn ,@(generate-code (optimize-static-output ops)) nil)))
+\end{lstlisting}
+
+Используя эту функцию, вы можете определить \code{html} следующим образом:
+
+\begin{lstlisting}
+(defmacro html (&whole whole &body body)
+  (declare (ignore body))
+  `(if *pretty*
+     (macrolet ((html (&body body) (codegen-html (sexp->ops body) t)))
+       (let ((*html-pretty-printer* (get-pretty-printer))) ,whole))
+     (macrolet ((html (&body body) (codegen-html (sexp->ops body) nil)))
+       ,whole)))
+\end{lstlisting}
+
+Параметр \lstinline!&whole! представляет оригинальное выражение \code{html}, и поскольку
+он интерполируется в раскрытие в теле двух \code{MACROLET}, то он будет обрабатываться с
+каждым из определений \code{html}~--- для кода, выдающий "красивый" и обычный результат.
+Заметьте, что переменная \code{*pretty*} используется и при раскрытии макроса и при
+выполнении сгенерированного кода.  Она используется при раскрытии макроса в
+\code{codegen-html} для того, чтобы заставить \code{generate-code} генерировать нужный вид
+кода.  И она используется во время выполнения в выражении \code{IF} сгенерированном
+макросом \code{html} самого верхнего уровня, для того, чтобы определить, какая из ветвей
+-- \code{pretty-printing} и \code{non-pretty-printing} будет выполнена.
+
+\section{Завершение работы}
+
+Как обычно, вы можете продолжить работу над этим кодом для расширения его
+функциональности.  Одной из интересных задач может быть использование системы генерации
+вывода для создания других видов выходных данных.  В реализации FOO, которую вы можете
+скачать с сайта посвященного книге, вы можете найти код, который реализует вывод CSS,
+который может быть интегрирован в HTML, и в компиляторе и в интерпретаторе.  Это
+интересный случай, поскольку синтаксис CSS не может быть также просто отображен в
+s-выражения, как это можно сделать для HTML.  Однако, если вы посмотрите в этот код, то вы
+увидите, что все равно возможно определить синтаксис, основанный на s-выражениях, для
+представления разных конструкций, доступных в CSS.
+
+Более амбициозной задачей будет добавление поддержки генерации JavaScript.  При правильном
+подходе, добавление поддержки JavaScript в FOO может привести к двум большим победам.  Во
+первых, если вы определите синтаксис, основанный на s-выражениях, так что вы сможете
+отобразить его на синтаксис JavaScript, то вы сможете начать писать макросы (на Common
+Lisp) для добавления новых конструкций к языку, который вы используете для написания кода,
+исполняемого на стороне пользователя, который затем будет компилироваться в JavaScript. Во
+вторых, при переводе s-выражений FOO с поддержкой JavaScript в обычный JavaScript, вы
+можете столкнуться небольшими, но раздражающими различиями в реализации JavaScript в
+разных браузерах.  Так что код JavaScript генерируемый FOO либо может содержать
+соответствующие условия для выполнения одних операций в одном браузере, и других в другом
+браузере, либо может генерировать разный код в зависимости то того, какой браузер вы
+хотите поддерживать.  Так что, если вы используете FOO в динамически генерируемых
+страницах, то вы можете использовать информацию из заголовка \code{User-Agent}, заставляя
+функцию \code{request} генерировать правильный код JavaScript для конкретного браузера.
+
+Но если это вас интересует, то вы можете это реализовать сами, поскольку это конец
+последней практической главы данной книги.  В следующей главе я подведу итоги, сделаю
+короткий обзор некоторых тем, которые я не затрагивал в этой книги, такие как искать
+библиотеки, как оптимизовывать код на Common Lisp, и как распространять приложения на
+Lisp.
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "pcl-ru"
+%%% TeX-open-quote: "<<"
+%%% TeX-close-quote: ">>"
+%%% End: 

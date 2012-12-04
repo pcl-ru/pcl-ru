@@ -1,0 +1,944 @@
+\chapter{Практика: Библиотека для генерации HTML. Интерпретатор.}
+\label{ch:30}
+
+В этой и следующей главе вы загляните под капот FOO~--- генератора HTML, который вы
+использовали в нескольких предыдущих главах. FOO является примером подхода к
+программированию, вполне обычного для Common Lisp, но сравнительно редкого для не-Lisp
+языков, а именно~--- языкоориентированного программирования. Вместо того чтобы определять
+API, базирующиеся преимущественно на функциях, классах и макросах, FOO реализует
+обработчики для DSL\footnote{Domain specific language~--- предметно-ориентированный язык
+  программирования, мини-язык созданный специально для некоторых задач.
+  \textit{прим. переводчика}}, которые вы можете встроить в ваши программы на Common Lisp.
+
+FOO предоставляет два языковых обработчика для одного и того же языка
+s-выражений. Первый~--- это интерпретатор, который получает программу на "FOO" в качестве
+входных данных и интерпретирует ее, формируя HTML. Второй~--- это компилятор, который
+компилирует выражения FOO (возможно со вставками на Common Lisp) в выражения Common Lisp,
+которые генерируют HTML и запускает внедренный код. Интерпретатор представлен функцией
+\code{emit-html}, а компилятор~--- макросом \code{html}, который вы использовали в
+предыдущих главах.
+
+В этой главе мы рассмотрим составные части инфраструктуры, разделяемые интерпретатором и
+компилятором, а также реализацию интерпретатора. В следующей главе я покажу вам, как
+работает компилятор.
+
+\section{Проектирование языка специального назначения}
+
+Проектирование встраиваемого языка выполняется в два этапа: первый~--- это проектирование
+языка, который позволит вам выразить желаемые вещи, а второй~--- реализация обработчика,
+или обработчиков, которые принимают "программу" на этом языке и либо выполняют действия,
+указанные программой, либо переводят программу в код на Common Lisp, который выполнит
+эквивалентные действия.
+
+Итак, первым этапом является проектирование языка для формирования HTML. Ключом к
+проектированию хорошего языка специального назначения является нахождение верного баланса
+между выразительностью и краткостью. Например, очень выразительный, но не достаточно
+краткий "язык" для формирования HTML~--- это язык литеральных строк HTML. Разрешенными
+"формами" этого языка являются строки, содержащие литералы HTML.  Языковые процессоры для
+этого "языка" могут обрабатывать такие формы путем их вывода без изменений.
+
+\begin{lstlisting}
+(defvar *html-output* *standard-output*)
+
+(defun emit-html (html)
+  "Интерпретатор для языка HTML."
+  (write-sequence html *html-output*))
+
+(defmacro html (html)
+  "Компилятор для языка HTML."
+  `(write-sequence ,html *html-output*))
+\end{lstlisting}
+
+Этот "язык" очень выразительный, поскольку он может сформировать любой HTML, который вы
+захотите сгенерировать.\footnote{Фактически, он, наверное, слишком выразителен, так как он
+  может также генерировать все виды выходных данных, а не только разрешенные
+  HTML. Конечно, это может быть фичей если вам нужно генерировать HTML который не является
+  абсолютно корректным, для совместимости с легкими Web-браузерами. Кроме того, это
+  обычная практика для обработчиков языков принимать программы, которые синтаксически
+  корректны, но с другой стороны понятно, что это вызовет неопределенное поведение при
+  выполнении.} С другой стороны, этот язык не является настолько кратким, насколько
+хотелось бы, потому что он дает вам нулевую компрессию~--- его выход FIXME
+(совпадает|равняется|еквивалентен) входу.
+
+Для проектирования языка, дающего вам некоторое полезное сжатие без ощутимих жертв
+выразительностью, вам необходимо определить детали вывода, которые являются лишними или не
+представляют интереса. Вы можете сделать эти аспекты вывода неявными в семантике языка.
+
+Например, согласно структуре HTML, каждый открывающий тэг имеет соответствующую пару в
+виде закрывающего тэга.\footnote{Хорошо, почти каждый тэг. Определенные тэги, такие как
+  \code{IMG} и \code{BR} не имеют закрывающих тегов.  Вы встретитесь с ними в разделе
+  "Базовое правило вычисления".} Когда вы формируете HTML вручную, то вам необходимо
+писать эти закрывающие тэги но вы можете улучшить краткость вашего языка формирующего HTML
+путем неявного включения закрывающего тэга.
+
+Другой способ, который поможет вам выиграть в краткости, не сильно влияя на
+выразительность, это возложить на обработчики языка ответственность за добавление
+необходимых разделителей между элементами - пустых строк и отступов. Когда вы генерируете
+HTML программно, то вы обычно не сильно заботитесь о том, какие элементы должны
+обрамляться переводами строк или о том, должны ли элементы быть выровнены относительно
+своих родительских элементов. Вам не придется беспокоиться о разделителях, если дать
+возможность обработчику языка самому вставлять их согласно некоторым правилам. Заметим
+здесь, что FOO в действительности поддерживает два режима~--- один, использующий
+минимальное количество разделителей, который позволяет генерировать очень эффективный код
+и компактный HTML, и другой, генерирующий аккуратный форматированный HTML с различными
+элементами, которые выровнены и отделены друг от друга согласно своих ролей.
+
+Самая важная деталь, которую необходимо поместить в языковой обработчик~--- это
+экранирование определенных знаков, которые имеют специальное значение в HTML, таких как
+\code{<}, \code{>}, \lstinline!&!. Очевидно, что если вы генерируете HTML просто печатая
+строки в поток, то вы отвечаете за замену всех вхождений этих знаков на соответствующую
+экранирующую последовательность \lstinline!&lt;!, \lstinline!&gt!; и \lstinline!&amp;!. Но
+если обработчик языка знает, какие строки будут формироваться как данные элемента, тогда
+он может позаботиться об автоматическом экранировании этих знаков за вас.
+
+\section{Язык FOO}
+
+Итак, хватит теории. Я дам быстрый обзор языка, реализуемого FOO и затем вы посмотрите на
+реализацию двух его обработчиков~--- интерпретатора, который описан в этой главе и
+компилятора, который описан в следующей.
+
+Подобно самому Lisp, базовый синтаксис языка FOO определен в терминах выражений, созданных
+из Lisp объектов. Язык определяет то, как каждое выражение FOO переводится в HTML.
+
+Самые простые выражения FOO~--- это FIXME само-вычисляющиеся Lisp объекты, такие как
+строки, числа и ключевые символы.\footnote{По строгому (strict) стандарту языка Common
+  Lisp, ключевые символы не FIXME само-вычисляющиеся, хотя, фактически, они делают
+  вычисление в самих себя. Смотри раздел 3.1.2.1.3 стандарта языка или HyperSpec для
+  подробностей.} Вам понадобится функция \code{self-evaluating-p}, которая проверяет
+является ли данный объект FIXME само-вычисляющимся для целей FOO.
+
+\begin{lstlisting}
+(defun self-evaluating-p (form)
+  (and (atom form) (if (symbolp form) (keywordp form) t)))
+\end{lstlisting}
+
+Объекты, которые удовлетворяют этому предикату будут выведены путем формирования из них
+строк с помощью \code{PRINC-TO-STRING} и затем экранирования всех зарезервированных
+знаков, таких как \code{<}, \code{>}, или \lstinline!&!. При формировании атрибутов знаки
+\lstinline!"!, и \lstinline!'! также экранируются. Таким образом, вы можете применить
+макрос \code{html} к FIXME само-вычисляющемуся объекту для вывода его в
+\code{*html-output*} (которая изначально связанная с
+\code{*STANDARD-OUTPUT*}). Таблица~\ref{table:30-1} 30-1 показывает как несколько
+различных само-вычисляющихся значений будут выведены.
+
+\begin{figure}[tb]
+\begin{tabular}{|>{\centering}m{25mm}|>{\centering}m{25mm}|}
+  FOO Form &	Generated HTML \\
+  \lstinline!"foo"! &\lstinline!foo! \\
+  \lstinline!10! & \lstinline!10! \\
+  \lstinline!:foo! & \lstinline!FOO! \\
+  \lstinline!"foo & bar"! & \lstinline!foo &amp; bar!
+\end{tabular}
+  \caption{Выход FOO для FIXME само-вычисляющихся объектов} 
+  \label{table:30-1}
+\end{figure}
+
+Конечно, большая часть HTML состоит из элементов в тэгах. Каждый такой элемент имеет три
+составляющие: тэг, множество атрибутов, и тело, содержащее текст и/или другие HTML
+элементы. Поэтому вам нужен способ представлять эти три составляющие в виде Lisp объектов,
+желательно таких, которые понимает считываетель Lisp.\footnote{Требование использовать
+  объекты, которые умеет интерпретировать считываетель Lisp не является жёстким. Так как
+  считыватель Lisp сам по себе настраиваемый, вы можете также определить новый синтаксис
+  на уровне считывателя для нового вида объекта. Но в таком подход принесет больше
+  проблем, чем пользы.} Если на время забыть об атрибутах, можно заметить, что существует
+очевидное соответствие между списками Lisp и элементами HTML: каждый HTML элемент может
+быть представлен как список, чей первый элемент (\code{FIRST})~--- это символ, имя которого
+это название тэга элемента, а остальные (\code{REST})~--- это список FIXME
+само-вычисляющихся объектов или списков, представляющих другие HTML элементы. Тогда:
+
+\begin{verbatim}
+  <p>Foo</p> <==> (:p "Foo")
+
+  <p><i>Now</i> is the time</p> <==> (:p (:i "Now") " is the time")
+\end{verbatim}
+
+Теперь остается придумать, как повысить краткость записи атрибутов. Так как у многих
+элементов нет атрибутов, было бы здорово иметь возможность использовать для них упомянутый
+выше синтаксис. FOO предоставят два способа нотации элементов с атрибутами. Первое, что
+приходит в голову, это просто включать атрибуты в список сразу же за символом, чередуя
+ключевые символы, именующие атрибуты, и объекты, представляющие значения атрибутов. Тело
+элемента начинается с первого объекта в списке, который находится в позиции имени атрибута
+и не является ключевым символом. Таким образом:
+
+\begin{verbatim}
+  HTML> (html (:p "foo"))
+  <p>foo</p>
+  NIL
+  HTML> (html (:p "foo " (:i "bar") " baz"))
+  <p>foo <i>bar</i> baz</p>
+  NIL
+  HTML> (html (:p :style "foo" "Foo"))
+  <p style='foo'>Foo</p>
+  NIL
+  HTML> (html (:p :id "x" :style "foo" "Foo"))
+  <p id='x' style='foo'>Foo</p>
+  NIL
+\end{verbatim}
+
+Для тех, кто предпочитает более очевидное разграничение между телом элемента и его
+атрибутами, FOO поддерживает альтернативный синтаксис: если первый элемент списка сам
+является списком с ключевым словом в качестве первого элемента, тогда внешний список
+представляет элемент HTML с этим ключевым словом в качестве тэга, с остатком (\code{REST})
+вложенного списка в качестве атрибутов и с остатком (\code{REST}) внешнего списка в
+качестве тела. То есть вы можете написать два предыдущих выражения вот так:
+
+\begin{verbatim}
+  HTML> (html ((:p :style "foo") "Foo"))
+  <p style='foo'>Foo</p>
+  NIL
+  HTML> (html ((:p :id "x" :style "foo") "Foo"))
+  <p id='x' style='foo'>Foo</p>
+  NIL
+\end{verbatim}
+
+Следующая функция проверяет, соответствует ли данный объект одному из этих синтаксисов:
+
+\begin{lstlisting}
+(defun cons-form-p (form &optional (test #'keywordp))
+  (and (consp form)
+       (or (funcall test (car form))
+           (and (consp (car form)) (funcall test (caar form))))))
+\end{lstlisting}
+
+Функцию \code{test} следует сделать параметром, потому что позже вам потребуется проверять
+те же самые два синтаксиса с немного отличающимся именем предиката.
+
+Чтобы полностью абстрагироваться от различий между двумя вариантами синтаксиса, вы можете
+определить функцию \code{parse-cons-form}, которая принимает форму и разбивает ее на три
+элемента: тэг, список свойств атрибутов и список тела, возвращая их как множественные
+значения (multiple values). Код, который непосредственно вычисляет формы, будет
+использовать эту функцию, и ему не придется беспокоиться о том, какой синтаксис был
+использован.
+
+\begin{lstlisting}
+(defun parse-cons-form (sexp)
+  (if (consp (first sexp))
+    (parse-explicit-attributes-sexp sexp)
+    (parse-implicit-attributes-sexp sexp)))
+
+(defun parse-explicit-attributes-sexp (sexp)
+  (destructuring-bind ((tag &rest attributes) &body body) sexp
+    (values tag attributes body)))
+
+(defun parse-implicit-attributes-sexp (sexp)
+  (loop with tag = (first sexp)
+     for rest on (rest sexp) by #'cddr
+     while (and (keywordp (first rest)) (second rest))
+     when (second rest)
+       collect (first rest) into attributes and
+       collect (second rest) into attributes
+     end
+     finally (return (values tag attributes rest))))
+\end{lstlisting}
+
+Теперь, когда у вас есть базовая спецификация языка, вы можете подумать о том, как вы
+собираетесь реализовать обработчики языка. Как вы получите желаемый HTML из
+последовательности выражений FOO? Как я упоминал ранее, вы реализуете два языковых
+обработчика для FOO: интерпретатор, который проходит по дереву выражений FOO и формирует
+соответствующий HTML непосредственно, и компилятор, который проходит по дереву выражений и
+транслирует его в Common Lisp код, который будет формировать такой же HTML. И
+интерпретатор и компилятор будут построены поверх общего фундамента кода, предоставляющего
+поддержку для таких вещей, как экранирование зарезервированных знаков и формирование
+аккуратного, выровненного вывода, так что с этого мы и начнем.
+
+\section{Экранирование знаков}
+
+Базой, которую вам необходимо заложить, будет код, который знает, как экранировать знаки
+специального назначения в HTML. Существует три таких знака, и они не должны появляться в
+тексте элемента или в значении атрибута; вот они: \code{<}, \code{>} и \lstinline!&!. В
+тексте значения элемента или атрибута эти знаки должны быть заменены на знаки ссылок на
+сущность (character reference entities) \lstinline!&lt;!, \lstinline!&gt;! и
+\lstinline!&amp;!. Также, в значениях атрибутов знаки кавычек, используемые для разделения
+значения, должны быть экранированы, \lstinline!'! в \lstinline!&apos!; и \lstinline!"! в
+\lstinline!&quot;!. Вдобавок, любой знак может быть представлен в виде числовой ссылки на
+символ, состоящей из амперсанда, за которым следует знак "диез" (\lstinline!#!, он же
+sharp), за которым следует числовой код в десятичной системе счисления, за которым следует
+точка с запятой. Эти числовые экранирования иногда используются для формирования не-ASCII
+знаков в HTML.
+
+%TODO: это таблица в тексте
+
+Пакет 
+
+Так как FOO это низкоуровневая библиотека, пакет, в котором вы ее разрабатываете, не
+зависит от внешнего кода, за исключением стандартных имен из пакета \code{COMMON-LISP} и,
+почти стандартных, имен вспомогательных макросов из пакета
+\code{COM.GIGAMONKEYS.MACRO-UTILITIES}. С другой стороны, пакет нуждается в экспорте всех
+имен, необходимых коду, который использует FOO. Вот \code{DEFPACKAGE} из исходных текстов,
+которые вы можете скачать с Web-сайта книги:
+
+\begin{lstlisting}
+(defpackage :com.gigamonkeys.html
+  (:use :common-lisp :com.gigamonkeys.macro-utilities)
+  (:export :with-html-output
+           :in-html-style
+           :define-html-macro
+           :html
+           :emit-html
+           :&attributes))
+\end{lstlisting}
+
+%TODO: конец таблицы
+
+Следующая функция принимает один знак и возвращает строку, которая содержит
+соответствующую данному знаку символьную сущность:
+
+\begin{lstlisting}
+(defun escape-char (char)
+  (case char
+    (#\& "&amp;")
+    (#\< "&lt;")
+    (#\> "&gt;")
+    (#\' "&apos;")
+    (#\" "&quot;")
+    (t (format nil "&#~d;" (char-code char)))))
+\end{lstlisting}
+
+Вы можете использовать эту функцию как основу для функции \code{escape}, которая принимает
+строку и последовательность знаков и возвращает копию первого аргумента, в которой все
+вхождения знаков из второго аргумента, заменены соответствующими символьными сущностями,
+возвращенными функцией \code{escape-char}.
+
+\begin{lstlisting}
+(defun escape (in to-escape)
+  (flet ((needs-escape-p (char) (find char to-escape)))
+    (with-output-to-string (out)
+      (loop for start = 0 then (1+ pos)
+            for pos = (position-if #'needs-escape-p in :start start)
+            do (write-sequence in out :start start :end pos)
+            when pos do (write-sequence (escape-char (char in pos)) out)
+            while pos))))
+\end{lstlisting}
+
+Вы также можете определить два параметра: \code{*element-escapes*}, который содержит
+знаки, которые вам нужно экранировать в данных элемента, и \code{*attribute-escapes*},
+который содержит множество знаков, которые необходимо экранировать в значениях атрибутов.
+
+\begin{lstlisting}
+(defparameter *element-escapes* "<>&")
+(defparameter *attribute-escapes* "<>&\"'")
+\end{lstlisting}
+
+Вот несколько примеров:
+
+\begin{verbatim}
+  HTML> (escape "foo & bar" *element-escapes*)
+  "foo &amp; bar"
+  HTML> (escape "foo & 'bar'" *element-escapes*)
+  "foo &amp; 'bar'"
+  HTML> (escape "foo & 'bar'" *attribute-escapes*)
+  "foo &amp; &apos;bar&apos;"
+\end{verbatim}
+
+Наконец, вам нужна переменная \code{*escapes*}, которая будет связана с множеством знаков,
+которые должны быть экранированы. Изначально она установлена в значение
+\code{*element-escapes*}, но, как вы увидите, при формировании атрибутов, она будет
+установлена в значение \code{*attribute-escapes*}.
+
+\begin{lstlisting}
+(defvar *escapes* *element-escapes*)
+\end{lstlisting}
+
+\section{Вывод отступов}
+
+Для формирования аккуратно выровненного вывода, вы можете определить класс
+\code{indenting-printer}, который является оберткой вокруг потока вывода, и функции,
+которые используют экземпляр этого класса для вывода строк в поток и имеют возможность
+отслеживать начала новых строк. Класс выглядит примерно вот так:
+
+\begin{lstlisting}
+(defclass indenting-printer ()
+  ((out                 :accessor out                 :initarg :out)
+   (beginning-of-line-p :accessor beginning-of-line-p :initform t)
+   (indentation         :accessor indentation         :initform 0)
+   (indenting-p         :accessor indenting-p         :initform t)))
+\end{lstlisting}
+
+Главная функция, работающая с \code{indenting-printer} это \code{emit}, которая принимает
+принтер и строку и выводит строку в поток вывода принтера, отслеживая переходы на новую
+строку, что позволяет ей управлять значением слота \code{beginning-of-line-p}.
+
+\begin{lstlisting}
+(defun emit (ip string)
+  (loop for start = 0 then (1+ pos)
+     for pos = (position #\Newline string :start start)
+     do (emit/no-newlines ip string :start start :end pos)
+     when pos do (emit-newline ip)
+     while pos))
+\end{lstlisting}
+
+Для непосредственного вывода строки она использует функцию \code{emit/no-newlines},
+которая формирует необходимое количество отступов посредством вспомогательной функции
+\code{indent-if-necessary} и затем записывает строку в поток.  Эта функция может также
+быть вызвана из любого другого кода для вывода строки, которая заведомо не содержит
+переводов строк.
+
+\begin{lstlisting}
+(defun emit/no-newlines (ip string &key (start 0) end)
+  (indent-if-necessary ip)
+  (write-sequence string (out ip) :start start :end end)
+  (unless (zerop (- (or end (length string)) start))
+    (setf (beginning-of-line-p ip) nil)))
+\end{lstlisting}
+
+Вспомогательная функция \code{indent-if-necessary} проверяет значения
+\code{beginning-of-line-p} и \code{indenting-p}, чтобы определить, нужно ли выводить
+отступ, и если они оба имеют истинное значение, выводит столько пробелов, сколько
+указывается значением \code{indentation}. Код, использующий \code{indenting-printer},
+может управлять выравниванием, изменяя значения слотов \code{indentation} и
+\code{indenting-p}. Увеличивая или уменьшая значение \code{indentation}, можно изменять
+количество ведущих пробелов, в то время как установка \code{indenting-p} в \code{NIL}
+может временно выключить выравнивание.
+
+\begin{lstlisting}
+(defun indent-if-necessary (ip)
+  (when (and (beginning-of-line-p ip) (indenting-p ip))
+    (loop repeat (indentation ip) do (write-char #\Space (out ip)))
+    (setf (beginning-of-line-p ip) nil)))
+\end{lstlisting}
+
+Последние две функции в API \code{indenting-printer} это \code{emit-newline} и
+\code{emit-freshline}, которые используются для вывода знака новой строки и похожи на
+\lstinline!~\%! и \lstinline!~&! директивы функции \code{FORMAT}. Единственное различие в
+том, что \code{emit-newline} всегда выводит перевод строки, в то время как
+\code{emit-freshline} делает это только тогда, когда \code{beginning-of-line-p}
+установлено в ложное значение. Таким образом, множественные вызовы \code{emit-freshline}
+без промежуточных вызовов \code{emit} не отразятся на количестве пустых линии. Это удобно,
+когда один кусок кода хочет сгенерировать некоторый вывод, который должен заканчиваться
+переводом строки, в то время как другой кусок кода хочет сгенерировать некоторый выход,
+который должен начаться с перевода строки, но вы не хотите избыточных пустых линий между
+двумя частями вывода.
+
+\begin{lstlisting}
+(defun emit-newline (ip)
+  (write-char #\Newline (out ip))
+  (setf (beginning-of-line-p ip) t))
+
+(defun emit-freshline (ip)
+  (unless (beginning-of-line-p ip) (emit-newline ip)))
+\end{lstlisting}
+
+Теперь вы готовы перейти к внутреннему устройству FOO процессора. 
+
+\section{Интерфейс HTML процессора}
+
+Теперь вы готовы к тому, чтобы определить интерфейс, с помощью которого вы будете
+использовать процессор языка FOO для формирования HTML. Вы можете определить этот
+интерфейс как множество обобщенных функций, потому что вам потребуются две реализации –-
+одна, которая непосредственно формирует HTML, и другая, которую макрос \code{html} может
+использовать как список инструкций для выполнения, которые затем могут быть оптимизированы
+и скомпилированы в код, формирующий такой же вывод более эффективно. Я буду называть это
+множество обобщенных функций интерфейсом выходного буфера. Он состоит из следующих восьми
+обобщенных функций:
+
+\begin{lstlisting}
+(defgeneric raw-string (processor string &optional newlines-p))
+
+(defgeneric newline (processor))
+
+(defgeneric freshline (processor))
+
+(defgeneric indent (processor))
+
+(defgeneric unindent (processor))
+
+(defgeneric toggle-indenting (processor))
+
+(defgeneric embed-value (processor value))
+
+(defgeneric embed-code (processor code))
+\end{lstlisting}
+
+В то время как некоторые из этих функций имеют очевидное соответствие функциям
+\code{indenting-printer}, очень важно понять, что эти обобщенные функции определяют
+абстрактные операции, которые используются обработчиками языка FOO и не всегда будут
+реализованы в терминах вызовов функций \code{indenting-printer}.
+
+Возможно, самый легкий способ понять семантику этих абстрактных операций, это взглянуть на
+конкретные реализации специализированных методов в \code{html-pretty-printer}, классе,
+используемом для генерации удобочитаемого HTML.
+
+\section{FIXME backend Внутренняя реализация форматированного вывода}
+
+Вы можете начать реализацию, определив класс с двумя слотами,~--- одним для хранения
+экземпляра \code{indenting-printer} и одним~--- для хранения размера табуляции~---
+количества пробелов, на которое вы хотите увеличить отступ для каждого вложенного уровня
+HTML элементов.
+
+\begin{lstlisting}
+(defclass html-pretty-printer ()
+  ((printer   :accessor printer   :initarg :printer)
+   (tab-width :accessor tab-width :initarg :tab-width :initform 2)))
+\end{lstlisting}
+
+Теперь вы можете реализовать методы, специализированные для \code{html-pretty-printer}, в
+виде 8 обобщенных функций, которые составляют интерфейс выходного буфера.
+
+Обработчики FOO используют функцию \code{raw-string} для вывода строк, которые не
+нуждаются в экранировании знаков, либо потому, что вы действительно хотите вывести
+зарезервированные знаки как есть, либо потому, что все зарезервированные знаки уже были
+экранированы. Обычно \code{raw-string} вызывается для строк, которые не содержат переводов
+строки, таким образом поведение по умолчанию заключается в использовании
+\code{emit/no-newlines} до тех пор, пока клиент не передаст не-\code{NIL} значение в
+качестве аргумента \code{newlines-p}.
+
+\begin{lstlisting}
+(defmethod raw-string ((pp html-pretty-printer) string &optional newlines-p)
+  (if newlines-p
+    (emit (printer pp) string)
+    (emit/no-newlines (printer pp) string)))
+\end{lstlisting}
+
+Функции \code{newline}, \code{freshline}, \code{indent}, \code{unindent} и
+\code{toggle-indenting} реализуют достаточно простые манипуляции нижележащего
+\code{indenting-printer}. Единственная загвоздка заключается в том, что принтер HTML
+формирует аккуратный вывод только когда динамическая переменная \code{*pretty*} имеет
+истинное значение. Когда она равна \code{NIL}, то формируется компактный HTML, без лишних
+пробелов. Поэтому все эти методы, за исключением \code{newline}, проверяют значение
+переменной \code{*pretty*} перед тем, как что-то сделать:\footnote{С другой стороны,
+  применяя более чистый объектно-ориентированный подход, мы могли бы определить два
+  класса, скажем \code{html-pretty-printer} и \code{html-raw-printer}, а затем определить
+  на основе \code{html-raw-printer} холостую реализацию для методов, которые должны делать
+  что-то, только если *pretty* истинно. Однако, в таком случае, после определения всех
+  холостых методов, вы, в конце концов получите большее количество кода, и вскоре вам
+  надоест проверять, создали ли вы экземпляр нужного класса в нужное время. Но, в общем,
+  замена условных выражений полиморфизмом это оптимальная стратегия.}
+
+\begin{lstlisting}
+(defmethod newline ((pp html-pretty-printer))
+  (emit-newline (printer pp)))
+
+(defmethod freshline ((pp html-pretty-printer))
+  (when *pretty* (emit-freshline (printer pp))))
+
+(defmethod indent ((pp html-pretty-printer))
+  (when *pretty* 
+    (incf (indentation (printer pp)) (tab-width pp))))
+
+(defmethod unindent ((pp html-pretty-printer))
+  (when *pretty* 
+    (decf (indentation (printer pp)) (tab-width pp))))
+
+(defmethod toggle-indenting ((pp html-pretty-printer))
+  (when *pretty* 
+    (with-slots (indenting-p) (printer pp)
+      (setf indenting-p (not indenting-p)))))
+\end{lstlisting}
+
+В результате, функции \code{embed-value} и \code{embed-code} используются только
+компилятором FOO: \code{embed-value} используется для генерации кода, который будет
+формировать значение выражений Common Lisp, а \code{embed-code} используется для внедрения
+фрагментов кода для запуска и ее результат исключается FIXME. В интерпретаторе вы не
+можете полностью вычислять внедренный Lisp код, поэтому вызов этих функций всегда будет
+сигнализировать об ошибке.
+
+\begin{lstlisting}
+(defmethod embed-value ((pp html-pretty-printer) value)
+  (error "Can't embed values when  interpreting. Value: ~s" value))
+
+(defmethod embed-code ((pp html-pretty-printer) code)
+  (error "Can't embed code when interpreting. Code: ~s" code))
+\end{lstlisting}
+
+%TODO окно в тексте
+
+Использование Условий. И невинность соблюсти, и капитал приобрести.
+
+>В оригинале – To have your cake and eat it too – известная английская пословица, смысл
+который в том, что нельзя одновременно делать две взаимоисключающие вещи. Почти дословный
+русский аналог – Один пирог два раза не съешь. Видимо автор хотел подчеркнуть гибкость
+механизма условий Common Lisp~--- прим. перев.
+
+Альтернативным подходом является использование \code{EVAL} для вычисления Lisp выражений в
+интерпретаторе. Проблема, связанная с данным подходом заключается в том, что \code{EVAL}
+не имеет доступа к лексическому окружению. Таким образом, не существует способа выполнить
+что-то, подобное следующему:
+
+\begin{lstlisting}
+(let ((x 10)) (emit-html '(:p x)))
+\end{lstlisting}
+
+если \code{х} это лексическая переменная. Символ \code{х}, который передается
+\code{emit-html} во время выполнения, не связан с лексической переменной, названной этим
+же символом. Компилятор Lisp создает ссылки на \code{х} в коде для обращения к переменной,
+но после того, как код скомпилирован, больше нет необходимости в связи между именем
+\code{х} и этой переменной. Это главная причина, по которой когда вы думаете, что
+\code{EVAL}~--- это решение вашей проблемы, вы вероятно ошибаетесь.
+
+Как бы то ни было, если бы \code{х} был динамической переменной, объявленной с помощью
+\code{DEFFVAR} или \code{DEFPARAMETER} (и назван \code{*х*} вместо \code{х}), то
+\code{EVAL} могла бы получить доступ к ее значению.  То есть, в некоторых ситуациях имеет
+смысл позволить интерпретатору FOO использовать \code{EVAL}. Но использовать \code{EVAL}
+всегда~--- это плохая идея. Вы можете взять лучшее из каждого подхода, комбинируя идеи
+использования \code{EVAL} и системы условий.
+
+Сначала определим некоторые классы ошибок, которые вы можете просигнализировать,
+когда\code{embed-value} и \code{embed-code} вызываются в интерпретаторе.
+
+\begin{lstlisting}
+(define-condition embedded-lisp-in-interpreter (error)
+  ((form :initarg :form :reader form)))
+
+(define-condition value-in-interpreter (embedded-lisp-in-interpreter) ()
+  (:report
+   (lambda (c s) 
+     (format s "Can't embed values when interpreting. Value: ~s" (form c)))))
+
+(define-condition code-in-interpreter (embedded-lisp-in-interpreter) ()
+  (:report
+   (lambda (c s) 
+     (format s "Can't embed code when interpreting. Code: ~s" (form c)))))
+\end{lstlisting}
+
+Потом вы можете реализовать \code{embed-value} и \code{embed-code}, используя
+сигнализирование этих ошибок и предоставление перезапуска, который вычислит форму с
+помощью \code{EVAL}.
+
+\begin{lstlisting}
+(defmethod embed-value ((pp html-pretty-printer) value)
+  (restart-case (error 'value-in-interpreter :form value)
+    (evaluate ()
+      :report (lambda (s) (format s "EVAL ~s in null lexical environment." value))
+      (raw-string pp (escape (princ-to-string (eval value)) *escapes*) t))))
+
+(defmethod embed-code ((pp html-pretty-printer) code)
+  (restart-case (error 'code-in-interpreter :form code)
+    (evaluate ()
+      :report (lambda (s) (format s "EVAL ~s in null lexical environment." code))
+      (eval code))))
+\end{lstlisting}
+
+Теперь вы можете делать что-то подобное этому:
+
+\begin{verbatim}
+  HTML> (defvar *x* 10)
+  *X*
+  HTML> (emit-html '(:p *x*))
+\end{verbatim}
+
+и вас выкинет в отладчик с таким сообщением:
+
+\begin{verbatim}
+  Can't embed values when interpreting. Value: *X*
+     [Condition of type VALUE-IN-INTERPRETER]
+
+  Restarts:
+    0: [EVALUATE] EVAL *X* in null lexical environment.
+    1: [ABORT] Abort handling SLIME request.
+    2: [ABORT] Abort entirely from this process.
+\end{verbatim}
+
+Если вы вызовите перезапуск \code{evaluate}, то \code{embed-value} вызовет \code{EVAL
+  *x*}, получит значение \code{10} и сгенерирует следующий HTML:
+
+\begin{verbatim}
+  <p>10</p>
+\end{verbatim}
+
+Для удобства, вы можете предоставить функции перезапуска~--- функции, которые вызывают
+\code{evaluate} перезапуск в определенных ситуациях. Функция \code{evaluate} перезапуска
+безусловно вызывает перезапуск, в то время как \code{eval-dynamic-variables} и
+\code{eval-code} вызывают ее только если форма в условии является динамической переменной
+или потенциальный код.
+
+\begin{lstlisting}
+(defun evaluate (&optional condition)
+  (declare (ignore condition))
+  (invoke-restart 'evaluate))
+
+(defun eval-dynamic-variables (&optional condition)
+  (when (and (symbolp (form condition)) (boundp (form condition)))
+    (evaluate)))
+
+(defun eval-code (&optional condition)
+  (when (consp (form condition))
+    (evaluate)))
+\end{lstlisting}
+
+Теперь вы можете использовать \code{HANDLER-BIND} для установки обработчика для
+автоматического вызова \code{evaluate} перезапуска для вас.
+
+\begin{lstlisting}
+HTML> (handler-bind ((value-in-interpreter #'evaluate)) (emit-html '(:p *x*)))
+<p>10</p>
+T
+\end{lstlisting}
+
+И наконец, вы можете определить макрос, чтобы предоставить более приятный синтаксис для
+связывания обработчиков для двух видов ошибок.
+
+\begin{lstlisting}
+(defmacro with-dynamic-evaluation ((&key values code) &body body)
+  `(handler-bind (
+       ,@(if values `((value-in-interpreter #'evaluate)))
+       ,@(if code `((code-in-interpreter #'evaluate))))
+     ,@body))
+\end{lstlisting}
+
+Этот макрос позволяет вам писать следующим образом: 
+
+\begin{lstlisting}
+HTML> (with-dynamic-evaluation (:values t) (emit-html '(:p *x*)))
+<p>10</p>
+T
+\end{lstlisting}
+
+%TODO: конец таблицы в тексте
+
+\section{Базовое правило вычисления}
+
+Теперь для того, чтобы соединить язык FOO с интерфейсом обработчика, все, что вам нужно,
+это функция, которая принимает объект и обрабатывает его, вызывая подходящие функции
+обработчика для генерации HTML. Например, когда дано простое выражение, наподобие такого:
+
+\begin{verbatim}
+  (:p "Foo")
+\end{verbatim}
+
+эта функция может выполнить эту последовательность вызовов обработчика:
+
+\begin{lstlisting}
+(freshline processor)
+(raw-string processor "<p" nil)
+(raw-string processor ">" nil)
+(raw-string processor "Foo" nil)
+(raw-string processor "</p>" nil)
+(freshline processor)
+\end{lstlisting}
+
+Теперь вы можете определить простую функцию, которая просто проверяет, является данное
+выражение разрешенным выражением FOO, и если это так, передать ее функции
+\code{process-sexp-html} для обработки. В следующей главе вы добавите некоторые расширения
+в эту функцию, чтобы позволить ей обрабатывать макросы и специальные операторы. Но для
+текущих целей она выглядит так:
+
+\begin{lstlisting}
+(defun process (processor form)
+  (if (sexp-html-p form)
+    (process-sexp-html processor form)
+    (error "Malformed FOO form: ~s" form)))
+\end{lstlisting}
+
+Функция \code{sexp-html-p} определяет, является ли данный объект разрешенным выражением
+FOO, само-вычисляющимся выражением или корректно сформатированной ячейкой.
+
+\begin{lstlisting}
+(defun sexp-html-p (form)
+  (or (self-evaluating-p form) (cons-form-p form)))
+\end{lstlisting}
+
+Само-вычисляющиеся выражения обрабатываются просто: преобразуются в строку с помощью
+\code{PRINC-TO-STRING}, а затем экранируются знаки, указанные в переменной
+\code{*escapes*}, которая, как вы помните, изначально связана со значением
+\code{*element-escapes*}. Формы ячеек вы передаете в \code{process-cons-sexp-html}.
+
+\begin{lstlisting}
+(defun process-sexp-html (processor form)
+  (if (self-evaluating-p form)
+    (raw-string processor (escape (princ-to-string form) *escapes*) t)
+    (process-cons-sexp-html processor form)))
+\end{lstlisting}
+
+Функция \code{process-cons-sexp-html} отвечает за вывод открывающего тэга, всех атрибутов,
+тела и закрывающего тэга. Главная трудность здесь в том, что для генерирования аккуратного
+HTML, вам нужно выводить дополнительные линии и регулировать отступы согласно типу
+выводимого элемента. Вы можете разделить все элементы, определенные в HTML, на три
+категории: блок, параграф, и встроенные. Элементы блоки~--- такие как тело и \code{ul}~---
+выводятся с дополнительными линиями (переводами строк) перед и после открывающих и
+закрывающих тэгов, и с содержимым, выровненным по одному уровню. Элементы параграфы~---
+такие как \code{p}, \code{li} и \code{blockquote}~--- выводятся с переводом строки перед
+открывающим тэгом и после закрывающего тэга. Встроенные элементы просто выводятся в
+линию. Три следующих параметра являются списками элементов каждого типа:
+
+\begin{lstlisting}
+(defparameter *block-elements*
+  '(:body :colgroup :dl :fieldset :form :head :html :map :noscript :object
+    :ol :optgroup :pre :script :select :style :table :tbody :tfoot :thead
+    :tr :ul))
+
+(defparameter *paragraph-elements*
+  '(:area :base :blockquote :br :button :caption :col :dd :div :dt :h1
+    :h2 :h3 :h4 :h5 :h6 :hr :input :li :link :meta :option :p :param
+    :td :textarea :th :title))
+
+(defparameter *inline-elements*
+  '(:a :abbr :acronym :address :b :bdo :big :cite :code :del :dfn :em
+    :i :img :ins :kbd :label :legend :q :samp :small :span :strong :sub
+    :sup :tt :var))
+\end{lstlisting}
+
+Функции \code{block-element-p} и \code{paragraph-element-p} проверяют, является ли данный
+тэг членом соответствующего списка.\footnote{Вам не нужен предикат для
+  \code{*inline-elements*}, так как вы проверяете всегда только для блока и параграфа
+  элементов. Я включил этот параметр здесь для завершенности.}
+
+\begin{lstlisting}
+(defun block-element-p (tag) (find tag *block-elements*))
+
+(defun paragraph-element-p (tag) (find tag *paragraph-elements*))
+\end{lstlisting}
+
+К двум другим категориям со своими собственными предикатами относятся элементы, которые
+всегда пусты, такие как \code{br} и \code{hr} и три элемента \code{pre}, \code{style} и
+\code{script}, в которых положено сохранение разделителей. Формы обрабатываются особо при
+формировании регулярного HTML (другими словами, не XHTML), так как в них не предполагаются
+закрывающие тэги. И при выводе трех тэгов, в которых пробелы сохраняются, вы можете
+временно выключить выравнивание, и тогда \code{pretty printer} не добавит каких-либо
+разделителей, которые не являются частью действительного содержимого элементов.
+
+\begin{lstlisting}
+(defparameter *empty-elements*
+  '(:area :base :br :col :hr :img :input :link :meta :param))
+
+(defparameter *preserve-whitespace-elements* '(:pre :script :style))
+
+(defun empty-element-p (tag) (find tag *empty-elements*))
+
+(defun preserve-whitespace-p (tag) (find tag *preserve-whitespace-elements*))
+\end{lstlisting}
+
+Последнее, что вам понадобится при генерации HTML, это параметр, указывающий, генерируете
+ли вы XHTML, так как это влияет на то, как вам нужно выводить пустые элементы.
+
+\begin{lstlisting}
+(defparameter *xhtml* nil)
+\end{lstlisting}
+
+Со всей этой информацией, вы готовы к обработке ячеек FOO формы. Вы используете
+\code{parse-cons-form}, чтобы разбить список на три части, символ тэга, возможно пустой
+список свойств пар ключ/значение атрибутов, и, возможно пустой, список форм тела. Затем вы
+формируете открывающий тэг, тело и закрывающий тэг с помощью вспомогательных функций
+\code{emit-open-tag}, \code{emit-element-body} и \code{emit-close-tag}.
+
+\begin{lstlisting}
+(defun process-cons-sexp-html (processor form)
+  (when (string= *escapes* *attribute-escapes*)
+    (error "Can't use cons forms in attributes: ~a" form))
+  (multiple-value-bind (tag attributes body) (parse-cons-form form)
+    (emit-open-tag     processor tag body attributes)
+    (emit-element-body processor tag body)
+    (emit-close-tag    processor tag body)))
+\end{lstlisting}
+
+В \code{emit-open-tag} вам нужно вызвать \code{freshline}, когда это необходимо, и затем
+вывести атрибуты с помощью \code{emit-attributes}. Вам нужно передать тело элемента в
+функцию \code{emit-open-tag}, тогда в случае формирования XHTML, она определит, закончить
+тэг с \code{/>} или \code{>}.
+
+\begin{lstlisting}
+(defun emit-open-tag (processor tag body-p attributes)
+  (when (or (paragraph-element-p tag) (block-element-p tag))
+    (freshline processor))
+  (raw-string processor (format nil "<~(~a~)" tag))
+  (emit-attributes processor attributes)
+  (raw-string processor (if (and *xhtml* (not body-p)) "/>" ">")))
+\end{lstlisting}
+
+В \code{emit-attributes} имена атрибутов не вычисляются, так как они являются ключевыми
+символами, но вам следует вызывать функцию \code{process} верхнего уровня для вычисления
+значений атрибутов, связывая \code{*escapes*} с \code{*attribute-escapes*}. Для удобства
+при спецификации булевских атрибутов, чьи значения должны быть именем атрибута, если это
+значение равно \code{Т} (не любое истинное значение, а именно \code{Т}), то тогда вы
+заменяете значение именем атрибута.\footnote{В то время как в нотации XHTML требуется,
+  чтобы в логических атрибутах имя совпадало со значением для указания значения true, в
+  HTML также разрешено просто включить имя атрибута без значения, например, \code{<option
+    selected>} также как и \code{<option selected='selected'>}. Все HTML-4.0 совместимые
+  браузеры должны понимать обе формы, но некоторые легкие браузеры понимают только форму
+  без значения для определенных атрибутов. Если вам нужно генерировать HTML для таких
+  браузеров, вам потребуется исправить \code{emit-attributes}, чтобы формировать эти
+  атрибуты немного по-другому.}
+
+\begin{lstlisting}
+(defun emit-attributes (processor attributes)
+  (loop for (k v) on attributes by #'cddr do
+       (raw-string processor (format nil " ~(~a~)='" k))
+       (let ((*escapes* *attribute-escapes*))
+         (process processor (if (eql v t) (string-downcase k) v)))
+       (raw-string processor "'")))
+\end{lstlisting}
+
+Формирование тела элемента похоже на формирование значений атрибута: вы можете циклически
+проходить по телу, вызывая \code{process} для вычисления каждого выражения. Основа кода
+заключена в выводе переводов строк и регулирования отступов подходящим образом в
+соответствии с типом элемента.
+
+\begin{lstlisting}
+(defun emit-element-body (processor tag body)
+  (when (block-element-p tag)
+    (freshline processor)
+    (indent processor))
+  (when (preserve-whitespace-p tag) (toggle-indenting processor))
+  (dolist (item body)  (process processor item))
+  (when (preserve-whitespace-p tag) (toggle-indenting processor))
+  (when (block-element-p tag)
+    (unindent processor)
+    (freshline processor)))
+\end{lstlisting}
+
+Наконец \code{emit-close-tag}, как вы вероятно ожидаете, выводит закрывающий тэг (до тех
+пор, пока в нем нет необходимости, например когда тело пустое и вы либо формируете XHTML,
+либо элемент является одним из специальных пустых элементов). Независимо от того, выводите
+ли вы закрывающий тэг, вам нужно вывести завершающий перевод строки для элементов блока и
+параграфа.
+
+\begin{lstlisting}
+(defun emit-close-tag (processor tag body-p)
+  (unless (and (or *xhtml* (empty-element-p tag)) (not body-p))
+    (raw-string processor (format nil "</~(~a~)>" tag)))
+  (when (or (paragraph-element-p tag) (block-element-p tag))
+    (freshline processor)))
+\end{lstlisting}
+
+Функция \code{process}~--- это основа интерпретатора FOO. Чтобы сделать ее немного проще в
+использовании, вы можете определить функцию \code{emit-html}, которая вызывает
+\code{process}, передавая ей \code{html-pretty-printer} и форму для вычисления. Вы можете
+определить и использовать вспомогательную функцию \code{get-pretty-printer} для получения
+\code{pretty printer}, которая возвращает текущее значение \code{*html-pretty-printer*},
+если оно связано; в ином случае, она создает новый экземпляр \code{html-pretty-printer} с
+\code{*html-output*} в качестве выходного потока.
+
+\begin{lstlisting}
+(defun emit-html (sexp) (process (get-pretty-printer) sexp))
+
+(defun get-pretty-printer ()
+  (or *html-pretty-printer*
+      (make-instance 
+       'html-pretty-printer
+       :printer (make-instance 'indenting-printer :out *html-output*))))
+\end{lstlisting}
+
+С этой функцией вы можете выводить HTML в \code{*html-output*}. Вместо того, чтобы
+предоставлять переменную \code{*html-output*} как часть открытого API FOO, вам следует
+определить макрос \code{with-html-output}, который берет на себя заботу о связывании
+потока для вас. Он также позволяет вам определить, хотите ли вы использовать аккуратный
+HTML вывод, выставляя по умолчанию значение переменной \code{*pretty*}.
+
+\begin{lstlisting}
+(defmacro with-html-output ((stream &key (pretty *pretty*)) &body body)
+  `(let* ((*html-output* ,stream)
+          (*pretty* ,pretty))
+    ,@body))
+\end{lstlisting}
+
+Итак, если вы хотите использовать \code{emit-html} для вывода HTML в файл, вы можете
+написать следующее:
+
+\begin{lstlisting}
+(with-open-file (out "foo.html" :direction output)
+  (with-html-output (out :pretty t)
+    (emit-html *some-foo-expression*)))
+\end{lstlisting}
+
+\section{Что дальше?}
+
+В следующей главе вы увидите, как реализовать макрос, который компилирует выражения FOO в
+Common Lisp, что позволит вам внедрить код генерации HTML прямо в ваши Lisp программы. Вы
+также расширите язык FOO, чтобы сделать его немного более выразительным, путем добавления
+специальных операторов и макросов.
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "pcl-ru"
+%%% TeX-open-quote: "<<"
+%%% TeX-close-quote: ">>"
+%%% End: 

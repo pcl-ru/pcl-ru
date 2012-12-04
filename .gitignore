@@ -1,0 +1,9 @@
+*~
+*.aux
+/auto
+*.idx
+*.lof
+*.log
+*.out
+pcl-ru.pdf
+*.toc

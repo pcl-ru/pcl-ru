@@ -1,0 +1,531 @@
+\chapter{Практика. Сервер Shoutcast}
+\label{ch:28}
+
+В этой главе вы разработаете еще одну важную часть Web-приложения для потокового вещания
+музыки в формате MP3, а именно~--- сервер, реализующий протокол Shoutcast, который
+выполняет потоковое вещание в формате MP3 пользовательским клиентам, таким как iTunes,
+XMMS\footnote{Версия XMMS поставляемая с Red Hat 8.0, 9.0 и Fedora не понимает как
+  проигрывать файлы в формате MP3, поскольку сотрудники Red Hat были озабочены
+  лицензионными аспектами использования кодеков MP3.  Для того, чтобы XMMS поддерживал MP3
+  в этих версиях Linux, вам необходимо взять исходные тексты с \url{http://www.xmms.org} и
+  собрать их самостоятельно.  Или посетите \url{http://www.fedorafaq.org/#xmms-mp3} для
+  получения информации о других возможностях поддержки MP3.}, или Winamp.
+
+\section{Протокол Shoutcast}
+
+Протокол Shoutcast был создан сотрудниками компании Nullsoft, создателя программы
+Winamp. Он был спроектирован для поддержки потокового вещания в Internet~--- Shoutcast DJ
+отправляет аудио файлы с персональных компьютеров на центральный сервер Shoutcast, который
+затем отправляет эти данные в виде потока любому из подключенных слушателей.
+
+Сервер, который вы напишите, в действительности реализует только половину функциональности
+настоящего сервера Shoutcast~--- вы будете использовать протокол, который используют
+сервера Shoutcast для потокового вещания MP3 слушателям, но ваш сервер будет способен
+передавать только те песни, которые уже загружены на тот компьютер, на котором выполняется
+ваш сервер.
+
+Вам необходимо знать только две части протокола Shoutcast: формат запроса, который клиент
+делает для того, чтобы начать получать поток данных, и формат ответа, включая механизм,
+который используется для вставки данных о проигрываемой композиции в поток данных.
+
+Начальный запрос от клиента MP3 к серверу Shoutcast выглядит также как обычный запрос
+протокола HTTP.  В ответе сервер Shoutcast отправляет ответ ICY, который выглядит также
+как и ответ HTTP, за исключением строки \code{ICY}\footnote{Чтобы сделать вещи еще более
+  запутанными, я упомяну, что есть еще один потоковый протокол, называемы Icecast. Но
+  между заголовком \code{ICY}, используемым протоколом Shoutcast и протоколом Icecast не
+  существуют никаких связей.} вместо обычной строки версии \code{HTTP}, и немного
+отличающимися заголовками. После отправки заголовков и пустой строки, сервер начинает
+отправлять потенциально бесконечный поток данных в формате MP3.
+
+Единственной сложной (FIXME tricky) вещью в протоколе Shoutcast является способ вставки
+информации о песне в данные, отправляемые клиенту.  Проблемой, с которой столкнулись
+дизайнеры протокола Shoutcast, заключалась в нахождении возможности передачи клиенту новой
+информации о песне сервером Shoutcast при начале проигрывания новой песни, так что клиент
+мог бы отображать эту информацию в интерфейсе. (Возвращаясь к главе 25, вспоминаем что
+формат MP3 не обеспечивает механизмов для кодирования метаданных).  Хотя одной из целей
+создания ID3v2 было обеспечение лучшей совместимости с потоковой передачей файлов MP3,
+сотрудники Nullsoft решили идти своим путем и изобрели новую схему, которую проще
+реализовать и клиенту и серверу.  Это конечно было идеальным случаем, поскольку они сами
+были авторами клиента для проигрывания MP3.
+
+Их решение заключалось в простом игнорировании структуры данных MP3 и вставке метаданных
+каждые \code{n} байт.  И клиент принимал на себя ответственность за удаление метаданных из
+потока, так чтобы они не рассматривались как данные MP3.  Поскольку отправка метаданных
+клиенту, который не готов к их приему, может вызывать проблемы с воспроизведением звука,
+то сервер должен отправлять метаданные только если запрос содержит специальный заголовок
+\code{Icy-Metadata}.  И для того, чтобы клиент знал как часто метаданные будут
+передваться, сервер должен отправить клиенту заголовок \code{Icy-Metaint} чьим значением
+является число байт данных в формате MP3, которые будут переданы между двумя пакетами с
+метаданными.
+
+Основное содержание метаданных~--- строка вида \code{StreamTitle='title';} где \code{title}
+является заголовком текущей песни, и не может содержать знак одинарной кавычки.  Это
+содержимое закодировано как массив байт разделенный указателями длины: сначала отправляет
+одиночный байт, показывающий сколько 16-байтовых блоков будет отправлено, за которым
+следуют эти блоки.  Они содержат саму строку в кодировке ASCII, и последний блок дополнен
+нулевыми байтами до 16-байтовой границы.
+
+Таким образом, наименьшим допустимым блоком метаданных является единственный байт, равный
+нулю, что означает что за ним не следует ни одного блока.  Если сервер не нуждается в
+обновлении метаданных, то он может отправить такой пустой блок, но он должен отправить как
+минимум один байт, так что клиент не будет отбрасывать данные MP3.
+
+\section{Источники песен}
+
+Поскольку сервер Shoutcast должен продолжать передавать поток данных клиенту все время
+пока он подключен к нему, то вам необходимо обеспечить ваш сервер источником песен из
+которых он сможет брать данные.  В Web-приложении, каждый подключенный клиент будет иметь
+список песен, с которым он сможет работать через Web-интерфейс.  Но для того, чтобы
+избежать излишней зависимости между модулями, вы должны определить интерфейс, который
+сможет использовать сервер Shoutcast для получения списка проигрываемых песен. Вы можете
+сейчас написать простую реализацию этого интерфейса, и заменить ее на более сложную при
+написании Web-приложения, которое вы будете создавать в главе 29.
+
+%TODO this is embdedded table, will fixed in latex 
+
+Пакет
+
+Объявление разрабатываемого вами пакета будет выглядеть примерно так:
+
+\begin{lstlisting}
+(defpackage :com.gigamonkeys.shoutcast
+  (:use :common-lisp 
+        :net.aserve 
+        :com.gigamonkeys.id3v2)
+  (:export :song
+           :file
+           :title
+           :id3-size
+           :find-song-source
+           :current-song
+           :still-current-p
+           :maybe-move-to-next-song
+           :*song-source-type*))
+\end{lstlisting}
+
+%TODO end of table
+
+Основной идеей для создания интерфейса является то, что сервер Shoutcast будет находить
+источник песен, основываясь на идентификаторе, выделенном из объекта AllegroServe,
+представляющего запрос.  Затем можно сделать следующие три действия над выделенным
+источником песен.
+
+\begin{itemize}
+\item Получить текущую песню из источника песен
+\item Сообщить источнику песен, что мы закончили работу над текущей песней
+\item Запросить у источника песен о том, все еще является ли текущей та песня, которую мы
+  запрашивали ранее.
+\end{itemize}
+
+Последняя операция необходима, поскольку могут быть такие случаи, и мы увидим их в
+главе~\ref{ch:29}, когда мы работаем с источником песен вне сервера Shoutcast.  Вы можете
+выразить операции, необходимые серверу Shoutcast, с помощью следующих обобщенных фунций:
+
+\begin{lstlisting}
+(defgeneric current-song (source)
+  (:documentation "Return the currently playing song or NIL."))
+
+(defgeneric maybe-move-to-next-song (song source)
+  (:documentation
+   "If the given song is still the current one update the value
+returned by current-song."))
+
+(defgeneric still-current-p (song source)
+  (:documentation
+   "Return true if the song given is the same as the current-song."))
+\end{lstlisting}
+
+Функция \code{maybe-move-to-next-song} определена таким способом, что за одну операцию
+проверяется~--- является ли данная песня текущей, и если это так, то источник песен
+перемещается к следующей песне.  Это будет важным в следующей главе, когда вам нужно будет
+реализовать источник песен, который будет доступен из двух потоков выполнения.\footnote{С
+  технической точки зрения, реализация, представленная в данной главе, также вызывается из
+  двух потоков выполнения~--- из потока AllegroServe, который выполняет сервер Shoutcast, а
+  также из интерактивной консоли ввода команд.  Но пока вы можете допустить наличие гонки
+  за ресурсами (race condition).  В следующей главе мы будем обсуждать вопрос
+  использования блокировок для создания безопасного кода.}
+
+Для представления информации о песне, которая необходима серверу Shoutcast, вы можете
+определить класс \code{song}, со слотами, которые будут хранить имя файла MP3, заголовок,
+который будет отправлен в качестве метаданных Shoutcast, и размер тага ID3, так что он
+может быть пропущен во время передачи файла.
+
+\begin{lstlisting}
+(defclass song ()
+  ((file     :reader file     :initarg :file)
+   (title    :reader title    :initarg :title)
+   (id3-size :reader id3-size :initarg :id3-size)))
+\end{lstlisting}
+
+Значение, возвращенное \code{current-song} (оно же и является первым аргументом функций
+\code{still-current-p} и\code{maybe-move-to-next-song}) будет экземпляром класса
+\code{song}.
+
+В добавок к этому, вам необходимо определить обобщенную функцию, которую сервер сможет
+использовать для нахождения источника песен, основываясь на желательном типе источника и
+объекте, представляющем запрос.  Методы будут специализировать параметр \code{type} для
+того, чтобы возвращать разные виды источников песен, и будут вытягивать различную
+информацию, в которой они нуждаются для определения какой источник песен необходимо
+возвращать, из объекта \code{request}.
+
+\begin{lstlisting}
+(defgeneric find-song-source (type request)
+  (:documentation "Find the song-source of the given type for the given request."))
+\end{lstlisting}
+
+Однако, в данной главе вы можете использовать самую простую реализацию этого интерфейса,
+которая будет всегда возвращать один и тот же объект~--- простую очередь объектов
+\code{song}, которой вы сможете управлять через строку ввода команд. Вы можете начать эту
+реализацию путем определения класса \code{simple-song-queue}, и глобальной переменной
+\code{*songs*}, которая содержит экземпляр данного класса.
+
+\begin{lstlisting}
+(defclass simple-song-queue ()
+  ((songs :accessor songs :initform (make-array 10 :adjustable t :fill-pointer 0))
+   (index :accessor index :initform 0)))
+
+(defparameter *songs* (make-instance 'simple-song-queue))
+\end{lstlisting}
+
+Затем вы можете определить метод \code{find-song-source} специализированный через
+\code{EQL} для символа \code{singleton}, который будет возвращать экземпляр объекта,
+хранимый в переменной \code{*songs*}.
+
+\begin{lstlisting}
+(defmethod find-song-source ((type (eql 'singleton)) request)
+  (declare (ignore request))
+  *songs*)
+\end{lstlisting}
+
+Теперь вам всего-лишь надо реализовать методы для трех обобщенных функций, которые будут
+использоваться сервером Shoutcast.
+
+\begin{lstlisting}
+(defmethod current-song ((source simple-song-queue))
+  (when (array-in-bounds-p (songs source) (index source))
+    (aref (songs source) (index source))))
+
+(defmethod still-current-p (song (source simple-song-queue))
+  (eql song (current-song source)))
+
+(defmethod maybe-move-to-next-song (song (source simple-song-queue))
+  (when (still-current-p song source)
+    (incf (index source))))
+\end{lstlisting}
+
+И в целях тестирования, вам необходимо обеспечить возможность добавления песен в очередь.
+
+\begin{lstlisting}
+(defun add-file-to-songs (file)
+  (vector-push-extend (file->song file) (songs *songs*)))
+
+(defun file->song (file)
+  (let ((id3 (read-id3 file)))
+    (make-instance 
+     'song
+     :file (namestring (truename file))
+     :title (format nil "~a by ~a from ~a" (song id3) (artist id3) (album id3))
+     :id3-size (size id3))))
+\end{lstlisting}
+
+\section{Реализация сервера Shoutcast}
+
+Теперь вы готовы к реализации сервера Shoutcast. Поскольку протокол Shoutcast практически
+основан на HTTP, вы можете реализовать сервер в виде функции внутри AllegroServe.  Однако,
+поскольку вам нужно будет взаимодействовать с некоторыми низкоуровневыми функциями
+AllegroServe, то вы не сможете использовать макрос \code{define-url-function} из
+главы~\ref{ch:26}. Вместо этого, вам нужно написать обычную функцию, которая будет
+выглядеть примерно так:
+
+\begin{lstlisting}
+(defun shoutcast (request entity)
+  (with-http-response
+      (request entity :content-type "audio/MP3" :timeout *timeout-seconds*)
+    (prepare-icy-response request *metadata-interval*)
+    (let ((wants-metadata-p (header-slot-value request :icy-metadata)))
+      (with-http-body (request entity)
+        (play-songs 
+         (request-socket request)
+         (find-song-source *song-source-type* request)
+         (if wants-metadata-p *metadata-interval*))))))
+\end{lstlisting}
+
+Затем опубликуйте эту функцию для пути \code{/stream.mp3}, например вот так:\footnote{Еще
+  одной вещью, которую вы можете захотеть сделать во время работы над этим кодом~---
+  выполнить выражение \code{(net.aserve::debug-on :notrap)}.  Оно заставляет AllegroServe
+  не перехватывать ошибки, выданные вашим кодом, что позволит вам использовать стандартный
+  отладчик Lisp.  В SLIME это приведет к показу буфера отладчика SLIME, также как и для
+  обычной ошибки.}
+
+\begin{lstlisting}
+(publish :path "/stream.mp3" :function 'shoutcast)
+\end{lstlisting}
+
+В вызове \code{with-http-response}, в добавление к стандартным параметрам \code{request} и
+\code{entity}, вам необходимо передать аргументы \code{:content-type} и \code{:timeout}.
+Аргумент \code{:content-type} сообщает AllegroServe как установить значение заголовка
+\code{Content-Type}.  А аргумент \code{:timeout} указывает количество времени (в
+секундах), которое дает AllegroServe функции для генерации ответа. По умолчанию
+AllegroServe отменяет каждый запрос через пять минут.  Поскольку вы собираетесь передавать
+поток практически бесконечно, то вам необходимо указать большее значение.  Не существует
+способа указать AllegroServe чтобы он не отменял запрос, так что вы должны установить
+подходящее большое значение в переменной \code{*timeout-seconds*}, например, 10 лет,
+переведенных в секунды.
+
+\begin{lstlisting}
+(defparameter *timeout-seconds* (* 60 60 24 7 52 10))
+\end{lstlisting}
+
+Затем, внутри тела \code{with-http-response} и до вызова \code{with-http-body}, который
+выполнит отправку заголовков ответа, вам необходимо напрямую поработать с ответом, который
+отправит AllegroServe.  Функция \code{prepare-icy-response} выполняет все необходимые
+действия: изменение строки протокола со значения по умолчанию~--- \code{"HTTP"} на
+\code{"ICY"}, и добавление заголовков, специфических для Shoutcast.\footnote{Заголовки
+  Shoutcast обычно посылаются в виде строк с символами в нижнем регистре, так что вам
+  необходимо замаскировать имена именованных параметров, используемых для заголовков в
+  AllegroServe чтобы предотвратить их преобразование в верхний регистр при чтении
+  исходного текста.  Так что вам нужно писать \code{:|icy-metaint|} вместо обычного
+  \code{:icy-metaint}.  Вы также можете записать эту строку как
+  \lstinline!:\i\c\y-\m\e\t\a\i\n\t!, но это было бы глупо.}  Вам также необходимо
+добавить код для обхода ошибки в iTunes, который заставит AllegroServe не использовать
+FIXME chunked transfer-encoding.\footnote{Функция
+  \code{turn-off-chunked-transfer-encoding} является хаком.  Не существует способа
+  отключить FIXME chunked transfer encoding используя официальный API AllegroServe и не
+  указывая длину содержимого, поскольку подразумевается, что любой клиент, который
+  объявляет себя поддерживающим HTTP 1.1 (что и делает iTunes), понимает этот способ
+  кодирования.}  Функции \code{request-reply-protocol-string}, \code{request-uri} и
+\code{reply-header-slot-value} являются частью of AllegroServe.
+
+\begin{lstlisting}
+(defun prepare-icy-response (request metadata-interval)
+  (setf (request-reply-protocol-string request) "ICY")
+  (loop for (k v) in (reverse
+       `((:|icy-metaint| ,(princ-to-string metadata-interval))
+         (:|icy-notice1| "<BR>This stream blah blah blah<BR>")
+         (:|icy-notice2| "More blah")
+         (:|icy-name|    "MyLispShoutcastServer")
+         (:|icy-genre|   "Unknown")
+         (:|icy-url|     ,(request-uri request))
+         (:|icy-pub|     "1")))
+     do (setf (reply-header-slot-value request k) v))
+  ;; iTunes, despite claiming to speak HTTP/1.1, doesn't understand
+  ;; chunked Transfer-encoding. Grrr. So we just turn it off.
+  (turn-off-chunked-transfer-encoding request))
+
+(defun turn-off-chunked-transfer-encoding (request)
+  (setf (request-reply-strategy request)
+        (remove :chunked (request-reply-strategy request))))
+\end{lstlisting}
+
+Внутри выражения \code{with-http-body} функции \code{shoutcast}, вы выполняете потоковое
+вещание в формате MP3.  Функция \code{play-songs} берет поток, в который вы должны писать
+данные, источник песен и интервал передачи метаданных, или \code{NIL}, если клиент не
+хочет получать метаданные.  Поток~--- это сокет, полученный из объекта \code{request},
+источник песен получается при помощи функции \code{find-song-source}, а интервал передачи
+метаданных берется из глобальной переменной \code{*metadata-interval*}.  Тип источника
+песен конктролируется переменной \code{*song-source-type*}, который сейчас должен быть
+установлен в значение \code{singleton} для того, чтобы использовать
+\code{simple-song-queue}, которую мы уже реализовали.
+
+\begin{lstlisting}
+(defparameter *metadata-interval* (expt 2 12))
+
+(defparameter *song-source-type* 'singleton)
+\end{lstlisting}
+
+Сама функция \code{play-songs} не делает ничего сложного~--- она в цикле вызывает функцию
+\code{play-current}, которая берет на себя всю тяжесть задачи по отправке содержимого
+отдельного файла MP3, пропускания тагов ID3 и вставки метаданных ICY.  Единственной
+трудностью является отслеживание момента отправки метаданных.
+
+Поскольку вы должны отправлять блоки метаданных через фиксированные интервалы, независимо
+от того, когда вы переключаетесь с отправки одного файла на другой, то каждый раз когда вы
+вызываете \code{play-current}, то вам необходимо указать когда следующие метаданные должны
+быть переданы, и при возврате, эта функция должна вернуть аналогичное значение, так что вы
+сможете передать эти данные в следующем вызове \code{play-current}.  Если
+\code{play-current} получает \code{NIL} от источника песен, то она также вернет
+\code{NIL}, что позволяет завершить цикл \code{LOOP} внутри \code{play-songs}.
+
+В дополнение к выполнению цикла, \code{play-songs} также использует \code{HANDLER-CASE}
+для перехвата ошибок, которые будут выданы когда клиент MP3 отключится от сервера, и одна
+из процедуру записи в \code{play-current} приведет к выдаче ошибки. Поскольку
+\code{HANDLER-CASE} находится вне \code{LOOP}, то обработка ошибки приведет к прерыванию
+цикла, позволяет выполнить выход из \code{play-songs}.
+
+\begin{lstlisting}
+(defun play-songs (stream song-source metadata-interval)
+  (handler-case 
+      (loop
+         for next-metadata = metadata-interval
+         then (play-current 
+               stream 
+               song-source
+               next-metadata
+               metadata-interval)
+         while next-metadata)
+    (error (e) (format *trace-output* "Caught error in play-songs: ~a" e))))
+\end{lstlisting}
+
+И теперь вы готовы к реализации функции \code{play-current}, которая выполняет отправку
+данных Shoutcast.  Основной идея заключается в том, что вы получаете текущую песню от
+источника песен, открываете файл, содержащий ее, и затем выполняете цикл в котором читаете
+данные из файла и записываете их в сокет, до тех пор, пока вы не достигните конца файла,
+или текущая песня не перестанет быть текущей.
+
+Имеется только две трудности: одна из них заключается в том, что вы должны быть уверены,
+что вы отправляете метаданные через заданный интервал.  Другой является то, что если файл
+начинается с тага ID3, то вам нужно пропустить его.  Если вы не особо беспокоитесь об
+эффективности ввода-вывода, то вы можете реализовать \code{play-current} вот так:
+
+\begin{lstlisting}
+(defun play-current (out song-source next-metadata metadata-interval)
+  (let ((song (current-song song-source)))
+    (when song
+      (let ((metadata (make-icy-metadata (title song))))
+        (with-open-file (mp3 (file song))
+          (unless (file-position mp3 (id3-size song))
+            (error "Can't skip to position ~d in ~a" (id3-size song) (file song)))
+          (loop for byte = (read-byte mp3 nil nil)
+             while (and byte (still-current-p song song-source)) do
+               (write-byte byte out)
+               (decf next-metadata)
+             when (and (zerop next-metadata) metadata-interval) do
+               (write-sequence metadata out)
+               (setf next-metadata metadata-interval))
+
+          (maybe-move-to-next-song song song-source)))
+      next-metadata)))
+\end{lstlisting}
+
+Эта функция получает текущую песню из источника песен, и затем получает буфер, содержащий
+метаданные путем передачи названия песни функции \code{make-icy-metadata}.  Затем она
+открывает файл и пропускает таг ID3 используя функцию \code{FILE-POSITION} с двумя
+аргументами.  Затем она начинает читать байты из файла и записывать их в
+сокет.\footnote{Большинство проигрывателей MP3 будет отображать метаданные где-то в
+  пользовательском интерфейсе.  Однако, программа XMMS в Linux по умолчанию не делает
+  этого. Чтобы заставить XMMS отображать метаданные Shoutcast, нажмите \code{Ctrl+P} для
+  открытия диалога "Preferences" (Настройки).  Затем во вкладке "Audio I/O Plugins"
+  (крайняя левая в версии 1.2.10), выберите пункт "MPEG Layer 1/2/3 Player"
+  (\code{libmpg123.so}) и нажмите кнопку "Configure".  Затем выберите вкладку "Streaming"
+  и внизу, в разделе "SHOUTCAST/Icecast", отметьте "Enable SHOUTCAST/Icecast title
+  streaming" кнопку.}
+
+Эта функция прервет цикл когда достигнет конца файла, или когда источник песен изменит
+текущую песню.  Между тем, когда \code{next-metadata} будет равен нулю (если вы вообще
+будете отправлять метаданные), эта функция записывает метаданные в поток и сбрасывает
+\code{next-metadata} в начальное значение.  После завершения цикла, она проверяет~---
+является ли песня все еще текущей в источнике песен, и если это так, то это значит что мы
+вышли из цикла из-за того, что прочитали весь файл, и в этом случае она сообщает источнику
+песен о необходимости перемещения к следующей песнь.  В противном случае, цикл прерван
+из-за того, что кто-то изменил текущую песню, и функция просто выполняет возврат без
+дополнительных действий.  В любом случае, она возвращает число байт, оставшихся до
+отправки следующей порции метаданных, так что это значение может быть использовано при
+следующем вызове \code{play-current}.\footnote{Люди перешедшие на Common Lisp со Scheme
+  могут удивляться почему \code{play-current} не может просто вызывать себя рекурсивно.  В
+  Scheme это будет работать, поскольку в спецификации Scheme требуется чтобы реализации
+  поддерживали "an unbounded number of active tail calls (неограниченное количество
+  хвостовых вызовов)".  Для реализаций Common Lisp разрешено иметь такое своейство, но оно
+  не требуется стандартом языка.  Так что в Common Lisp основным способом создания циклов
+  является использование соответствующих конструкций, а не рекурсии.}
+
+Реализация функции \code{make-icy-metadata}, которая получает название текущей песни и
+формирует массив байт, содержащий правильно отформатированный блок метаданных ICY, также
+проста.\footnote{Эта функция предполагает, также как и другой код, который вы пишете, что
+  в вашей реализации Lisp внутренней кодировкой для знаков является ASCII или надмножество
+  ASCII, так что вы можете использовать функцию \code{CHAR-CODE} для преобразования
+  объеков типа \code{CHARACTER} в данные в кодировке ASCII. FIXME что делать с
+  мультибайтовыми кодировками?}
+
+\begin{lstlisting}
+(defun make-icy-metadata (title)
+  (let* ((text (format nil "StreamTitle='~a';" (substitute #\Space #\' title)))
+         (blocks (ceiling (length text) 16))
+         (buffer (make-array (1+ (* blocks 16))
+                             :element-type '(unsigned-byte 8)
+                             :initial-element 0)))
+    (setf (aref buffer 0) blocks)
+    (loop 
+       for char across text
+       for i from 1 
+       do (setf (aref buffer i) (char-code char)))
+    buffer))
+\end{lstlisting}
+
+В зависимости от того, как конкретная реализация Lisp работает с потоками, и от того,
+сколько клиентов MP3 вы хотите обрабатывать одновременно, простая версия
+\code{play-current} может быть достаточно эффективной или нет.
+
+Потенциальной проблемой простой реализации может быть то, что она использует
+\code{READ-BYTE} и \code{WRITE-BYTE} для передачи каждого байта. Возможно, что каждый
+вызов может приводить к относительно затратному системному вызову чтения или записи одного
+байта.  И даже если в вашем Lisp реализованы потоки с внутренней буферизацией, так что не
+каждый вызов \code{READ-BYTE} и \code{WRITE-BYTE} будет приводить к системному вызову, то
+все равно, вызов функции не является дешевой операцией.  В частности, в реализациях,
+которые предоставляют потоки, расширяемые пользователем, используя так называемые "серые
+потоки" (Gray Streams), вызовы \code{READ-BYTE} и \code{WRITE-BYTE} могут приводить к
+вызову обобщенных функций, которые будут приводить к неявной диспатчеризации вызова в
+зависимости от класса потока.  Хотя диспатчеризация обобщенной функции является достаточно
+быстрой операцией и вы можете сильно не волноваться об этом, но все равно ее вызов более
+затратен чем вызов обычной функции, и это не та вещь, которую вы захотите выполнять
+несколько миллионов раз за несколько минут, особенно если вы можете избежать этого.
+
+Более эффективный, но чуть более сложный способ реализации \code{play-current}~--- читать и
+записывать данные блоками используя функции \code{READ-SEQUENCE} и \code{WRITE-SEQUENCE}.
+Это также дает вам шанс привести чтение данных в соответствие с размером блока данных
+файловой системы, что обеспечит вам лучшую производительность диска.  Конечно, вне
+зависимости от того, какой размер блока вы будете использовать, отслеживание точки
+отправки метаданных станет более сложной задачей.  Более эффективная версия
+\code{play-current} использующая функции \code{READ-SEQUENCE} и \code{WRITE-SEQUENCE}
+может выглядеть вот так:
+
+\begin{lstlisting}
+(defun play-current (out song-source next-metadata metadata-interval)
+  (let ((song (current-song song-source)))
+    (when song
+      (let ((metadata (make-icy-metadata (title song)))
+            (buffer (make-array size :element-type '(unsigned-byte 8))))
+        (with-open-file (mp3 (file song))
+          (labels ((write-buffer (start end)
+                     (if metadata-interval
+                       (write-buffer-with-metadata start end)
+                       (write-sequence buffer out :start start :end end)))
+
+                   (write-buffer-with-metadata (start end)
+                     (cond
+                       ((> next-metadata (- end start))
+                        (write-sequence buffer out :start start :end end)
+                        (decf next-metadata (- end start)))
+                       (t 
+                        (let ((middle (+ start next-metadata)))
+                          (write-sequence buffer out :start start :end middle)
+                          (write-sequence metadata out)
+                          (setf next-metadata metadata-interval)
+                          (write-buffer-with-metadata middle end))))))
+
+            (multiple-value-bind (skip-blocks skip-bytes)
+                (floor (id3-size song) (length buffer))
+
+              (unless (file-position mp3 (* skip-blocks (length buffer)))
+                (error "Couldn't skip over ~d ~d byte blocks."
+                       skip-blocks (length buffer)))
+
+              (loop for end = (read-sequence buffer mp3) 
+                 for start = skip-bytes then 0
+                 do (write-buffer start end)
+                 while (and (= end (length buffer))
+                            (still-current-p song song-source)))
+
+              (maybe-move-to-next-song song song-source)))))
+      next-metadata)))
+\end{lstlisting}
+
+Теперь вы готовы собрать все части вместе.  В следующей главе вы напишите Web-интерфейс
+для сервера Shoutcast, разработанного в данной главе, и использующего базу данных MP3 из
+главы~\ref{ch:27} в качестве источника песен.
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "pcl-ru"
+%%% TeX-open-quote: "<<"
+%%% TeX-close-quote: ">>"
+%%% End: 
