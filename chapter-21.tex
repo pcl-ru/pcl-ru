@@ -572,7 +572,7 @@ NIL
 Так как пакеты используются считывателем, пакет должен быть определён до того, как вы
 сможете сделать \code{LOAD} на него или сделать \code{COMPILE-FILE} над файлом, который
 содержит выражение \code{IN-PACKAGE}, переключающее на тот пакет. Пакет также должнен быть
-определен до того, как другие формы \code{DEFPACKAGE} смогут ссылаться на него. Например,
+определён до того, как другие формы \code{DEFPACKAGE} смогут ссылаться на него. Например,
 если вы собираетесь указать \code{:use COM.GIGAMONKEYS.TEXT-DB} в
 \code{COM.GIGAMONKEYS.EMAIL-DB}, то \code{DEFPACKAGE} для \code{COM.GIGAMONKEYS.TEXT-DB}
 должен быть выполнен раньше, чем \code{DEFPACKAGE} для \code{COM.GIGAMONKEYS.EMAIL-DB}.
