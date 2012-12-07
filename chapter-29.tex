@@ -370,30 +370,31 @@ Shoutcast.  Но текущая песня также может быть изм
 
 \section{Изменение списка песен}
 
-The rest of the playlist code is functions used by the Web interface to manipulate
-\code{playlist} objects, including adding and deleting songs, sorting and shuffling, and setting
-the repeat mode. As in the helper functions in the previous section, you don't need to
-worry about locking in these functions because, as you'll see, the lock will be acquired
-in the Web interface function that calls these.
+Остальная часть кода плейлиста это функции которые используются веб интерфейсом чтобы
+выполнять действия с объектами \code{playlist}, включая добавление и удаление песен,
+сортировку и перемешивание а также установку режима повтора. Как во вспомогательных
+функциях предыдущей секции, вам не нужно беспокоиться о блокировке и в этих функциях
+потому что, как вы увидите, блокировка будет включена в функциях веб интерфейса вызывающих
+эти.
 
-Adding and deleting is mostly a question of manipulating the songs-table. The only extra
-work you have to do is to keep the \code{current-song} and \code{current-idx} in sync. For
-instance, whenever the playlist is empty, its \code{current-idx} will be zero, and the
-\code{current-song} will be the \code{*empty-playlist-song*}. If you add a song to an
-empty playlist, then the index of zero is now in bounds, and you should change the
-\code{current-song} to the newly added song. By the same token, when you've played all the songs
-in a playlist and \code{current-song} is \code{*end-of-playlist-song*}, adding a song
-should cause \code{current-song} to be reset. All this really means, though, is that you
-need to call \code{update-current-if-necessary} at the appropriate points.
+Добавление и удаление это в основном вопрос управления списком песен. Единственная
+дополнительная работа которую вам нужно сделать это держать синхронизированными
+\code{current-song} и \code{current-idx}. Например, когда плейлист пустой, его
+\code{current-idx} будет 0, а \code{current-song} будет \code{*empty-playlist-song*}. Если
+вы добавите песню в пустой плейлист, тогда нулевой индекс попадает в границы и вы должны
+изменить \code{current-song} на только что добавленную песню. К тому же если вы проиграли все
+песни в плейлисте и в \code{current-song} значение \code{*end-of-playlist-song*},
+добавление песни должно вызвать сброс \code{current-song}. Все это на самом деле означает что
+вам нужно вызывать\code{update-current-if-necessary} в соответствующих местах. 
 
-Adding songs to a playlist is a bit involved because of the way the Web interface
-communicates which songs to add. For reasons I'll discuss in the next section, the Web
-interface code can't just give you a simple set of criteria to use in selecting songs from
-the database. Instead, it gives you the name of a column and a list of values, and you're
-supposed to add all the songs from the main database where the given column has a value in
-the list of values. Thus, to add the right songs, you need to first build a table object
-containing the desired values, which you can then use with an in query against the song
-database. So, add-songs looks like this:
+Добавление песен в плейлист немного запутано из-за способа которым веб интерфейс узнает
+выбранную песню. По причинам которые я оговорю в следующей секции, код веб интерфейса просто
+не может дать вам простой набор критериев для выборки песен из базы данных. Вместо этого он дает
+вам имя колонки и список значений, а вы должны добавить все песни из главной базы данных
+где данная колонка имеет значение в списке значений. Таким образом, чтобы добавить
+правильные песни, вам нужно сначала построить объект таблицы с нужными значениями, который
+вы можете потом использовать во внутреннем запросе к базы данных песен. Итак,
+\code{add-songs} выглядит так:
 
 \begin{lstlisting}
 (defun add-songs (playlist column-name values)
@@ -406,21 +407,23 @@ database. So, add-songs looks like this:
   (update-current-if-necessary playlist))
 \end{lstlisting}
 
-Deleting songs is a bit simpler; you just need to be able to delete songs from the
-songs-table that match particular criteria--either a particular song or all songs in a
-particular genre, by a particular artist, or from a particular album. So, you can provide
-a delete-songs function that takes keyword/value pairs, which are used to construct a
-matching :where clause you can pass to the delete-rows database function.
+Удаление песен немного проще; вам только нужна возможность удалять песни из
+\code{songs-table} которые удовлетворяют конкретный критерий -- или конкретную песню или
+все песни в конкретном жанре, по конкретному исполнителю или из конкретного альбома. Итак,
+вы можете предоставить функцию \code{delete-songs} которая берет пары ключ/значение,
+которые используются для построения сравнительное условие \code{:where} для передачи в функцию
+базы данных \code{delete-rows}.
 
-Another complication that arises when deleting songs is that current-idx may need to
-change. Assuming the current song isn't one of the ones just deleted, you'd like it to
-remain the current song. But if songs before it in songs-table are deleted, it'll be in a
-different position in the table after the delete. So after a call to delete-rows, you need
-to look for the row containing the current song and reset current-idx. If the current song
-has itself been deleted, then, for lack of anything better to do, you can reset
-current-idx to zero. After updating current-idx, calling update-current-if-necessary will
-take care of updating current-song. And if current-idx changed but still points at the
-same song, current-song will be left alone.
+Другая сложность которая возникает при удалении песен это то что может быть необходимость
+в изменении \code{current-idx}. Допуская что текущая песня не из тех которые только что
+удалили, вам бы хотелось оставить текущую песню. Но если песни перед ней в
+\code{songs-table} удалены, она будет на другой позиции в таблице после удаления. Итак,
+после вызова \code{delete-rows}, вам нужно будет посмотреть на строку содержащую текущую
+песню и сбросить \code{current-idx}. Если текущая песня сама была удалена, тогда, за
+неимением лучшего варианта, вы можете сбросить \code{current-idx} к нулю. После обновления
+\code{current-idx}, вызов \code{update-current-if-necessary} позаботится об обновлении
+\code{current-song}. И если \code{current-idx} изменился но все же указывает на ту же
+песню, \code{current-song} не будет затронута.
 
 \begin{lstlisting}
 (defun delete-songs (playlist &rest names-and-values)
@@ -440,10 +443,10 @@ same song, current-song will be left alone.
       (incf pos))))
 \end{lstlisting}
 
-You can also provide a function to completely clear the playlist, which uses
-delete-all-rows and doesn't have to worry about finding the current song since it has
-obviously been deleted. The call to update-current-if-necessary will take care of setting
-current-song to NIL.
+Вы также можете предоставить функцию для полного очищения плейлиста которая использует
+\code{delete-all-rows} и не должна беспокоиться о поиске текущей песни, поскольку очевидно
+что она будет удалена. Вызов \code{update-current-if-necessary} позаботится об
+установлении \code{current-song} в NIL.
 
 \begin{lstlisting}
 (defun clear-playlist (playlist)
@@ -452,17 +455,20 @@ current-song to NIL.
   (update-current-if-necessary playlist))
 \end{lstlisting}
 
-Sorting and shuffling the playlist are related in that the playlist is always either
-sorted or shuffled. The shuffle slot says whether the playlist should be shuffled and if
-so how. If it's set to :none, then the playlist is ordered according to the value in the
-ordering slot. When shuffle is :song, the playlist will be randomly permuted. And when
-it's set to :album, the list of albums is randomly permuted, but the songs within each
-album are listed in track order. Thus, the sort-playlist function, which will be called by
-the Web interface code whenever the user selects a new ordering, needs to set ordering to
-the desired ordering and set shuffle to :none before calling order-playlist, which
-actually does the sort. As in delete-songs, you need to use position-of-current to reset
-current-idx to the new location of the current song. However, this time you don't need to
-call update-current-if-necessary since you know the current song is still in the table.
+Сортировка и перемешивание плейлиста связаны тем что плейлист всегда либо отсортирован
+либо перемешан. Слот \code{shuffle} говорит был ли плейлист перемешан и если так то каким
+образом. Если он установлен в \code{:none}, тогда плейлист отсортирован в соответствии со
+значением слота сортировки. Если \code{shuffle} равен \code{:song}, плейлист будет
+случайным образом перемешан. И когда он установлен в \code{:album}, список альбомов
+случайным образом перемешан, но песни каждого альбома отображаются по порядку. Таким
+образом функция \code{sort-playlist}, которая будет вызываться кодом веб интерфейса когда
+пользователь будет выбирать новый порядок сортировки, должна установить порядок сортировки
+в нужный и установить \code{shuffle} в \code{:none} перед вызовом \code{order-playlist},
+который на самом деле не сортирует. Также как и в \code{delete-songs}, вам нужно
+использовать \code{position-of-current} для сброса \code{current-idx} в новую позицию
+текущей песни. Тем не менее, в этот раз вы не нуждаетесь в вызове
+\code{update-current-if-necessary} поскольку вы знаете что текущая песня все еще в
+таблице.
 
 \begin{lstlisting}
 (defun sort-playlist (playlist ordering)
@@ -472,8 +478,9 @@ call update-current-if-necessary since you know the current song is still in the
   (setf (current-idx playlist) (position-of-current playlist)))
 \end{lstlisting}
 
-In order-playlist, you can use the database function sort-rows to actually perform the
-sort, passing a list of columns to sort by based on the value of ordering.
+В \code{order-playlist} вы можете использовать функцию базы данных \code{sort-rows} чтобы
+действительно совершить сортировку, передавая список колонок для сортировки в зависимости
+от значения \code{ordering}.
 
 \begin{lstlisting}
 (defun order-playlist (playlist)
@@ -485,12 +492,13 @@ sort, passing a list of columns to sort by based on the value of ordering.
       (:song   '(:song)))))
 \end{lstlisting}
 
-The function shuffle-playlist, called by the Web interface code when the user selects a
-new shuffle mode, works in a similar fashion except it doesn't need to change the value of
-ordering. Thus, when shuffle-playlist is called with a shuffle of :none, the playlist goes
-back to being sorted according to the most recent ordering. Shuffling by songs is
-simple--just call shuffle-table on songs-table. Shuffling by albums is a bit more involved
-but still not rocket science.
+Функция \code{shuffle-playlist}, которая вызывается кодом веб интерфейса когда
+пользователь выбирает новый режим перемешивания, работает аналогичным образом, кром того
+что не нуждается в изменении значения \code{ordering}. Таким образом, когда
+\code{shuffle-playlist} вызывается с \code{shuffle} равным \code{:none}, плейлист
+возвращается к сортировки в соответствии с предыдущим \code{ordering}. Перемешивание песен
+простое--нужно только вызвать \code{shuffle-table} для \code{songs-table}. Перемешивание
+альбомов немножко запутаннее но все же не ядерная физика.
 
 \begin{lstlisting}
 (defun shuffle-playlist (playlist shuffle)
@@ -525,14 +533,14 @@ but still not rocket science.
    :order-by :track))
 \end{lstlisting}
 
-The last manipulation you need to support is setting the playlist's repeat mode. Most of
-the time you don't need to take any extra action when setting repeat--its value comes into
-play only in \code{maybe-move-to-next-song}. However, you need to update the current-song
-as a result of changing repeat in one situation, namely, if current-idx is at the end of a
-nonempty playlist and repeat is being changed to \code{:song} or \code{:all}. In that
-case, you want to continue playing, either repeating the last song or starting at the
-beginning of the playlist. So, you should define an \code{:after} method on the generic
-function \code{(setf repeat)}.
+Последняя манипуляция которую вам необходимо поддерживать это установка режима повтора для
+плейлиста. Большую часть времени вы не нуждаетесь в дополнительных действиях когда
+устанавливаете повтор--его значение входит в игру только в \code{maybe-move-to-next-song}.
+Тем не менее, вам нужно обновить \code{current-song} как результат изменения повтора в
+одной ситуации, а именно, если \code{current-idx} в конце не пустого плейлиста и повтор
+изменяется с \code{:song} или \code{:all}. В этом случае, вы хотите продолжить
+проигрывание либо повторяя последнюю песню или стартовать с самого начала плейлиста. Итак,
+вы должны определить метод \code{:after} для обобщенной функции \code{(setf repeat)}.
 
 \begin{lstlisting}
 (defmethod (setf repeat) :after (value (playlist playlist))
@@ -544,14 +552,14 @@ function \code{(setf repeat)}.
     (update-current-if-necessary playlist)))
 \end{lstlisting}
 
-Now you have all the underlying bits you need. All that remains is the code that will
-provide a Web-based user interface for browsing the MP3 database and manipulating
-playlists. The interface will consist of three main functions defined with
-define-url-function: one for browsing the song database, one for viewing and manipulating
-a single playlist, and one for listing all the available playlists.
+Теперь вы имеете все основные кусочки которые нужны. Все это остается в коде который
+предоставит пользовательский веб интерфейс для просмотра базы данных MP3 и обработку
+плейлистов. Интерфейс будет состоять из трех главных функций определенных с помощью
+\code{define-url-function}: одна для просмотра базы данных песен, одна для просмотра и
+обработки одного плейлиста и одна для списка всех доступных плейлистов.
 
-But before you get to writing these three functions, you need to start with some helper
-functions and HTML macros that they'll use.
+Но прежде чем вы начнете писать эти три функции, вам нужно начать с некоторых
+вспомогательных функций и HTML макросов для использования внутри их.
 
 \section{Query Parameter Types}
 
