@@ -587,8 +587,8 @@ Ripped, если он введёт что-нибудь, начинающееся
 \begin{verbatim}
   CL-USER> (remove-if-not
     #'(lambda (cd) (equal (getf cd :artist) "Dixie Chicks")) *db*)
-  \footnote{:TITLE "Home" :ARTIST "Dixie Chicks" :RATING 9 :RIPPED T)
-   (:TITLE "Fly" :ARTIST "Dixie Chicks" :RATING 8 :RIPPED T}
+  ((:TITLE "Home" :ARTIST "Dixie Chicks" :RATING 9 :RIPPED T)
+   (:TITLE "Fly" :ARTIST "Dixie Chicks" :RATING 8 :RIPPED T))
 \end{verbatim}
 
 Предположим теперь, что вы хотите упаковать всё выражение в функцию, которая принимает имя
@@ -1127,7 +1127,7 @@ some_var = if (some_boolean) value1; else value2;
 
 \begin{verbatim}
   CL-USER> (select (where :title "Give Us a Break" :ripped t))
-  \footnote{:TITLE "Give Us a Break" :ARTIST "Limpopo" :RATING 10 :RIPPED T}
+  ((:TITLE "Give Us a Break" :ARTIST "Limpopo" :RATING 10 :RIPPED T))
 \end{verbatim}
 
 Работает. И макрос \code{where} с его двумя функциями-помощниками оказался на одну строку
