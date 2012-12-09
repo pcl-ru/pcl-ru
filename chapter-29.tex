@@ -561,15 +561,15 @@ Shoutcast.  Но текущая песня также может быть изм
 Но прежде чем вы начнете писать эти три функции, вам нужно начать с некоторых
 вспомогательных функций и HTML макросов для использования внутри их.
 
-\section{Query Parameter Types}
+\section{Типы параметров запроса}
 
-Since you'll be using define-url-function, you need to define a few methods on the
-\code{string->type} generic function from Chapter~\ref{ch:28} that
-\code{define-url-function} uses to convert string query parameters into Lisp objects. In
-this application, you'll need methods to convert strings to integers, keyword symbols, and
-a list of values.
+Поскольку вы будете использовать \code{define-url-function}, вам нужно определить
+несколько методов для обобщенной функции \code{string->type} с главы~\ref{ch:28} которые
+\code{define-url-function} использует для преобразования строки параметров запроса в Lisp
+объекты. В этом приложении вам нужны будут методы для преобразования строк в целые числа,
+ключевые символы и списки значений.
 
-The first two are quite simple.
+Первые два достаточно просты.
 
 \begin{lstlisting}
 (defmethod string->type ((type (eql 'integer)) value)
@@ -579,34 +579,36 @@ The first two are quite simple.
   (and (plusp (length value)) (intern (string-upcase value) :keyword)))
 \end{lstlisting}
 
-The last \code{string->type} method is slightly more complex. For reasons I'll get to in a
-moment, you'll need to generate pages that display a form that contains a hidden field
-whose value is a list of strings. Since you're responsible for generating the value in the
-hidden field and for parsing it when it comes back, you can use whatever encoding is
-convenient. You could use the functions \code{WRITE-TO-STRING} and
-\code{READ-FROM-STRING}, which use the Lisp printer and reader to write and read data to
-and from strings, except the printed representation of strings can contain quotation marks
-and other characters that may cause problems when embedded in the value attribute of an
-\code{INPUT} element. So, you'll need to escape those characters somehow. Rather than
-trying to come up with your own escaping scheme, you can just use base64, an encoding
-commonly used to protect binary data sent through e-mail. AllegroServe comes with two
-functions, \code{base64-encode} and \code{base64-decode}, that do the encoding and
-decoding for you, so all you have to do is write a pair of functions: one that encodes a
-Lisp object by converting it to a readable string with \code{WRITE-TO-STRING} and then
-base64 encoding it and, conversely, another to decode such a string by base64 decoding it
-and passing the result to \code{READ-FROM-STRING}. You'll want to wrap the calls to
-\code{WRITE-TO-STRING} and \code{READ-FROM-STRING} in \code{WITH-STANDARD-IO-SYNTAX} to
-make sure all the variables that affect the printer and reader are set to their standard
-values. However, because you're going to be reading data that's coming in from the
-network, you'll definitely want to turn off one feature of the reader~--- the ability to
-evaluate arbitrary Lisp code while reading!\footnote{The reader supports a bit of syntax,
-  \lstinline!#.!, that causes the following s-expression to be evaluated at read
-  time. This is occasionally useful in source code but obviously opens a big security hole
-  when you read untrusted data. However, you can turn off this syntax by setting
-  *READ-EVAL* to NIL, which will cause the reader to signal an error if it encounters
-  \lstinline!#.!.} You can define your own macro \code{with-safe-io-syntax}, which wraps
-its body forms in \code{WITH-STANDARD-IO-SYNTAX} wrapped around a \code{LET} that binds
-\code{*READ-EVAL*} to \code{NIL}.
+Последний \code{string->type} метод немного более сложный. Из-за причин к которым доберусь
+через мгновение, вам нужно генерировать страницы которые отображают форму со скрытым
+полем, значение которого список строк. Поскольку вы ответственны за генерацию значения в
+скрытом поле и за ее разбор когда она будет возвращена, вы можете использовать любую
+удобную кодировку. Вы можете использовать функции \code{WRITE-TO-STRING} и
+\code{READ-FROM-STRING}, которые используют считыватель и механизм вывода Lisp для записи
+и считывания данных со строк, кроме того что печатное представление строк может вмещать
+знаки кавычек и другие символы которые могут вызвать проблемы будучи внутри значения
+атрибута элемента \code{INPUT}. Итак, вам нужно экранировать как-то такие значения. Прежде
+тем как придумывать свой способ экранирования, вы можете просто использовать base64,
+кодировку обычно используемую ля защиты двоичных данных посылаемых по e-mail. AllegroServe
+имеет две функции, \code{base64-encode} и \code{base64-decode}, которые делают кодирование
+и декодирование для вас, таким образом, все, что вам нужно сделать это написать пару
+функций: одна кодирует Lisp объект, превращая его в читабельную строку с
+\code{WRITE-TO-STRING} а потом кодирует ее с base64, и, обратно, другую для декодирования
+такой строки из base64 и передачи результата декодирования в \code{READ-FROM-STRING}. Вам
+захочется обернуть вызовы к \code{WRITE-TO-STRING} и \code{READ-FROM-STRING} в
+\code{WITH-STANDARD-IO-SYNTAX} для того чтобы быть уверенными что все переменные которые
+влияют на механизмы чтения и вывода установлены в свои стандартные значения. Тем не менее,
+поскольку вы собираетесь читать данные которые приходят из сети, вы, разумеется, хотите
+выключить одну функцию считывателя~--- возможность выполнения произвольного кода Lisp во
+время чтения!\footnote{Считыватель поддерживает неполный синтаксис, \lstinline!#.!,
+который заставляет выполнение s-выражения идущего за ним во время считывания. Это иногда
+полезно в исходном коде но явно открывает большую дырку в безопасности когда вы считываете
+ненадежные данные. Тем не менее, вы можете выключить этот синтаксис установив значение
+\code{*READ-EVAL} в \code{NIL}, что заставит считыватель генерировать ошибку когда он
+встретит \lstinline!#.!.} Вы можете определить собственный макрос
+\code{with-safe-io-syntax}, который обернет формы тела макроса в
+\code{WITH-STANDARD-IO-SYNTAX} внутри кода \code{LET} который привяжет \code{*READ-EVAL} к
+значению \code{NIL}.
 
 \begin{lstlisting}
 (defmacro with-safe-io-syntax (&body body)
@@ -615,7 +617,7 @@ its body forms in \code{WITH-STANDARD-IO-SYNTAX} wrapped around a \code{LET} tha
        ,@body)))
 \end{lstlisting}
 
-Then the encoding and decoding functions are trivial.
+В таком случае функции кодирования и декодирования тривиальны.
 
 \begin{lstlisting}
 (defun obj->base64 (obj)
@@ -626,8 +628,9 @@ Then the encoding and decoding functions are trivial.
     (with-safe-io-syntax (read-from-string (base64-decode string)))))
 \end{lstlisting}
 
-Finally, you can use these functions to define a method on \lstinline!string->type! that
-defines the conversion for the query parameter type base64-list.
+Наконец, вы можете использовать эти функции для определения метода для
+\lstinline!string->type! который определит преобразование для типа параметра запроса
+\code{base64-list}
 
 \begin{lstlisting}
 (defmethod string->type ((type (eql 'base-64-list)) value)
