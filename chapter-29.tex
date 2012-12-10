@@ -408,7 +408,7 @@ Shoutcast.  Но текущая песня также может быть изм
 \end{lstlisting}
 
 Удаление песен немного проще; вам только нужна возможность удалять песни из
-\code{songs-table} которые удовлетворяют конкретный критерий -- или конкретную песню или
+\code{songs-table} которые удовлетворяют конкретный критерий~--- или конкретную песню или
 все песни в конкретном жанре, по конкретному исполнителю или из конкретного альбома. Итак,
 вы можете предоставить функцию \code{delete-songs} которая берет пары ключ/значение,
 которые используются для построения сравнительное условие \code{:where} для передачи в функцию
@@ -497,8 +497,8 @@ Shoutcast.  Но текущая песня также может быть изм
 что не нуждается в изменении значения \code{ordering}. Таким образом, когда
 \code{shuffle-playlist} вызывается с \code{shuffle} равным \code{:none}, плейлист
 возвращается к сортировки в соответствии с предыдущим \code{ordering}. Перемешивание песен
-простое--нужно только вызвать \code{shuffle-table} для \code{songs-table}. Перемешивание
-альбомов немножко запутаннее но все же не ядерная физика.
+простое~--- нужно только вызвать \code{shuffle-table} для \code{songs-table}.
+Перемешивание альбомов немножко запутаннее но все же не ядерная физика.
 
 \begin{lstlisting}
 (defun shuffle-playlist (playlist shuffle)
@@ -535,12 +535,13 @@ Shoutcast.  Но текущая песня также может быть изм
 
 Последняя манипуляция которую вам необходимо поддерживать это установка режима повтора для
 плейлиста. Большую часть времени вы не нуждаетесь в дополнительных действиях когда
-устанавливаете повтор--его значение входит в игру только в \code{maybe-move-to-next-song}.
-Тем не менее, вам нужно обновить \code{current-song} как результат изменения повтора в
-одной ситуации, а именно, если \code{current-idx} в конце не пустого плейлиста и повтор
-изменяется с \code{:song} или \code{:all}. В этом случае, вы хотите продолжить
-проигрывание либо повторяя последнюю песню или стартовать с самого начала плейлиста. Итак,
-вы должны определить метод \code{:after} для обобщенной функции \code{(setf repeat)}.
+устанавливаете повтор~---его значение входит в игру только в
+\code{maybe-move-to-next-song}.  Тем не менее, вам нужно обновить \code{current-song} как
+результат изменения повтора в одной ситуации, а именно, если \code{current-idx} в конце не
+пустого плейлиста и повтор изменяется с \code{:song} или \code{:all}. В этом случае, вы
+хотите продолжить проигрывание либо повторяя последнюю песню или стартовать с самого
+начала плейлиста. Итак, вы должны определить метод \code{:after} для обобщенной функции
+\code{(setf repeat)}.
 
 \begin{lstlisting}
 (defmethod (setf repeat) :after (value (playlist playlist))
@@ -722,7 +723,7 @@ It looks like this:
 
 To URL encode the keys and values, you use the helper function urlencode, which is a
 wrapper around the function encode-form-urlencoded, which is a nonpublic function from
-AllegroServe. This is--on one hand--bad form; since the name encode-form-urlencoded isn't
+AllegroServe. This is~--- on one hand~--- bad form; since the name encode-form-urlencoded isn't
 exported from NET.ASERVE, it's possible that encode-form-urlencoded may go away or get
 renamed out from under you. On the other hand, using this unexported symbol for the time
 being lets you get work done for the moment; by wrapping encode-form-urlencoded in your
@@ -781,8 +782,8 @@ user's playlist. The function looks like this:
 \end{lstlisting}
 
 This function starts by using the function values-for-page to get a table containing the
-values it needs to present. When the user is browsing by song--when the what parameter is
-:song--you want to select complete rows from the database. But when they're browsing by
+values it needs to present. When the user is browsing by song~--- when the what parameter is
+:song~--- you want to select complete rows from the database. But when they're browsing by
 genre, artist, or album, you want to select only the distinct values for the given
 category. The database function select does most of the heavy lifting, with
 values-for-page mostly responsible for passing the right arguments depending on the value
@@ -848,11 +849,11 @@ one way and all other kinds another way.
 
 The other thing on the browse page is a form with several hidden INPUT fields and an "Add
 all" submit button. You need to use an HTML form instead of a regular link to keep the
-application stateless--to make sure all the information needed to respond to a request
+application stateless~--- to make sure all the information needed to respond to a request
 comes in the request itself. Because the browse page results can be partially random, you
 need to submit a fair bit of data for the server to be able to reconstitute the list of
 songs to add to the playlist. If you didn't allow the browse page to return randomly
-generated results, you wouldn't need much data--you could just submit a request to add
+generated results, you wouldn't need much data~--- you could just submit a request to add
 songs with whatever search criteria the browse page used. But if you added songs that way,
 with criteria that included a random argument, then you'd end up adding a different set of
 random songs than the user was looking at on the page when they hit the "Add all" button.
@@ -874,7 +875,7 @@ that list to embed in the form.
 When that parameter comes back as the value of the values query parameter to a URL
 function that declares values to be of type base-64-list, it'll be automatically converted
 back to a list. As you'll see in a moment, that list can then be used to construct a query
-that'll return the correct list of songs.\footnote{This solution has its drawbacks--if a
+that'll return the correct list of songs.\footnote{This solution has its drawbacks~---if a
   browse page returns a lot of results, a fair bit of data is going back and forth under
   the covers. Also, the database queries aren't necessarily the most efficient. But it
   does keep the application stateless. An alternative approach is to squirrel away, on the
@@ -893,9 +894,9 @@ the actual songs while the song names may not.
 \section{The Playlist}
 
 This brings me to the next URL function, playlist. This is the most complex page of the
-three--it's responsible for displaying the current contents of the user's playlist as well
-as for providing the interface to manipulate the playlist. But with most of the tedious
-bookkeeping handled by define-url-function, it's not too hard to see how playlist
+three~---it's responsible for displaying the current contents of the user's playlist as
+well as for providing the interface to manipulate the playlist. But with most of the
+tedious bookkeeping handled by define-url-function, it's not too hard to see how playlist
 works. Here's the beginning of the definition, with just the parameter list:
 
 \begin{lstlisting}
@@ -1048,8 +1049,8 @@ individual file, or all files on an album, by a particular artist or in a specif
 The last of the three URL functions is the simplest. It presents a table listing all the
 playlists that have been created. Ordinarily users won't need to use this page, but during
 development it gives you a useful view into the state of the system. It also provides the
-mechanism to choose a different playlist--each playlist ID is a link to the playlist page
-with an explicit playlist-id query parameter, which will then be made sticky by the
+mechanism to choose a different playlist~--- each playlist ID is a link to the playlist
+page with an explicit playlist-id query parameter, which will then be made sticky by the
 playlist URL function. Note that you need to acquire the *playlists-lock* to make sure the
 *playlists* hash table doesn't change out from under you while you're iterating over it.
 
@@ -1108,16 +1109,16 @@ which will let you start browsing by the default category, Genre. After you've a
 songs to the playlist, you can press Play on the MP3 client, and it should start playing
 the first song.
 
-Obviously, you could improve the user interface in any of a number of ways--for instance,
-if you have a lot of MP3s in your library, it might be useful to be able to browse artists
-or albums by the first letter of their names. Or maybe you could add a "Play whole album"
-button to the playlist page that causes the playlist to immediately put all the songs from
-the same album as the currently playing song at the top of the playlist. Or you could
-change the playlist class, so instead of playing silence when there are no songs queued
-up, it picks a random song from the database. But all those ideas fall in the realm of
-application design, which isn't really the topic of this book. Instead, the next two
-chapters will drop back to the level of software infrastructure to cover how the FOO HTML
-generation library works.
+Obviously, you could improve the user interface in any of a number of ways~--- for
+instance, if you have a lot of MP3s in your library, it might be useful to be able to
+browse artists or albums by the first letter of their names. Or maybe you could add a
+"Play whole album" button to the playlist page that causes the playlist to immediately put
+all the songs from the same album as the currently playing song at the top of the
+playlist. Or you could change the playlist class, so instead of playing silence when there
+are no songs queued up, it picks a random song from the database. But all those ideas fall
+in the realm of application design, which isn't really the topic of this book. Instead,
+the next two chapters will drop back to the level of software infrastructure to cover how
+the FOO HTML generation library works.
 
 %%% Local Variables: 
 %%% mode: latex
