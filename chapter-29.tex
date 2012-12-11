@@ -639,11 +639,11 @@ Shoutcast.  Но текущая песня также может быть изм
     (if (listp obj) obj nil)))
 \end{lstlisting}
 
-\section{Boilerplate HTML}
+\section{Шаблонный HTML}
 
-Next you need to define some HTML macros and helper functions to make it easy to give the
-different pages in the application a consistent look and feel. You can start with an HTML
-macro that defines the basic structure of a page in the application.
+Дальше вам нужно определить некоторые HTML макросы и вспомогательные функции чтобы было
+просто придать разным страницам приложения единообразный внешний вид. Вы можете начать с
+HTML макроса который определяет базовую структуру страницы приложения.
 
 \begin{lstlisting}
 (define-html-macro :mp3-browser-page ((&key title (header title)) &body body)
@@ -658,12 +658,12 @@ macro that defines the basic structure of a page in the application.
       (standard-footer))))
 \end{lstlisting}
 
-You should define standard-header and standard-footer as separate functions for two
-reasons. First, during development you can redefine those functions and see the effect
-immediately without having to recompile functions that use the :mp3-browser-page
-macro. Second, it turns out that one of the pages you'll write later won't be defined with
-:mp3-browser-page but will still need the standard header and footers. They look like
-this:
+Вам нужно определить \code{standard-header} и \code{standard-footer} как отдельные функции
+по двум причинам. Во-первых, в процессе разработки вы можете переопределить эти функции и
+посмотреть эффект без надобности перекомпилировать функции которые используют
+макрос \code{:mp3-browser-page}. Во-вторых, как мы увидим позже, одна из страниц которые
+мы напишем не будет определена с \code{:mp3-browser-page} но все же будет нуждаться в
+стандартной шапке и нижней части сайта. Они имеют следующий вид:
 
 \begin{lstlisting}
 (defparameter *r* 25)
@@ -685,34 +685,34 @@ this:
   (html (:hr) ((:p :class "footer") "MP3 Browser v" *major-version* "." *minor-version*)))
 \end{lstlisting}
 
-A couple of smaller HTML macros and helper functions automate other common patterns. The
-:table-row HTML macro makes it easier to generate the HTML for a single row of a table. It
-uses a feature of FOO that I'll discuss in Chapter~\ref{ch:31}, an \lstinline!&attributes!
-parameter, which causes uses of the macro to be parsed just like normal s-expression HTML
-forms, with any attributes gathered into a list that will be bound to the
-\lstinline!&attributes!  parameter. It looks like this:
+Несколько HTML макросов поменьше и вспомогательных функций автоматизируют другие общие
+шаблоны. HTML макрос \code{:table-row} делает проще работу по генерации одной строки для
+таблицы. Он использует возможность \code{FOO} о которой я поговорю в главе \ref{ch:31},
+параметр \lstinline!&attributes!, который позволит превращать вызовы макроса в нормальные
+s-выражения для представления HTML форм, с любыми свойствами которые собираются в список и
+привязываются к параметру \lstinline!&attributes!. Вот как это выглядит:
 
 \begin{lstlisting}
 (define-html-macro :table-row (&attributes attrs &rest values)
   `(:tr ,@attrs ,@(loop for v in values collect `(:td ,v))))
 \end{lstlisting}
 
-And the link function generates a URL back into the application to be used as the HREF
-attribute with an A element, building a query string out of a set of keyword/value pairs
-and making sure all special characters are properly escaped. For instance, instead of
-writing this:
+А функция \code{link} генерирует URL для приложения который будет использоваться как
+атрибут \code{HREF} элементат \code{A}, она строит строку запроса по набору пар
+ключ/значение и позволяет нам быть уверенными что все специальные символы правильно
+экранированы. Например, вместо того чтобы писать это:
 
 \begin{lstlisting}
 (:a :href "browse?what=artist&genre=Rhythm+%26+Blues" "Artists")
 \end{lstlisting}
 
-you can write the following:
+вы можете писать следующее:
 
 \begin{lstlisting}
 (:a :href (link "browse" :what "artist" :genre "Rhythm & Blues") "Artists")
 \end{lstlisting}
 
-It looks like this:
+Выглядит функция так:
 
 \begin{lstlisting}
 (defun link (target &rest attributes)
@@ -721,31 +721,32 @@ It looks like this:
      (:format "~a~@[?~{~(~a~)=~a~^&~}~]" target (mapcar #'urlencode attributes)))))
 \end{lstlisting}
 
-To URL encode the keys and values, you use the helper function urlencode, which is a
-wrapper around the function encode-form-urlencoded, which is a nonpublic function from
-AllegroServe. This is~--- on one hand~--- bad form; since the name encode-form-urlencoded isn't
-exported from NET.ASERVE, it's possible that encode-form-urlencoded may go away or get
-renamed out from under you. On the other hand, using this unexported symbol for the time
-being lets you get work done for the moment; by wrapping encode-form-urlencoded in your
-own function, you isolate the crufty code to one function, which you could rewrite if you
-had to.
+Чтобы кодировать для URL ключи и значения, вы используете функцию \code{urlencode},
+которая является оберткой над функцией \code{encode-form-urlencoded}, это непубличная
+функция из AllegroServe. Это~--- с одной стороны~--- плохая форма; поскольку имя
+\code{encode-form-urlencoded} не экспортировано с \code{NET.ASERVE}, возможно что
+\code{encode-form-urlencoded} может быть удалена или переименована без вашего уведомления.
+С другой стороны, использование неэкспортированного символа пока позволяет вам
+сделать работу прямо сейчас; путем обертывания \code{encode-form-urlencoded} в свою
+собственную функцию, вы изолируете код который может стать неработоспособным в одну
+функцию которую сможете переписать когда нужно будет.
 
 \begin{lstlisting}
 (defun urlencode (string)
   (net.aserve::encode-form-urlencoded string))
 \end{lstlisting}
 
-Finally, you need the CSS style sheet mp3-browser.css used by :mp3-browser-page. Since
-there's nothing dynamic about it, it's probably easiest to just publish a static file with
-publish-file.
+Наконец, вам нужно CSS таблицу стилей mp3-browser.css используемую на странице
+\code{:mp3-browser-page}. Поскольку в ней нет ничего динамического, наверное самое простое
+что можем сделать это опубликовать статический файл с помощью \code{publish-file}
 
 \begin{lstlisting}
 (publish-file :path "/mp3-browser.css"  :file filename :content-type "text/css")
 \end{lstlisting}
 
-A sample style sheet is included with the source code for this chapter on the book's Web
-site. You'll define a function, at the end of this chapter, that starts the MP3 browser
-application. It'll take care of, among other things, publishing this file.
+Пример таблицы стилей вложен в исходный код для этой главы на Web-сайте книги. Вы
+определите функцию в конце этой главы которая запускает приложение MP3 браузера. Она
+побеспокоится, кроме всего прочего, о публикации этого файла.
 
 \section{The Browse Page}
 
