@@ -1057,15 +1057,16 @@ URL функцию которая определяет \code{values} как ти
   (html " [" (:a :href (link "playlist" :action :delete-songs what value) "x") "]"))
 \end{lstlisting}
 
-\section{Finding a Playlist}
+\section{Находим плейлист}
 
-The last of the three URL functions is the simplest. It presents a table listing all the
-playlists that have been created. Ordinarily users won't need to use this page, but during
-development it gives you a useful view into the state of the system. It also provides the
-mechanism to choose a different playlist~--- each playlist ID is a link to the playlist
-page with an explicit playlist-id query parameter, which will then be made sticky by the
-playlist URL function. Note that you need to acquire the *playlists-lock* to make sure the
-*playlists* hash table doesn't change out from under you while you're iterating over it.
+Последняя из трех функций URL наиболее проста. Она представляет табличный список всех
+плейлистов которые были созданы. Обычно пользователи могут обойтись и без этой страницы но
+во время разработки она дает полезный вид состояния системы. Она также предоставляет
+механизм для изменения текущего плейлиста~--- каждый ID плейлиста это ссылка на страницу
+плейлиста с заданным параметром строки запроса \code{playlist-id} который будет потом
+"приклеенным" функцией URL плейлиста. Обратите внимание что вам нужно получить
+\code{*playlists-lock*} чтобы быть уверенным что хеш-таблица \code{*playlists*} не
+была изменена пока вы проходили по ней. 
 
 \begin{lstlisting}
 (define-url-function all-playlists (request)
