@@ -898,13 +898,13 @@ URL функцию которая определяет \code{values} как ти
 \code{:song}, вы используете значения из колонки \code{:file} поскольку они уникально
 определяют сами песни тогда как названия песен могут этого не делать.
 
-\section{The Playlist}
+\section{Плейлист}
 
-This brings me to the next URL function, playlist. This is the most complex page of the
-three~---it's responsible for displaying the current contents of the user's playlist as
-well as for providing the interface to manipulate the playlist. But with most of the
-tedious bookkeeping handled by define-url-function, it's not too hard to see how playlist
-works. Here's the beginning of the definition, with just the parameter list:
+Итак, я подошел к следующей функции URL, плейлисту. Это наиболее сложная страница из
+трех~--- она отвечает за отображение текущего содержания плейлиста пользователя а также за
+предоставление интерфейса для управления плейлистом. Но так как \code{define-url-function}
+обрабатывает рутинную работу, не так сложно увидеть как работает плейлист. Вот начало
+определения, только со списком параметров: 
 
 \begin{lstlisting}
 (define-url-function playlist 
@@ -922,42 +922,46 @@ works. Here's the beginning of the definition, with just the parameter list:
      (repeat keyword))     ; for :set-repeat action
 \end{lstlisting}
 
-In addition to the obligatory request parameter, playlist takes a number of query
-parameters. The most important in some ways is playlist-id, which identifies which
-playlist object the page should display and manipulate. For this parameter, you can take
-advantage of define-url-function's "sticky parameter" feature. Normally, the playlist-id
-won't be supplied explicitly, defaulting to the value returned by the playlist-id
-function, namely, the IP address of the client machine on which the browser is
-running. However, users can also manipulate their playlists from different machines than
-the ones running their MP3 clients by allowing this value to be explicitly specified. And
-if it's specified once, define-url-function will arrange for it to "stick" by setting a
-cookie in the browser. Later you'll define a URL function that generates a list of all
-existing playlists, which users can use to pick a playlist other than the one for the
-machines they're browsing from.
+В дополнение к обязательному параметру запроса, плейлист берет набор параметров запроса.
+Наиболее важный для некоторых вещей параметр \code{playlist-id}, который определяет каким
+объектом плейлиста будет управлять и отображать страница. Для этого параметра вы можете
+использовать преимущества возможности функции \code{define-url-function} "липкий
+параметр". Обычно \code{playlist-id} не будет обязательно передан и возьмет значение по
+умолчанию тоесть адрес IP клиентской машины на которой запущен браузер. Тем не менее,
+пользователи могут также управлять плейлистами из других машин кроме тех на которых
+запущены MP3 клиенты если мы позволим изменить это значение. И если значение уже указано,
+\code{define-url-function} организует его "приклеивание" путем установки cookie в
+браузере. Позже вы определите функцию URL которая будет генерировать список всех
+существующих плейлистов, которые пользователи смогут использовать для выбора плейлиста
+отличного от того который на их машине.
 
-The action parameter specifies some action to take on the user's playlist object. The
-value of this parameter, which will be converted to a keyword symbol for you, can be
-:add-songs, :delete-songs, :clear, :sort, :shuffle, or :set-repeat. The :add-songs action
-is used by the "Add all" button in the browse page and also by the links used to add
-individual songs. The other actions are used by the links on the playlist page itself.
+Параметр \code{action} указывает некоторое действие которое нужно делать над объектом
+пользовательского плейлиста. Значение этого параметра которое будет преобразовано в
+ключевой символ для вас, может быть \code{:add-songs}, \code{:delete-songs},
+\code{:clear}, \code{:sort}, \code{:shuffle} или \code{:set-repeat}. Действие
+\code{:add-songs} используется в кнопке "Добавить все" на странице просмотра а также
+ссылками для добавления конкретных песен. Другие действия используются ссылками на самой
+странице плейлиста.
 
-The file, what, and values parameters are used with the :add-songs action. By declaring
-values to be of type base-64-list, the define-url-function infrastructure will take care
-of decoding the value submitted by the "Add all" form. The other parameters are used with
-other actions as noted in the comments.
+Параметры \code{file}, \code{what} и \code{values} используются с действием
+\code{:add-songs}. Определяя \code{values} как \code{base-64-list}, инфраструктура функции
+\code{define-url-function} позаботится о перекодировании значения отосланного с помощью
+формы "Добавить все". Другие параметры используются с другими действиями как было указано
+в комментариях.
 
-Now let's look at the body of playlist. The first thing you need to do is use the
-playlist-id to look up the queue object and then acquire the playlist's lock with the
-following two lines:
+Теперь давайте посмотрим на тело плейлиста. Первое что вам нужно это использовать
+\code{playlist-id} для того чтобы найти объект очереди и затем сделать блокировку
+плейлиста следующими двумя линиями:
 
 \begin{lstlisting}
 (let ((playlist (lookup-playlist playlist-id)))
   (with-playlist-locked (playlist)
 \end{lstlisting}
 
-Since lookup-playlist will create a new playlist if necessary, this will always return a
-playlist object. Then you take care of any necessary queue manipulation, dispatching on
-the value of the action parameter in order to call one of the playlist functions.
+Поскольку \code{lookup-playlist} создаст новый плейлист по необходимости, она всегда
+возвратит объект \code{playlist}. Тогда вам нужно позаботиться о необходимых манипуляциях
+с очередью, используя значения параметра \code{action} для вызова одной из функций
+плейлиста.
 
 \begin{lstlisting}
 (case action
@@ -972,10 +976,10 @@ the value of the action parameter in order to call one of the playlist functions
   (:set-repeat     (setf (repeat playlist) repeat)))
 \end{lstlisting}
 
-All that's left of the playlist function is the actual HTML generation. Again, you can use
-the :mp3-browser-page HTML macro to make sure the basic form of the page matches the other
-pages in the application, though this time you pass NIL to the :header argument in order
-to leave out the H1 header. Here's the rest of the function:
+Все что осталось для функции \code{playlist} это сама генерация HTML. Опять же, вы можете
+использовать HTML макрос \code{:mp3-browser-page} чтобы убедиться что основной вид
+страницы похож на другие страницы приложения, но в этот раз вы передаете \code{NIL} в
+параметр \code{:header} чтобы пропустить \code{H1} заголовок. Вот остаток кода функции:
 
 \begin{lstlisting}
 (html
@@ -1002,10 +1006,12 @@ to leave out the H1 header. Here's the rest of the function:
              (incf idx))))))))))))
 \end{lstlisting}
 
-The function playlist-toolbar generates a toolbar containing links to playlist to perform
-the various :action manipulations. And delete-songs-link generates a link to playlist with
-the :action parameter set to :delete-songs and the appropriate arguments to delete an
-individual file, or all files on an album, by a particular artist or in a specific genre.
+Функция \code{playlist-toolbar} генерирует панель инструментов содержащую ссылки на
+плейлист для выполнения различных \code{:action} манипуляций. А функция
+\code{delete-songs-link} генерирует ссылку на плейлист с параметром \code{:action}
+содержащим значение \code{:delete-songs} и соответствующими аргументами для удаления
+конкретного файла или всех файлов или альбома или композиций конкретного исполнителя или
+принадлежащих какому-то жанру.
 
 \begin{lstlisting}
 (defun playlist-toolbar (playlist)
