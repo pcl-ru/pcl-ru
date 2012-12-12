@@ -1083,15 +1083,16 @@ URL функцию которая определяет \code{values} как ти
               (:print (user-agent playlist)))))))))
 \end{lstlisting}
 
-\section{Running the App}
+\section{Запускаем приложение}
 
-And that's it. To use this app, you just need to load the MP3 database with the
-load-database function from Chapter 27, publish the CSS style sheet, set
-*song-source-type* to playlist so find-song-source uses playlists instead of the singleton
-song source defined in the previous chapter, and start AllegroServe. The following
-function takes care of all these steps for you, after you fill in appropriate values for
-the two parameters *mp3-dir*, which is the root directory of your MP3 collection, and
-*mp3-css*, the filename of the CSS style sheet:
+И вот оно. Чтобы использовать это приложение вам нужно просто загрузить базу данных MP3 с
+помощью функции \code{load-database} из главы~\ref{ch:27}, опубликовать CSS таблицу
+стилей, установить \code{*song-source-type*} в \code{playlist} чтобы
+\code{find-song-source} использовала плейлисты вместо единичного песенного источника
+определенного в прошлой главе и запускает AllegroServe. Следующая функция заботится всеми
+этими вещами для вас после того как вы заполните соответствующими значениями два
+параметра, \code{*mp3-dir*}, корневую папку MP3 коллекции и \code{*mp3-css*}, имя файла
+CSS таблицы стилей:
 
 \begin{lstlisting}
 (defparameter *mp3-dir* ...)
@@ -1106,33 +1107,32 @@ the two parameters *mp3-dir*, which is the root directory of your MP3 collection
   (net.aserve:start :port 2001))
 \end{lstlisting}
 
-When you invoke this function, it will print dots while it loads the ID3 information from
-your ID3 files. Then you can point your MP3 client at this URL:
+Когда вы сделаете вызов этой функции, она будет печатать точки пока будет загружаться ID3
+информация с ваших ID3 файлов. После этого вы можете открыть в MP3 клиенте следующий URL:
 
 \begin{verbatim}
   http://localhost:2001/stream.mp3
 \end{verbatim}
 
-and point your browser at some good starting place, such as this:
+и отослать браузер на какое-то хорошое стартовое место как это:
 
 \begin{verbatim}
   http://localhost:2001/browse
 \end{verbatim}
 
-which will let you start browsing by the default category, Genre. After you've added some
-songs to the playlist, you can press Play on the MP3 client, and it should start playing
-the first song.
+что позволит запустить просмотр категории по умолчанию, "Жанр". После того как вы добавите
+некоторые песни в плейлист, вы можете нажать "Играть" в MP3 клиенте и он должен начать
+проигрывать первую песню. 
 
-Obviously, you could improve the user interface in any of a number of ways~--- for
-instance, if you have a lot of MP3s in your library, it might be useful to be able to
-browse artists or albums by the first letter of their names. Or maybe you could add a
-"Play whole album" button to the playlist page that causes the playlist to immediately put
-all the songs from the same album as the currently playing song at the top of the
-playlist. Or you could change the playlist class, so instead of playing silence when there
-are no songs queued up, it picks a random song from the database. But all those ideas fall
-in the realm of application design, which isn't really the topic of this book. Instead,
-the next two chapters will drop back to the level of software infrastructure to cover how
-the FOO HTML generation library works.
+Очевидно вы можете улучшить пользовательский интерфейс несколькими способами~--- например,
+если у вас много MP3 в библиотеке, может быть полезным просматривать исполнителей или
+альбомы по первой букве ихних имен/названий. Или вы можете добавить кнопку "Играть весь
+альбом" на страницу плейлиста которая сделает чтобы все песни из того же альбома что и
+текущая песня добавились в начало плейлиста. Или вы можете изменить класс \code{playlist}
+так что вместо тишины когда песен нет в очереди, он будет выбирать случайную песню из базы
+данных. Но все эти идеи попадают в область проектировки приложения которая на самом деле
+не тема этой книги. Но следующие две главы отбросят нас на уровень инфраструктуры програм
+чтобы показать как работает библиотека FOO для генерации HTML.
 
 %%% Local Variables: 
 %%% mode: latex
