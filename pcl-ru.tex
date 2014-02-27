@@ -138,8 +138,8 @@
 \definecolor{pfpcolorext}{rgb}{0,0,0.6}
 
 % 70х100/16 -> 170mmх240mm
- \usepackage[papersize={165mm,235mm},asymmetric,% bindingoffset=5mm,
-hmargin={3cm,2cm},vmargin={1.25cm,2.5cm},includehead,ignorefoot,heightrounded,headsep=12bp,headheight=12.5bp,footnotesep=10bp plus2bp minus2bp]{geometry}
+ \usepackage[papersize={160mm,220mm},asymmetric,% bindingoffset=5mm,
+hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep=12bp,headheight=12.5bp,footnotesep=10bp plus2bp minus2bp]{geometry}
 
 % headers & footers
 %% \usepackage{fancyhdr}
@@ -187,10 +187,8 @@ hmargin={3cm,2cm},vmargin={1.25cm,2.5cm},includehead,ignorefoot,heightrounded,he
 }
 \lstdefinestyle{lisp}{language=Lisp,keywordstyle=\bfseries}
 
-% замена буквосочетаний на симпатичные символы
-%\lstset{literate={->}{{$\to$}{}}2 {=>}{{${\Rightarrow}$}}2 {|>}{{\makebox[.5em][l]{$\triangleright{}$} }}1}
+\lstdefinestyle{lisprepl}{keywords={}}
 
-% \lstinline мешается в таблицах (пока не понял, почему) -- goga
 %\newcommand{\code}[1]{\lstinline[mathescape]|#1|}
 \DeclareRobustCommand{\code}[1]{\texttt{\texorpdfstring{\def\ldots{...}%
 \spaceskip\codespaceskip\relax}{}% \spaceskip3bp plus 1.5bp minus1bp\relax 
@@ -444,7 +442,9 @@ hmargin={3cm,2cm},vmargin={1.25cm,2.5cm},includehead,ignorefoot,heightrounded,he
 %% \selectlanguage{russian}%
 %% \frenchspacing
 %% \righthyphenmin=2
-%% \sloppy
+
+%% TODO: remove...
+\sloppy
 
 \frontmatter
 

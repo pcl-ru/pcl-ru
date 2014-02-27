@@ -189,7 +189,7 @@ Python вы бы выбросили или возбудили исключени
   error-clause*)
 \end{lstlisting}
 
-где каждая конструкция \textit{error-clause} представляет собой следующую форму:
+\noindent{}где каждая конструкция \textit{error-clause} представляет собой следующую форму:
 
 \begin{lstlisting}
 (condition-type ([var]) code)
@@ -243,7 +243,7 @@ try {
 }
 \end{lstlisting} 
 
-или на языке Python как 
+\noindent{}или на языке Python как 
 
 \begin{lstlisting}[language=Python]
 try:
@@ -348,7 +348,7 @@ except SomeException, se:
     (analyze-entry entry)))
 \end{lstlisting}
 
-где функция \code{analyze-entry} предположительно ответственна за извлечение заботящей вас
+\noindent{}где функция \code{analyze-entry} предположительно ответственна за извлечение заботящей вас
 информации про каждую журнальную запись и припрятывание её куда-нибудь.
 
 Таким образом, путь от функции высшего уровня \code{log-analyzer} к
@@ -368,7 +368,7 @@ except SomeException, se:
 (handler-bind (binding*) form*)
 \end{lstlisting}
 
-где каждая привязка (binding) представляет собой список из типа услоия и обрабатывающей
+\noindent{}где каждая привязка (binding) представляет собой список из типа услоия и обрабатывающей
 функции с одним аргументом. После провязок с обработчиками, тело \code{HANDLER-BIND} может
 содержать произвольное число форм. В отличие от кода обработчика в \code{HANDLER-CASE},
 код обработчика должен быть FIXME функцией-объектом и должен принимать единственный

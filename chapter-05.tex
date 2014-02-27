@@ -177,11 +177,11 @@
 значение \code{NIL}.  Таким образом, предыдущая функция будет выдавать следующие
 результаты:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (foo 1 2)     ==> (1 2 NIL NIL)
   (foo 1 2 3)   ==> (1 2 3 NIL)
   (foo 1 2 3 4) ==> (1 2 3 4)
-\end{verbatim}
+\end{lstlisting}
 
 Lisp все равно будет проверять количество аргументов, переданных функции (в нашем случае
 это число от 2 до 4-х, включительно), и будет выдавать ошибку, если функция вызвана с
@@ -202,10 +202,10 @@ Lisp все равно будет проверять количество арг
 Второй параметр~--- \code{b}, получит либо значение второго аргумента, если он указан, либо
 число 10.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (foo 1 2) ==> (1 2)
   (foo 1)   ==> (1 10)
-\end{verbatim}
+\end{lstlisting}
 
 Однако, иногда, вам потребуется большая гибкость в выборе значения по умолчанию.  Вы
 можете захотеть вычислять значение по умолчанию основываясь на других параметрах.  И вы
@@ -239,11 +239,11 @@ Lisp все равно будет проверять количество арг
 
 Выполнение этого кода приведёт к следующим результатам:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (foo 1 2)   ==> (1 2 3 NIL)
   (foo 1 2 3) ==> (1 2 3 T)
   (foo 1 2 4) ==> (1 2 4 T)
-\end{verbatim}
+\end{lstlisting}
 
 \section{Остаточные (Rest) параметры}
 
@@ -334,7 +334,7 @@ Lisp все равно будет проверять количество арг
 если они следуют после обязательных аргументов.  Например, \code{foo} может быть вызвана
 вот так:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (foo)                ==> (NIL NIL NIL)
   (foo :a 1)           ==> (1 NIL NIL)
   (foo :b 1)           ==> (NIL 1 NIL)
@@ -342,7 +342,7 @@ Lisp все равно будет проверять количество арг
   (foo :a 1 :c 3)      ==> (1 NIL 3)
   (foo :a 1 :b 2 :c 3) ==> (1 2 3)
   (foo :a 1 :c 3 :b 2) ==> (1 2 3)
-\end{verbatim}
+\end{lstlisting}
 
 Также как и для необязательных параметров, для именованных параметров можно задавать
 выражение для вычисления значения по умолчанию и имя \code{supplied-p}-переменной.  И для
@@ -354,12 +354,12 @@ Lisp все равно будет проверять количество арг
     (list a b c b-supplied-p))
 \end{lstlisting}
   
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (foo :a 1)           ==> (1 0 1 NIL)
   (foo :b 1)           ==> (0 1 1 T)
   (foo :b 1 :c 4)      ==> (0 1 4 T)
   (foo :a 2 :b 1 :c 4) ==> (2 1 4 T)
-\end{verbatim}
+\end{lstlisting}
 
 Также, если по некоторым причинам вы хотите, чтобы пользователь использовал имена
 аргументов, отличающиеся от имён параметров, то вы можете заменить имя параметра на
@@ -373,9 +373,9 @@ Lisp все равно будет проверять количество арг
 
 позволяет пользователю вызывать функцию вот так:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (foo :apple 10 :box 20 :charlie 30) ==> (10 20 30 T)
-\end{verbatim}
+\end{lstlisting}
 
 Этот стиль особенно полезен, если вы хотите полностью отделить публичный интерфейс от
 деталей внутренней реализации, поскольку обычно внутри вы хотите использовать короткие
@@ -407,21 +407,21 @@ Lisp все равно будет проверять количество арг
 
 Если она вызывается вот так, то все нормально:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (foo 1 2 :z 3) ==> (1 2 3)
-\end{verbatim}
+\end{lstlisting}
 
 И вот так, все работает нормально:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (foo 1)  ==> (1 nil nil)
-\end{verbatim}
+\end{lstlisting}
 
 Но в этом случае, она выдаёт ошибку:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (foo 1 :z 3) ==> ERROR
-\end{verbatim}
+\end{lstlisting}
 
 Это происходит потому, что имя параметра \code{:z} берётся как значение для
 необязательного параметра \code{y}, оставляя для обработки только аргумент \code{3}.  При
@@ -467,9 +467,9 @@ Lisp все равно будет проверять количество арг
 
 вы получите следующие результаты:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (foo :a 1 :b 2 :c 3)  ==> ((:A 1 :B 2 :C 3) 1 2 3)
-\end{verbatim}
+\end{lstlisting}
 
 \section{Возврат значений из функции}
 
@@ -546,18 +546,18 @@ Lisp все равно будет проверять количество арг
 принимает единственный аргумент и возвращает функцию с этим именем.  Имя не экранируется.
 Так что, если вы определили функцию \code{foo}, например вот так:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (defun foo (x) (* 2 x))
   FOO
-\end{verbatim}
+\end{lstlisting}
 
 вы можете получить объект-функцию следующим образом:\footnote{Точное печатное
   представление объекта-функции может отличаться в зависимости от реализации.}
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (function foo)
   #<Interpreted Function FOO>
-\end{verbatim}
+\end{lstlisting}
 
 В действительности, вы уже использовали \code{FUNCTION}, но это было
 замаскировано. Синтаксис \lstinline!#'!, который вы использовали в
@@ -571,10 +571,10 @@ Lisp все равно будет проверять количество арг
   использовался в качестве имени функции в выражении вызова.}  Так что вы можете
   получить объект-функцию вот так:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> #'foo
   #<Interpreted Function FOO>
-\end{verbatim}
+\end{lstlisting}
 
 После того, как вы получили объект-функцию, есть только одна вещь, которую вы можете
 сделать с ней~--- выполнить её. Common Lisp предоставляет две функции для выполнения
@@ -589,9 +589,9 @@ Lisp все равно будет проверять количество арг
 \code{FUNCALL} является запускаемый объект-функция, а оставшиеся аргументы передаются
 данной функции.  Так что следующие два выражения являются эквивалентными:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (foo 1 2 3) === (funcall #'foo 1 2 3)
-\end{verbatim}
+\end{lstlisting}
 
 Однако довольно мало смысла в использовании \code{FUNCALL} для вызова функции, чьё имя вы
 знаете во время написания кода.  В действительности, два предыдущих выражения скорее всего
@@ -619,7 +619,7 @@ Lisp все равно будет проверять количество арг
 которая берёт один числовой аргумент, например, со встроенной функцией \code{EXP}, которая
 возвращает значение \code{e}, возведённое в степень переданного аргумента.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (plot #'exp 0 4 1/2)
   *
   *
@@ -631,7 +631,7 @@ Lisp все равно будет проверять количество арг
   \textbf{}\textbf{}\textbf{}\textbf{}\textbf{}\textbf{}\textbf{}\textbf{}*
   \textbf{}\textbf{}\textbf{}\textbf{}\textbf{}\textbf{}\textbf{}\textbf{}\textbf{}\textbf{}\textbf{}\textbf{}\textbf{}**
   NIL
-\end{verbatim}
+\end{lstlisting}
 
 Однако \code{FUNCALL} не особо полезен, когда список аргументов становится известен только
 во время выполнения.  Например, для работы с функцией \code{plot} в других случаях,
@@ -696,17 +696,17 @@ Lisp все равно будет проверять количество арг
 где само имя напрямую описывает что эта функция делает.  Это объясняет, почему вы можете
 использовать \code{LAMBDA}-выражение вместо имени функции с \lstinline!#'!.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (funcall #'(lambda (x y) (+ x y)) 2 3) ==> 5
-\end{verbatim}
+\end{lstlisting}
 
 Вы даже можете использовать \code{LAMBDA}-выражение как "имя" функции в выражениях,
 вызывающих функцию.  Если вы хотите, то вы можете переписать предыдущий пример с
 \code{FUNCALL} в следующем виде.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   ((lambda (x y) (+ x y) 2 3) ==> 5
-\end{verbatim}
+\end{lstlisting}
 
 Но обычно так никогда не пишут, это использовалось лишь для демонстрации, что
 \code{LAMBDA}-выражения разрешено и можно использовать везде, где могут использоваться
@@ -760,7 +760,7 @@ Lisp был введён макрос \code{LAMBDA}, используемый д
 
 которую затем передать \code{plot}.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (plot #'double 0 10 1)
   
   **
@@ -774,11 +774,11 @@ Lisp был введён макрос \code{LAMBDA}, используемый д
   \textbf{}\textbf{}\textbf{}\textbf{}**
   \textbf{}\textbf{}\textbf{}\textbf{}\textbf{}
   NIL
-\end{verbatim}
+\end{lstlisting}
 
 Но легче и более понятно написать вот так:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (plot #'(lambda (x) (* 2 x)) 0 10 1)
   
   **
@@ -792,7 +792,7 @@ Lisp был введён макрос \code{LAMBDA}, используемый д
   \textbf{}\textbf{}\textbf{}\textbf{}**
   \textbf{}\textbf{}\textbf{}\textbf{}\textbf{}
   NIL
-\end{verbatim}
+\end{lstlisting}
 
 Другим очень важным применением \code{LAMBDA}-выражений является их использование для
 создания замыканий (closures)~--- функций, которые захватывают часть среды выполнения, в

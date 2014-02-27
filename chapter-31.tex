@@ -675,7 +675,7 @@ backend для генерации корректного HTML или кода, �
   `((:div :class "mytag" ,@attrs) ,@body))
 \end{lstlisting}
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
 HTML> (html (:mytag "Foo"))
 <div class='mytag'>Foo</div>
 NIL
@@ -685,7 +685,7 @@ NIL
 HTML> (html ((:mytag :id "bar") "Foo"))
 <div class='mytag' id='bar'>Foo</div>
 NIL
-\end{verbatim}
+\end{lstlisting}
 
 Последний вид макросов более полезен для написания макросов, которые манипулируют
 выражениями, составляющими их тело.  Этот тип макросов может работать как управляющие

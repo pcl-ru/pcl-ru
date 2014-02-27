@@ -365,13 +365,14 @@ the code points of characters you read and write.
       (write-value 'u2 out code))))
 \end{lstlisting}
 
-где функция swap-bytes определена ниже, с использованием преимучества функции LDB, с
+\noindent{}где функция swap-bytes определена ниже, с использованием преимучества функции LDB, с
 которой можно делать SETF и, соответственно, ROTATEF.  FIXME второй вариант чуть более
 неформальный: где функция swap-bytes определена ниже, с использованием преимучества LDB,
 которую можно SETFить и, соответственно, ROTATEFить.
 
-where the swap-bytes function can be defined as follows, taking advantage of LDB being
-SETFable and thus ROTATEFable:
+% TODO:
+%where the swap-bytes function can be defined as follows, taking advantage of LDB being
+%SETFable and thus ROTATEFable:
 
 \begin{lstlisting}
 (defun swap-bytes (code)
@@ -444,12 +445,12 @@ wrinkle is, что надо переводить аргумент length, кот
 
 Если заглянуть в спецификацию ID3v2.2, то мы увидим, что в основе структуры тэга такой заголовок:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
 ID3/file identifier      "ID3"
 ID3 version              $02 00
 ID3 flags                %xx000000
 ID3 size             4 * %0xxxxxxx
-\end{verbatim}
+\end{lstlisting}
 
 за которым идут данные фреймов и выравнивание.  Поскольку мы уже определили типы для
 чтения и записи всех полей в этом заголовке, определение класса, который сможет читать
@@ -492,11 +493,11 @@ ID3 size             4 * %0xxxxxxx
 
 Она выдаст примерно следующее:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
 ID3V2> (show-tag-header "/usr2/mp3/Kitka/Wintersongs/02 Byla Cesta.mp3")
 ID3 2.0 00000000 2165 bytes -- Kitka/Wintersongs/02 Byla Cesta.mp3
 NIL
-\end{verbatim}
+\end{lstlisting}
 
 Конечно, чтобы определить, какая версия ID3 встречается чаще всего в вашей библиотеке,
 лучше бы иметь функцию, которая выдаёт сводку по всем MP3-файлам в директории. Такую легко
@@ -808,7 +809,7 @@ id3-frames так:
    (frames               (id3-frames :tag-size size :frame-type 'id3v2.3-frame))))
 \end{lstlisting}
 
-где \code{extended-p} и \code{crc-p}~--- вспомогательные функции, которые проверяют
+\noindent{}где \code{extended-p} и \code{crc-p}~--- вспомогательные функции, которые проверяют
 соответствующий бит флагов, переданных им. Чтобы определить, выставлен отдельный бит в
 целом числе или нет, можно использовать \code{LOGBITP}, ещё одну жонглирующую битами
 функцию. Она принимает индекс и целое и возвращает истину, если указанный бит установлен в

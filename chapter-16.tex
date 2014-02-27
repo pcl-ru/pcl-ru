@@ -692,18 +692,18 @@ public class Main {
 Когда вы заставляете \code{main} создать экземпляр \code{A}, она выдаст \code{A/A}, как вы и
 ожидали.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   bash$ java com.gigamonkeys.Main A
   A/A
-\end{verbatim}
+\end{lstlisting}
 
 Однако, если вы заставите \code{main} создать экземпляр \code{B}, то настоящий тип объекта
 \code{obj} будет принят во внимание не полностью.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   bash$ java com.gigamonkeys.Main B
   B/A
-\end{verbatim}
+\end{lstlisting}
 
 Если бы перегруженные методы работали также как и мультиметоды в Common Lisp, то программа
 бы выдала ожидаемый результат: \code{B/B}.  Существует возможность реализации

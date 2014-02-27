@@ -188,7 +188,7 @@ CL-USER> *package*
 #<The COMMON-LISP-USER package>
 \end{lstlisting}
 
-потому что \code{COMMON-LISP-USER} использует \code{COMMON-LISP}. Или вы можете задать
+\noindent{}потому что \code{COMMON-LISP-USER} использует \code{COMMON-LISP}. Или вы можете задать
 пакетно-специализированное имя.
 
 \begin{lstlisting}
@@ -210,7 +210,7 @@ CL-USER> (defvar *x* 10)
 *X*
 \end{lstlisting}
 
-считыватель прочтёт \code{DEFVAR} как символ из пакета \code{COMMON-LISP} и \code{*X*},
+\noindent{}считыватель прочтёт \code{DEFVAR} как символ из пакета \code{COMMON-LISP} и \code{*X*},
 как символ из \code{COMMON-LISP-USER}.
 
 REPL не может запускаться в пакете \code{COMMON-LISP}, потому что вам не позволено вводить
@@ -235,7 +235,7 @@ REPL не может запускаться в пакете \code{COMMON-LISP}, 
 (package-name (symbol-package 'some-symbol))
 \end{lstlisting}
 
-где some-symbol надо заменить на запрашиваемый символ. Например:
+\noindent{}где some-symbol надо заменить на запрашиваемый символ. Например:
 
 \begin{lstlisting}
 (package-name (symbol-package 'car)) ==> "COMMON-LISP"
@@ -650,11 +650,11 @@ Common Lisp. Множественные формы \code{IN-PACKAGE} в одно
 какую-нибудь библиотеку, определяющую некоторые нужные функции. Вы попытаетесь вызвать
 одну из них так:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
 CL-USER> (foo)
-\end{verbatim}
+\end{lstlisting}
 
-и вас отбросит в отладчик с ошибкой:
+\noindent{}и вас отбросит в отладчик с ошибкой:
 
 \begin{lstlisting}
 attempt to call `FOO' which is an undefined function.

@@ -385,13 +385,16 @@ Mac>>. Базовый шаблон \textbf{DEFMACRO} очень похож на 
   единственный список, полученный склейкой их вместе.}:
 
 \begin{figure}[tb]
-\begin{tabular}{|>{\centering}m{25mm}|>{\centering}m{25mm}|>{\centering}m{25mm}|}
-Синтаксис квазицитирования & Эквивалентный создающий списки код & Результат \\
+\begin{tabular}{|>{\centering}m{32mm}|>{\centering}m{60mm}|>{\centering}m{30mm}|}
+\hline{}
+Синтаксис квазицитирования & Эквивалентный код создающий списки & Результат \\
+\hline{}
 \lstinline!`(a (+ 1 2) c)! & \lstinline!(list 'a '(+ 1 2) 'c)! & \lstinline!(a (+ 1 2) c)! \\
 \lstinline!`(a ,(+ 1 2) c)! & \lstinline!(list 'a (+ 1 2) 'c)! & \lstinline!(a 3 c)! \\
 \lstinline!`(a (list 1 2) c)! & \lstinline!(list 'a '(list 1 2) 'c)! & \lstinline!(a (list 1 2) c)! \\
 \lstinline!`(a ,(list 1 2) c)! & \lstinline!(list 'a (list 1 2) 'c)! & \lstinline!(a (1 2) c)! \\
-\lstinline!`(a ,@(list 1 2) c)! & \lstinline!(append (list 'a) (list 1 2) (list 'c))! & \lstinline!(a 1 2 c)! 
+\lstinline!`(a ,@(list 1 2) c)! & \lstinline!(append (list 'a) (list 1 2) (list 'c))! & \lstinline!(a 1 2 c)! \\
+\hline
 \end{tabular}
   \caption{Примеры квазицитирования} 
   \label{table:08-1}
@@ -420,11 +423,11 @@ Mac>>. Базовый шаблон \textbf{DEFMACRO} очень похож на 
 \code{do-primes} в REPL и увидеть, что он и в самом деле напечатает правильную
 последовательность простых чисел.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (do-primes (p 0 19) (format t "~d " p))
   2 3 5 7 11 13 17 19
   NIL
-\end{verbatim}
+\end{lstlisting}
 
 Или же вы можете проверить макрос напрямую, посмотрев на раскрытие определённого
 вызова. Функция \textbf{MACROEXPAND-1} получает любое выражение Lisp в качестве аргумента
@@ -443,13 +446,13 @@ Mac>>. Базовый шаблон \textbf{DEFMACRO} очень похож на 
   это так, вычисление \code{(setf *print-pretty* t)} должно сделать раскрытия макросов
   более лёгкими для чтения.}.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (macroexpand-1 '(do-primes (p 0 19) (format t "~d " p)))
   (DO ((P (NEXT-PRIME 0) (NEXT-PRIME (1+ P))))
       ((> P 19))
     (FORMAT T "~d " P))
   T
-\end{verbatim}
+\end{lstlisting}
 
 Также, для большего удобства, в SLIME вы можете проверить раскрытие макроса поместив
 курсор на открывающую скобку формы макроса в вашем исходном коде и набрав C-c RET для

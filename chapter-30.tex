@@ -122,14 +122,17 @@ HTML программно, то вы обычно не сильно заботи
 различных само-вычисляющихся значений будут выведены.
 
 \begin{figure}[tb]
-\begin{tabular}{|>{\centering}m{25mm}|>{\centering}m{25mm}|}
-  FOO Form &	Generated HTML \\
+\begin{tabular}{|c|c|}
+\hline
+  Форма FOO & Сгенерированный HTML \\
+\hline
   \lstinline!"foo"! &\lstinline!foo! \\
   \lstinline!10! & \lstinline!10! \\
   \lstinline!:foo! & \lstinline!FOO! \\
-  \lstinline!"foo & bar"! & \lstinline!foo &amp; bar!
+  \lstinline!"foo & bar"! & \lstinline!foo &amp; bar!\\
+\hline
 \end{tabular}
-  \caption{Выход FOO для FIXME само-вычисляющихся объектов} 
+  \caption{Вывод FOO для FIXME само-вычисляющихся объектов} 
   \label{table:30-1}
 \end{figure}
 
@@ -146,11 +149,11 @@ HTML программно, то вы обычно не сильно заботи
 это название тэга элемента, а остальные (\code{REST})~--- это список FIXME
 само-вычисляющихся объектов или списков, представляющих другие HTML элементы. Тогда:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   <p>Foo</p> <==> (:p "Foo")
 
   <p><i>Now</i> is the time</p> <==> (:p (:i "Now") " is the time")
-\end{verbatim}
+\end{lstlisting}
 
 Теперь остаётся придумать, как повысить краткость записи атрибутов. Так как у многих
 элементов нет атрибутов, было бы здорово иметь возможность использовать для них упомянутый
@@ -160,7 +163,7 @@ HTML программно, то вы обычно не сильно заботи
 элемента начинается с первого объекта в списке, который находится в позиции имени атрибута
 и не является ключевым символом. Таким образом:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   HTML> (html (:p "foo"))
   <p>foo</p>
   NIL
@@ -173,7 +176,7 @@ HTML программно, то вы обычно не сильно заботи
   HTML> (html (:p :id "x" :style "foo" "Foo"))
   <p id='x' style='foo'>Foo</p>
   NIL
-\end{verbatim}
+\end{lstlisting}
 
 Для тех, кто предпочитает более очевидное разграничение между телом элемента и его
 атрибутами, FOO поддерживает альтернативный синтаксис: если первый элемент списка сам
@@ -182,14 +185,14 @@ HTML программно, то вы обычно не сильно заботи
 вложенного списка в качестве атрибутов и с остатком (\code{REST}) внешнего списка в
 качестве тела. То есть вы можете написать два предыдущих выражения вот так:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   HTML> (html ((:p :style "foo") "Foo"))
   <p style='foo'>Foo</p>
   NIL
   HTML> (html ((:p :id "x" :style "foo") "Foo"))
   <p id='x' style='foo'>Foo</p>
   NIL
-\end{verbatim}
+\end{lstlisting}
 
 Следующая функция проверяет, соответствует ли данный объект одному из этих синтаксисов:
 
@@ -321,14 +324,14 @@ sharp), за которым следует числовой код в десят
 
 Вот несколько примеров:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   HTML> (escape "foo & bar" *element-escapes*)
   "foo &amp; bar"
   HTML> (escape "foo & 'bar'" *element-escapes*)
   "foo &amp; 'bar'"
   HTML> (escape "foo & 'bar'" *attribute-escapes*)
   "foo &amp; &apos;bar&apos;"
-\end{verbatim}
+\end{lstlisting}
 
 Наконец, вам нужна переменная \code{*escapes*}, которая будет связана с множеством знаков,
 которые должны быть экранированы. Изначально она установлена в значение
@@ -610,15 +613,15 @@ HTML элементов.
 
 Теперь вы можете делать что-то подобное этому:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   HTML> (defvar *x* 10)
   *X*
   HTML> (emit-html '(:p *x*))
-\end{verbatim}
+\end{lstlisting}
 
 и вас выкинет в отладчик с таким сообщением:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   Can't embed values when interpreting. Value: *X*
      [Condition of type VALUE-IN-INTERPRETER]
 
@@ -626,14 +629,14 @@ HTML элементов.
     0: [EVALUATE] EVAL *X* in null lexical environment.
     1: [ABORT] Abort handling SLIME request.
     2: [ABORT] Abort entirely from this process.
-\end{verbatim}
+\end{lstlisting}
 
 Если вы вызовите перезапуск \code{evaluate}, то \code{embed-value} вызовет \code{EVAL
   *x*}, получит значение \code{10} и сгенерирует следующий HTML:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   <p>10</p>
-\end{verbatim}
+\end{lstlisting}
 
 Для удобства, вы можете предоставить функции перезапуска~--- функции, которые вызывают
 \code{evaluate} перезапуск в определённых ситуациях. Функция \code{evaluate} перезапуска
@@ -691,9 +694,9 @@ T
 это функция, которая принимает объект и обрабатывает его, вызывая подходящие функции
 обработчика для генерации HTML. Например, когда дано простое выражение, наподобие такого:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (:p "Foo")
-\end{verbatim}
+\end{lstlisting}
 
 эта функция может выполнить эту последовательность вызовов обработчика:
 

@@ -121,7 +121,7 @@
 Мы можем использовать \textbf{LDB} с \textbf{SETF} для присваивания заданным битам целого
 числа, сохранённого в SETFable месте.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (defvar *num* 0)
   *NUM*
   CL-USER> (setf (ldb (byte 8 0) *num*) 128)
@@ -132,7 +132,7 @@
   255
   CL-USER> *num*
   65408
-\end{verbatim}
+\end{lstlisting}
 
 Итак, мы можем написать \code{read-u2} также следующим образом\footnote{Common Lisp также предоставляет функции для сдвига и маскирования битов целых чисел способом, который может быть более знаком программистам на C и Java. Например мы можем написать \code{read-u2} третим способом путём использования этих функций следующим образом:
 
@@ -381,12 +381,12 @@ structures) и отображения их на объекты Lisp.
 краткого, как и псевдокод спецификации ID3, мы можем начать с него. Заголовок тега ID3
 определяется следующим образом:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   ID3/file identifier      "ID3"
   ID3 version              $02 00
   ID3 flags                %xx000000
   ID3 size             4 * %0xxxxxxx
-\end{verbatim}
+\end{lstlisting}
 
 В нотации спецификации это означает, что слот <<file identifier>> тега ID3 является строкой
 <<ID3>> в кодировке ISO-8859-1. Слот version состоит из двух байт, первый из которых, для
@@ -496,10 +496,10 @@ structures) и отображения их на объекты Lisp.
 Мы можем протестировать эту функцию в REPL после переключения в наш новый пакет путём
 вызова \textbf{IN-PACKAGE}.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   BINARY-DATA> (slot->defclass-slot '(major-version u1))
   (MAJOR-VERSION :INITARG :MAJOR-VERSION :ACCESSOR MAJOR-VERSION)
-\end{verbatim}
+\end{lstlisting}
 
 Выглядит неплохо. Теперь написание первой версии \code{define-binary-class} тривиально.
 
@@ -655,12 +655,12 @@ structures) и отображения их на объекты Lisp.
 
 Мы можем протестировать \code{slot->read-value} с каждым типом спецификаторов слотов.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   BINARY-DATA> (slot->read-value '(major-version u1) 'stream)
   (SETF MAJOR-VERSION (READ-VALUE 'U1 STREAM))
   BINARY-DATA> (slot->read-value '(identifier (iso-8859-1-string :length 3)) 'stream)
   (SETF IDENTIFIER (READ-VALUE 'ISO-8859-1-STRING STREAM :LENGTH 3))
-\end{verbatim}
+\end{lstlisting}
 
 Со всеми этими функциями мы уже готовы добавить \code{read-value} в
 \code{define-binary-class}. Если мы возьмём вручную написанный метод \code{read-value} и

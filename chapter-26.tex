@@ -635,9 +635,9 @@ AllegroServe, как и большинство других каркасов web
 
 Если вы укажете своему браузеру URL со строкой запроса подобной такой:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   http://localhost:2001/show-query-params?foo=bar&baz=10
-\end{verbatim}
+\end{lstlisting}
 
 вы получите страницу, подобную показанной на рисунке~\ref{fig:26-4}.
 
@@ -832,7 +832,7 @@ cookie: \code{:expires}, \code{:path}, \code{:domain} и \code{:secure}.
     body)
 \end{lstlisting}
 
-где \code{body} будет кодом, выдающим код HTML страницы. Он будет обернут в вызов макроса
+\noindent{}где \code{body} будет кодом, выдающим код HTML страницы. Он будет обернут в вызов макроса
 \code{html} из \code{FOO}, и поэтому для простых страниц может не содержать ничего, кроме
 представляющего HTML s-выражения.
 
@@ -843,9 +843,9 @@ cookie: \code{:expires}, \code{:path}, \code{:domain} и \code{:secure}.
 типа, значение по умолчанию, и то, нужно ли получать значение параметра из и сохранять его
 в cookie. Полный синтаксис для параметра запроса выглядит так:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   name | (name type [default-value] [stickiness])
-\end{verbatim}
+\end{lstlisting}
 
 \code{type} должен быть именем, распознаваемым \code{define-url-function}. Мы скоро
 обсудим как определять новые типы. \code{default-value} должно быть значением данного

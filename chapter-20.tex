@@ -72,14 +72,14 @@ Common Lisp (когда никто не осуществляет прямой д
   body-form*)
 \end{lstlisting}
 
-или так:
+\noindent{}или так:
 
 \begin{lstlisting}
 (labels (function-definition*)
   body-form*)
 \end{lstlisting}
 
-где каждая из \code{function-definition} имеет следующую форму:
+\noindent{}где каждая из \code{function-definition} имеет следующую форму:
 
 \begin{lstlisting}
 (name (parameter*) form*)
@@ -284,7 +284,7 @@ Common Lisp предоставляет и \code{FLET} и \code{LABELS} по то
   tag-or-compound-form*)
 \end{lstlisting}
 
-где каждая \textit{tag-or-compound-form}, это или символ, называемый \textit{тег}, или
+\noindent{}где каждая \textit{tag-or-compound-form}, это или символ, называемый \textit{тег}, или
 непустая списочная форма. Форма выполняется по порядку и теги игнорируются, кроме случая,
 о котором я скоро скажу. После выполнения последней формы в \code{TAGBODY}, \code{TAGBODY}
 возвращает \code{NIL}. В любом месте внутри лексической области видимости \code{TAGBODY}
@@ -349,11 +349,11 @@ FORTRAN-to-Common Lisp, f2cl, который переводит исходный
 Дональда Кнута <<Искусство программирования>>, он описывает алгоритмы, используя формат
 <<рецептов>>: 
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
 step 1, do this; 
 step 2, do that; 
 step 3, go back to step 2;
-\end{verbatim}
+\end{lstlisting}
 
 и так далее. Для примера на странице 142, <<Искусства программирования>>, Том 2:
 Получисленные алгоритмы, 3-е издание (Addison-Wesley, 1998), он описывает Алгоритм S,
@@ -490,7 +490,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 соответствующего выражения \code{BLOCK}. Вызовы \code{FORMAT} в функциях \code{foo},
 \code{bar} и \code{baz} демонстрируют это:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (foo)
   Entering foo
    Entering BLOCK
@@ -498,7 +498,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
      Entering baz
   Leaving foo
   NIL
-\end{verbatim}
+\end{lstlisting}
 
 Заметьте, что единственным выдаваемым сообщением \code{Leaving . . .} является то, которое
 было вставлено после выражения \code{BLOCK} в функции \code{foo}.
@@ -599,7 +599,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 Заметьте, что нет необходимости передавать замыкание вниз по стеку~--- \code{baz} может
 напрямую вызвать \code{THROW}.  Результат будет таким же как и раньше.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (foo)
   Entering foo
    Entering \code{CATCH}
@@ -607,7 +607,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
      Entering baz
   Leaving foo
   NIL
-\end{verbatim}
+\end{lstlisting}
 
 Однако, \code{CATCH} и \code{THROW} слишком динамичные.  И в \code{CATCH}, и в
 \code{THROW}, форма, представляющая тег, вычисляется, что означает, что её значение в
@@ -723,9 +723,9 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 единственный аргумент~--- список значений, и возвращает все его содержимое в виде
 множественных значений.  Иначе говоря:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (values-list x) === (apply #'values x)
-\end{verbatim}
+\end{lstlisting}
 
 Механизм возврата множественных значений зависит от конкретной реализации, также как и
 механизм передачи аргументов функциям.  Почти все языковые конструкции возвращающие
@@ -755,10 +755,10 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 аргумента, все значения, возвращённые остальными выражениями, указанными в качестве
 аргументов.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (funcall #'+ (values 1 2) (values 3 4))             ==> 4
   (multiple-value-call #'+ (values 1 2) (values 3 4)) ==> 10
-\end{verbatim}
+\end{lstlisting}
 
 Но скорее всего вы достаточно редко будете просто передавать все значения, возвращённые
 одной функцией, в другую функцию.  Скорее всего вы захотите сохранить множественные
@@ -776,22 +776,22 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 им, присваиваются указанным переменным.  Затем вычисляются выражения \code{body-forms}
 используя указанные переменные.  Так что:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (multiple-value-bind (x y) (values 1 2)
     (+ x y)) ==> 3
-\end{verbatim}
+\end{lstlisting}
 
 Другой макрос~--- \code{MULTIPLE-VALUE-LIST}, ещё более простой~--- он принимает одно
 выражение, вычисляет его и собирает полученные множественные значения в список.  Другими
 словами, этот макрос выполняет действия обратные действию\code{VALUES-LIST}.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (multiple-value-list (values 1 2))
   (1 2)
   CL-USER> (values-list (multiple-value-list (values 1 2)))
   1
   2
-\end{verbatim}
+\end{lstlisting}
 
 Однако, если вы обнаружите, что часто используете \code{MULTIPLE-VALUE-LIST}, то это может
 быть сигналом того, что некоторая функция должна возвращать список, а не множественные
@@ -801,7 +801,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 существующим переменным, то вы можете использовать функцию \code{VALUES} для выполнения
 \code{SETF}.  Например:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (defparameter *x* nil)
   *X*
   CL-USER> (defparameter *y* nil)
@@ -813,7 +813,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
   1
   CL-USER> *y*
   23/34
-\end{verbatim}
+\end{lstlisting}
 
 \section{EVAL-WHEN}
 
@@ -941,7 +941,7 @@ a source) файла с исходным текстом, будут скомпи
   (setf *package* (find-package "PACKAGE-NAME")))
 \end{lstlisting}
 
-значение \code{*PACKAGE*} будет выставлено во время компиляции из-за условия
+\noindent{}значение \code{*PACKAGE*} будет выставлено во время компиляции из-за условия
 \code{:compile-toplevel}, во время загрузки FASL из-за условия \code{:load-toplevel} и во
 время загрузки исходного кода из-за условия \code{:execute}.
 
@@ -997,7 +997,7 @@ a source) файла с исходным текстом, будут скомпи
 (defun when-loaded () *loaded-at*)
 \end{lstlisting}
 
-вы можете просто написать вот так:
+\noindent{}вы можете просто написать вот так:
 
 \begin{lstlisting}
 (defun when-loaded () (load-time-value (get-universal-time)))
@@ -1019,7 +1019,7 @@ a source) файла с исходным текстом, будут скомпи
   body-form*)
 \end{lstlisting}
 
-где \code{symbols-list} является выражением, которое вычисляется в список символов, а
+\noindent{}где \code{symbols-list} является выражением, которое вычисляется в список символов, а
 \code{values-list}~--- выражение, которое вычисляется в список значений.  Каждый символ
 динамически связывается с соответствующим значением, и затем вычисляются выражения,
 указанные в \code{body-forms}.  Разница между \code{PROGV} и \code{LET} заключается в том,

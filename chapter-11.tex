@@ -44,11 +44,11 @@
 функции \code{VECTOR}, которая принимает любое количество аргументов и возвращает
 новый вектор фиксированного размера, содержащий переданные значения.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (vector)     ==> #()
   (vector 1)   ==> #(1)
   (vector 1 2) ==> #(1 2)
-\end{verbatim}
+\end{lstlisting}
 
 Синтаксис \lstinline!#(...)!~--- способ записи векторов, используемый процедурами
 записи и чтения Lisp.  Этот синтаксис позволяет вам сохранять и загружать векторы,
@@ -72,9 +72,9 @@
 элементам определённого значения, вы можете использовать аргумент \code{:initial-element}.
 Таким образом, создать вектор из пяти элементов, равных \code{NIL}, можно так:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (make-array 5 :initial-element nil) ==> #(NIL NIL NIL NIL NIL)
-\end{verbatim}
+\end{lstlisting}
 
 \code{MAKE-ARRAY} также используется для создания векторов переменного размера.
 Вектор с изменяемым размером несколько сложнее, чем вектор фиксированного размера;
@@ -89,9 +89,9 @@ pointer), названного так, поскольку это индекс п
 с местом для пяти элементов; но он будет выглядеть пустым, поскольку указатель заполнения
 равен нулю:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (make-array 5 :fill-pointer 0) ==> #()
-\end{verbatim}
+\end{lstlisting}
 
 Чтобы добавить элемент в конец вектора, можно использовать функцию
 \code{VECTOR-PUSH}.  Она добавляет элемент в позицию, указываемую указателем заполнения, и
@@ -99,7 +99,7 @@ pointer), названного так, поскольку это индекс п
 элемент.  Функция \code{VECTOR-POP} возвращает последний добавленный элемент, уменьшая
 указатель заполнения на единицу.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (defparameter *x* (make-array 5 :fill-pointer 0))
   
   (vector-push 'a *x*) ==> 0
@@ -114,16 +114,16 @@ pointer), названного так, поскольку это индекс п
   *x*                  ==> #(A)
   (vector-pop *x*)     ==> A
   *x*                  ==> #()
-\end{verbatim}
+\end{lstlisting}
 
 Однако даже вектор с указателем заполнения на самом деле не является вектором с изменяемыми
 размерами.  Вектор \code{*x*} может хранить максимум пять элементов.  Для того, чтобы
 создать вектор с изменяемым размером, вам необходимо передать \code{MAKE-ARRAY} другой
 именованный аргумент: \code{:adjustable}.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (make-array 5 :fill-pointer 0 :adjustable t) ==> #()
-\end{verbatim}
+\end{lstlisting}
 
 Этот вызов создаст вектор, размер которого может изменяться по мере необходимости.  Чтобы
 добавить элементы в такой вектор, вам нужно использовать функцию
@@ -168,9 +168,9 @@ pointer), названного так, поскольку это индекс п
 символ, чтобы он не считался именем переменной.  Например, чтобы создать пустую строку с
 изменяемым размером, вы можете написать вот так:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (make-array 5 :fill-pointer 0 :adjustable t :element-type 'character)  ""
-\end{verbatim}
+\end{lstlisting}
 
 Битовые векторы (специализированные векторы, чьи элементы могут иметь значение ноль или
 один) также отличаются от обычных векторов.  Они также имеют специальный синтаксис
@@ -198,7 +198,7 @@ pointer), названного так, поскольку это индекс п
 рассматривает вектор с указателем заполнения, как имеющий длину, заданную этим
 указателем.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (defparameter *x* (vector 1 2 3))
   
   (length *x*) ==> 3
@@ -206,16 +206,16 @@ pointer), названного так, поскольку это индекс п
   (elt *x* 1)  ==> 2
   (elt *x* 2)  ==> 3
   (elt *x* 3)  ==> error
-\end{verbatim}
+\end{lstlisting}
 
 \code{ELT} возвращает ячейку, для которой можно выполнить \code{SETF}, так что вы можете
 установить значение отдельного элемента с помощью вот такого кода:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (setf (elt *x* 0) 10)
   
   *x* ==> #(10 2 3)
-\end{verbatim}
+\end{lstlisting}
 
 \section{Функции для работы с элементами последовательностей}
 
@@ -228,13 +228,16 @@ pointer), названного так, поскольку это индекс п
 приводится в таблице~\ref{table:11-1}.
 
 \begin{figure}[tb]
-\begin{tabular}{|>{\centering}m{25mm}|>{\centering}m{25mm}|>{\centering}m{25mm}|}
-Название &Обязательные аргументы &Возвращаемое значение \\
+\begin{tabular}{|c|p{50mm}|p{55mm}|}
+\hline
+Название &\multicolumn{1}{c|}{Обязательные аргументы} &\multicolumn{1}{c|}{Возвращаемое значение} \\
+\hline
 \code{COUNT}       &Объект и последовательность  &Число вхождений в последовательности\\
 \code{FIND}        &Объект и последовательность  &Объект или \code{NIL}\\
 \code{POSITION}    &Объект и последовательность  &Индекс ячейки в последовательности или \code{NIL}\\
 \code{REMOVE}      &Удаляемый объект и последовательность  &Последовательность, из которой удалены указанные объекты\\
-\code{SUBSTITUTE}  &Новый объект, заменяемый объект и последовательность &Последовательность, в которой указанные объекты заменены на новые
+\code{SUBSTITUTE}  &Новый объект, заменяемый объект и последовательность &Последовательность, в которой указанные объекты заменены на новые\\
+\hline
 \end{tabular}
   \caption{Базовые функции для работы с последовательностями} 
   \label{table:11-1}
@@ -242,7 +245,7 @@ pointer), названного так, поскольку это индекс п
 
 Вот несколько простых примеров использования этих функций:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (count 1 #(1 2 1 2 3 1 2 3 4))         ==> 3
   (remove 1 #(1 2 1 2 3 1 2 3 4))        ==> #(2 2 3 2 3 4)
   (remove 1 '(1 2 1 2 3 1 2 3 4))        ==> (2 2 3 2 3 4)
@@ -253,7 +256,7 @@ pointer), названного так, поскольку это индекс п
   (find 1 #(1 2 1 2 3 1 2 3 4))          ==> 1
   (find 10 #(1 2 1 2 3 1 2 3 4))         ==> NIL
   (position 1 #(1 2 1 2 3 1 2 3 4))      ==> 0
-\end{verbatim}
+\end{lstlisting}
 
 Заметьте, что \code{REMOVE} и \code{SUBSTITUTE} всегда возвращают последовательность
 того-же типа, что и переданный аргумент.
@@ -274,15 +277,15 @@ pointer), названного так, поскольку это индекс п
   значение результату возвращаемому оригинальной функцией.  Так что вы можете (и должны)
   писать вот так:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (count x sequence :test (complement #'some-test))
-\end{verbatim}
+\end{lstlisting}
 
-вместо:
+\noindent{}вместо:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (count x sequence :test-not #'some-test)
-\end{verbatim}
+\end{lstlisting}
 
 } Во-вторых, используя именованный параметр \code{:key}, вы можете передать функцию одного
 аргумента, с помощью которой из каждого элемента последовательности будет извлекаться ключ,
@@ -290,10 +293,10 @@ pointer), названного так, поскольку это индекс п
 функции (например \code{FIND}), возвращающие элементы последовательности, все равно будут
 возвращать элементы, а не ключи, извлечённые из этих элементов.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (count "foo" #("foo" "bar" "baz") :test #'string=)    ==> 1
   (find 'c #((a 10) (b 20) (c 30) (d 40)) :key #'first) ==> (C 30)
-\end{verbatim}
+\end{lstlisting}
 
 Для ограничения действия этих функций в рамках только определённых пределов вы можете
 указать граничные индексы, используя именованные аргументы \code{:start} и \code{:end}.
@@ -307,10 +310,10 @@ pointer), названного так, поскольку это индекс п
 последовательности проверяются в обратном порядке.  Простое указание \code{:from-end}
 может затронуть результаты \code{FIND} и \code{POSITION}.  Например:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (find 'a #((a 10) (b 20) (a 30) (b 40)) :key #'first)             ==> (A 10)
   (find 'a #((a 10) (b 20) (a 30) (b 40)) :key #'first :from-end t) ==> (A 30)
-\end{verbatim}
+\end{lstlisting}
 
 Также использование \code{:from-end} может влиять на работу \code{REMOVE} и
 \code{SUBSTITUTE} при использовании с другим именованным параметром~--- \code{:count},
@@ -318,17 +321,17 @@ pointer), названного так, поскольку это индекс п
 указываете \code{:count} меньший, чем количество совпадающих элементов, то результат будет
 зависеть от того, с какого конца последовательности вы начинаете обработку:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (remove #\a "foobarbaz" :count 1)             ==> "foobrbaz"
   (remove #\a "foobarbaz" :count 1 :from-end t) ==> "foobarbz"
-\end{verbatim}
+\end{lstlisting}
 
 И хотя \code{:from-end} не может изменить результат функции \code{COUNT}, его
 использование может влиять на порядок элементов, передаваемых функциям, указанным в
 параметрах \code{:test} и \code{:key}, которые возможно могут вызвать побочные эффекты.
 Например:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (defparameter *v* #((a 10) (b 20) (a 30) (b 40)))
   *V*
   CL-USER> (defun verbose-first (x) (format t "Looking at ~s~%" x) (first x))
@@ -345,19 +348,22 @@ pointer), названного так, поскольку это индекс п
   Looking at (B 20)
   Looking at (A 10)
   2
-\end{verbatim}
+\end{lstlisting}
 
 В таблице~\ref{table:11-2} приведены описания всех стандартных аргументов.
 
 \begin{figure}[tb]
-\begin{tabular}{|>{\centering}m{25mm}|>{\centering}m{25mm}|>{\centering}m{25mm}|}
-Аргумент  &Описание   &Значение по умолчанию\\
+\begin{tabular}{|c|p{87mm}|>{\centering}p{20mm}|}
+\hline
+Аргумент  &\multicolumn{1}{c|}{Описание}   &Значение по умолчанию\\
+\hline
 \code{:test}  &Функция двух аргументов, используемая для сравнения элементов (или их ключей, извлечённых функцией \code{:key}) с указанным объектом.  &\code{EQL}\\
 \code{:key} &Функция одного аргумента, используемая для извлечения ключа из элемента последовательности.  \code{NIL} указывает на использование самого элемента. &\code{NIL}\\
 \code{:start}  &Начальный индекс (включительно) обрабатываемой последовательности.  &\code{0}\\
 \code{:end}  &Конечный индекс (не включительно) обрабатываемой последовательности.  \code{NIL} указывает на конец последовательности. &\code{NIL}\\
 \code{:from-end}  &Если имеет истинное значение, то последовательность будет обрабатываться в обратном порядке, от конца к началу. &\code{NIL}\\
-\code{:count} &Число, указывающее количество удаляемых или заменяемых элементов, или \code{NIL} для всех элементов (только для \code{REMOVE} и \code{SUBSTITUTE}). &\code{NIL}
+\code{:count} &Число, указывающее количество удаляемых или заменяемых элементов, или \code{NIL} для всех элементов (только для \code{REMOVE} и \code{SUBSTITUTE}). &\code{NIL}\\
+\hline
 \end{tabular}
   \caption{Стандартные именованные аргументы функций работы с последовательностями} 
   \label{table:11-2}
@@ -374,7 +380,7 @@ pointer), названного так, поскольку это индекс п
 тем, что использует суффикс \code{-IF-NOT}, и выполняет те же операции, но для элементов,
 для которых функция не возвращает истинного значения.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (count-if #'evenp #(1 2 3 4 5))         ==> 2
 
   (count-if-not #'evenp #(1 2 3 4 5))     ==> 3
@@ -383,7 +389,7 @@ pointer), названного так, поскольку это индекс п
 
   (remove-if-not #'(lambda (x) (char= (elt x 0) #\f))
     #("foo" "bar" "baz" "foom")) ==> #("foo" "foom")
-\end{verbatim}
+\end{lstlisting}
 
 В соответствии со стандартом языка, функции с суффиксом \code{-IF-NOT} являются
 устаревшими.  Однако это требование само считается неразумным.  Если стандарт будет
@@ -405,25 +411,25 @@ pointer), названного так, поскольку это индекс п
   существовали, то вы могли бы реализовать их с помощью функций с суффиксом \code{-IF},
   путём указания объекта в функции-предикате.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (count char string) ===
     (count-if #'(lambda (c) (eql char c)) string)
   
   (count char string :test #'CHAR-EQUAL) ===
     (count-if #'(lambda (c) (char-equal char c)) string)
-\end{verbatim}
+\end{lstlisting}
 
 }  При указании аргумента \code{:key}, функции передаётся значение, извлечённое функцией
 аргумента \code{:key}, а не сам элемент.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (count-if #'evenp #((1 a) (2 b) (3 c) (4 d) (5 e)) :key #'first)     ==> 2
 
   (count-if-not #'evenp #((1 a) (2 b) (3 c) (4 d) (5 e)) :key #'first) ==> 3
 
   (remove-if-not #'alpha-char-p
     #("foo" "bar" "1baz") :key #'(lambda (x) (elt x 0))) ==> #("foo" "bar")
-\end{verbatim}
+\end{lstlisting}
 
 Семейство функций \code{REMOVE} также имеет четвёртый вариант, функцию
 \code{REMOVE-DUPLICATES}, которая имеет один аргумент~--- последовательность, из которой
@@ -431,9 +437,9 @@ pointer), названного так, поскольку это индекс п
 принимать те же самые именованные аргументы что и \code{REMOVE}, за исключением
 \code{:count}, поскольку она всегда удаляет все дубликаты.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (remove-duplicates #(1 2 1 2 3 1 2 3 4)) ==> #(1 2 3 4)
-\end{verbatim}
+\end{lstlisting}
 
 \section{Работа с последовательностью целиком}
 
@@ -458,11 +464,11 @@ pointer), названного так, поскольку это индекс п
   то все элементы аргументов-последовательностей должны иметь тот же тип, что и элементы
   этого вектора.}  Например:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (concatenate 'vector #(1 2 3) '(4 5 6))    ==> #(1 2 3 4 5 6)
   (concatenate 'list #(1 2 3) '(4 5 6))      ==> (1 2 3 4 5 6)
   (concatenate 'string "abc" '(#\d #\e #\f)) ==> "abcdef"
-\end{verbatim}
+\end{lstlisting}
 
 \section{Сортировка и слияние}
 
@@ -470,9 +476,9 @@ pointer), названного так, поскольку это индекс п
 последовательности.  Они обе получают последовательность и функцию двух аргументов, и
 возвращают отсортированную последовательность.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (sort (vector "foo" "bar" "baz") #'string<) ==> #("bar" "baz" "foo")
-\end{verbatim}
+\end{lstlisting}
 
 Разница между этими функциями заключается в том, что \code{STABLE-SORT} гарантирует, что
 она не будет изменять порядок элементов, которые считаются эквивалентными, в то время как
@@ -496,15 +502,15 @@ pointer), названного так, поскольку это индекс п
   Однако хорошим стилем будет обязательное использование возвращаемого значения,
   поскольку функции сортировки могут изменять списки произвольным образом.}
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (setf my-sequence (sort my-sequence #'string<))
-\end{verbatim}
+\end{lstlisting}
 
-вместо:
+\noindent{}вместо:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (sort my-sequence #'string<)
-\end{verbatim}
+\end{lstlisting}
 
 Обе эти функции принимают именованный аргумент \code{:key}, который, так же как и аргумент
 \code{:key} в других функциях работы с последовательностями, должен быть функцией, и
@@ -522,10 +528,10 @@ pointer), названного так, поскольку это индекс п
 причинам, первым аргументом \code{MERGE} должно быть описание типа последовательности,
 которая будет получена в результате работы.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (merge 'vector #(1 3 5) #(2 4 6) #'<) ==> #(1 2 3 4 5 6)
   (merge 'list #(1 3 5) #(2 4 6) #'<)   ==> (1 2 3 4 5 6)
-\end{verbatim}
+\end{lstlisting}
 
 \section{Работа с частями последовательностей}
 
@@ -534,16 +540,16 @@ pointer), названного так, поскольку это индекс п
 начиная с определённого индекса и заканчивая другим индексом или концом
 последовательности.  Например:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (subseq "foobarbaz" 3)   ==> "barbaz"
   (subseq "foobarbaz" 3 6) ==> "bar"
-\end{verbatim}
+\end{lstlisting}
 
 Для результата \code{SUBSEQ} также можно выполнить \code{SETF}, но таким образом нельзя увеличить
 или уменьшить последовательность; если часть последовательности и новое значение имеют
 разные длины, то более короткое из них определяет то, как много знаков будет изменено.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (defparameter *x* (copy-seq "foobarbaz"))
 
   (setf (subseq *x* 3 6) "xxx")  ; subsequence and new value are same length
@@ -554,7 +560,7 @@ pointer), названного так, поскольку это индекс п
 
   (setf (subseq *x* 3 6) "xx")   ; new value too short, only two characters changed
   *x* ==> "fooxxcbaz"
-\end{verbatim}
+\end{lstlisting}
 
 Вы можете использовать функцию \code{FILL} для заполнения нескольких значений
 последовательности одним и тем же значением.  Обязательные аргументы~---
@@ -566,18 +572,18 @@ pointer), названного так, поскольку это индекс п
 функцию \code{SEARCH}, которая работает также как и функция \code{POSITION}, но первым
 аргументом является последовательность, а не единичное значение.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (position #\b "foobarbaz") ==> 3
   (search "bar" "foobarbaz") ==> 3
-\end{verbatim}
+\end{lstlisting}
 
 Для того, чтобы, напротив, найти позицию, в которой две последовательности с общим
 префиксом начинают различаться, вы можете использовать функцию \code{MISMATCH}.  Она
 принимает две последовательности и возвращает индекс первой пары неравных элементов.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (mismatch "foobarbaz" "foom") ==> 3
-\end{verbatim}
+\end{lstlisting}
 
 Эта функция возвращает \code{NIL}, если строки совпадают. \code{MISMATCH} может также
 принимать стандартные именованные аргументы: аргумент \code{:key} для указания функции для
@@ -588,9 +594,9 @@ pointer), названного так, поскольку это индекс п
 \code{MISMATCH} вернуть индекс позиции в первой последовательности, где начинается общий
 суффикс последовательностей.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (mismatch "foobar" "bar" :from-end t) ==> 3
-\end{verbatim}
+\end{lstlisting}
 
 \section{Предикаты для последовательностей}
 
@@ -610,21 +616,21 @@ pointer), названного так, поскольку это индекс п
 ложное, если предикат всегда возвращал истинное.  Вот примеры проверок для одной
 последовательности:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (every #'evenp #(1 2 3 4 5))    ==> NIL
   (some #'evenp #(1 2 3 4 5))     ==> T
   (notany #'evenp #(1 2 3 4 5))   ==> NIL
   (notevery #'evenp #(1 2 3 4 5)) ==> T
-\end{verbatim}
+\end{lstlisting}
 
 А эти вызовы выполняют попарное сравнение последовательностей:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (every #'> #(1 2 3 4) #(5 4 3 2))    ==> NIL
   (some #'> #(1 2 3 4) #(5 4 3 2))     ==> T
   (notany #'> #(1 2 3 4) #(5 4 3 2))   ==> NIL
   (notevery #'> #(1 2 3 4) #(5 4 3 2)) ==> T
-\end{verbatim}
+\end{lstlisting}
 
 \section{Функции отображения последовательностей}
 
@@ -636,9 +642,9 @@ pointer), названного так, поскольку это индекс п
 последовательности.  Также как для \code{CONCATENATE} и \code{MERGE}, \code{MAP}
 необходимо сообщить тип создаваемой последовательности.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (map 'vector #'* #(1 2 3 4 5) #(10 9 8 7 6)) ==> #(10 18 24 28 30)
-\end{verbatim}
+\end{lstlisting}
 
 Функция \code{MAP-INTO} похожа на \code{MAP} за исключением того, что вместо создания
 новой последовательности заданного типа, она помещает результаты в последовательность,
@@ -647,9 +653,9 @@ pointer), названного так, поскольку это индекс п
 суммирования нескольких векторов (\code{a}, \code{b} и \code{c}) в один, вы должны
 написать:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (map-into a #'+ a b c)
-\end{verbatim}
+\end{lstlisting}
 
 Если последовательности имеют разную длину, то \code{MAP-INTO} изменяет столько элементов,
 сколько присутствует в самой короткой последовательности, включая ту, в которую помещаются
@@ -666,9 +672,9 @@ pointer), названного так, поскольку это индекс п
 результату и следующим элементам.  Таким образом, следующее выражение сложит числа от
 единицы до десяти:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (reduce #'+ #(1 2 3 4 5 6 7 8 9 10)) ==> 55
-\end{verbatim}
+\end{lstlisting}
 
 \code{REDUCE}~--- удивительно полезная функция: если вам нужно создать из
 последовательности одно значение, вполне вероятно, что вы сможете сделать это с помощью
@@ -716,12 +722,12 @@ pointer), названного так, поскольку это индекс п
   качестве первого аргумента, а индекс~--- в качестве второго; а \code{GETHASH} наоборот:
   ключ~--- первым, а коллекцию~--- вторым.}  Например:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (defparameter *h* (make-hash-table))
   (gethash 'foo *h*) ==> NIL
   (setf (gethash 'foo *h*) 'quux)
   (gethash 'foo *h*) ==> QUUX
-\end{verbatim}
+\end{lstlisting}
 
 Поскольку \code{GETHASH} возвращает \code{NIL} если ключ не присутствует в таблице, то нет
 никакого способа отличить ключ, отсутствующий в таблице, от ключа, по которому хранится
@@ -770,9 +776,9 @@ Common Lisp предоставляет разные способы для раб
 хэш-таблицу, и выполняет указанную функцию для каждой пары ключ/значение.  Например, для
 распечатки всех пар ключ/значение вы можете использовать такой вызов \code{MAPHASH}:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (maphash #'(lambda (k v) (format t "~a => ~a~%" k v)) *h*)
-\end{verbatim}
+\end{lstlisting}
 
 Последствия добавления или удаления записей в хэш-таблице во время прохода по её записям
 стандартом не указываются (и скорее всего окажутся печальными), за исключением двух
@@ -781,9 +787,9 @@ Common Lisp предоставляет разные способы для раб
 Например, для удаления всех записей, чьё значение меньше чем десять, вы можете записать
 вот так:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (maphash #'(lambda (k v) (when (< v 10) (remhash k *h*))) *h*)
-\end{verbatim}
+\end{lstlisting}
 
 Еще один способ итерации по элементам хэш-таблицы~--- использование макроса
 \code{LOOP}, который будет описан в главе~\ref{ch:22}.\footnote{Использование \code{LOOP} для

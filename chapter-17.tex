@@ -121,9 +121,9 @@ CLOS добавлялся в язык. Но создаваемые им клас
 второй ~--- для хранения текущего баланса счёта.  Используя данное определение вы можете
 создать новые объекты \code{bank-account} с помощью \code{MAKE-INSTANCE}.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (make-instance 'bank-account) ==> #<BANK-ACCOUNT @ #x724b93ba>
-\end{verbatim}
+\end{lstlisting}
 
 Аргументом \code{MAKE-INSTANCE} является имя класса, а возвращаемым значением~--- новый
 объект.\footnote{В действительности, аргументом \code{MAKE-INSTANCE} может быть либо имя
@@ -144,18 +144,18 @@ CLOS добавлялся в язык. Но создаваемые им клас
 несвязанного значения приведёт к выдаче ошибки, так что вы должны задать значение до того,
 как вы будете считывать значения.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (defparameter *account* (make-instance 'bank-account))  ==> *ACCOUNT*
   (setf (slot-value *account* 'customer-name) "John Doe") ==> "John Doe"
   (setf (slot-value *account* 'balance) 1000)             ==> 1000
-\end{verbatim}
+\end{lstlisting}
 
 Теперь вы можете получать значения слотов.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (slot-value *account* 'customer-name) ==> "John Doe"
   (slot-value *account* 'balance)       ==> 1000
-\end{verbatim}
+\end{lstlisting}
 
 \section{Инициализация объекта}
 
@@ -207,10 +207,10 @@ CLOS добавлялся в язык. Но создаваемые им клас
 слот \code{customer-name} будет пустой, и попытка считывания значения из него, приведёт к
 выдаче ошибки.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (slot-value (make-instance 'bank-account) 'balance)       ==> 0
   (slot-value (make-instance 'bank-account) 'customer-name) ==> Ошибка (error)
-\end{verbatim}
+\end{lstlisting}
 
 Если вы хотите убедиться, что имя клиента было задано при создании счёта, то вы можете
 выдать ошибку в начальном выражении (\code{initform}), поскольку оно будет вычислено
@@ -320,7 +320,7 @@ CLOS добавлялся в язык. Но создаваемые им клас
 \code{:opening-bonus-percentage} допустимым аргументом функции \code{MAKE-INSTANCE} при
 создании объекта \code{bank-account}.
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   CL-USER> (defparameter *acct* (make-instance
                                   'bank-account
                                    :customer-name "Sally Sue"
@@ -329,7 +329,7 @@ CLOS добавлялся в язык. Но создаваемые им клас
   *ACCT*
   CL-USER> (slot-value *acct* 'balance)
   1050
-\end{verbatim}
+\end{lstlisting}
 
 \section{Функции доступа}
 
@@ -445,11 +445,11 @@ CLOS добавлялся в язык. Но создаваемые им клас
 
 Это позволит вам писать следующим образом:
 
-\begin{verbatim}
+\begin{lstlisting}[style=lisprepl]
   (setf (customer-name *account*) "Sally Sue") ==> "Sally Sue"
 
   (customer-name *account*)                    ==> "Sally Sue"
-\end{verbatim}
+\end{lstlisting}
 
 Нет ничего сложного в написании этих функций доступа, но написание этих функций вручную
 просто не соответствует The Lisp Way.  Так что \code{DEFCLASS} поддерживает три опции для
@@ -589,7 +589,7 @@ CLOS добавлялся в язык. Но создаваемые им клас
       (decf balance (* balance .01)))))
 \end{lstlisting}
 
-или используя списочную запись, вот так:
+\noindent{}или используя списочную запись, вот так:
 
 \begin{lstlisting}
 (defmethod assess-low-balance-penalty ((account bank-account))
