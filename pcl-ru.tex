@@ -189,8 +189,8 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 
 \lstdefinestyle{lisprepl}{keywords={}}
 
-%\newcommand{\code}[1]{\lstinline[mathescape]|#1|}
-\DeclareRobustCommand{\code}[1]{\texttt{\texorpdfstring{\def\ldots{...}%
+%\newcommand{\code}[1]{\lstinline[keywordstyle={}]|#1|}
+\DeclareRobustCommand{\code}[1]{\texttt{\footnotesize\texorpdfstring{\def\ldots{...}%
 \spaceskip\codespaceskip\relax}{}% \spaceskip3bp plus 1.5bp minus1bp\relax 
 #1}}
 \def\codespaceskip{\the\spaceskip}
