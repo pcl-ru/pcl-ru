@@ -19,7 +19,6 @@
 
 %\usepackage{fonts}
 
-
 \usepackage[utf8]{inputenc}
 \usepackage[russian]{babel}
 \usepackage{epigraph}
@@ -31,51 +30,7 @@
 \usepackage{centernot}
 \usepackage{empheq}
 \usepackage{needspace}
-%% \usepackage{colonequals}
-%\usepackage{tikz}
-%\usetikzlibrary{calc,trees,positioning,arrows,chains,shapes.geometric,%
-%  decorations.pathreplacing,decorations.pathmorphing,shapes,%
-%  matrix,shapes.symbols,decorations.shapes,decorations.markings,fit}
-
-\makeatletter
-
-%\pgfarrowsdeclare{mdiamond}{mdiamond}%{{-.5bp}{14.5bp}}
-%{
-%  \pgfutil@tempdima=0.4pt%
-%  \advance\pgfutil@tempdima by.275\pgflinewidth%
-%  \pgfarrowsleftextend{+-.5\pgflinewidth}
-%  \pgfutil@tempdimb=14\pgfutil@tempdima\advance\pgfutil@tempdimb by.5\pgflinewidth
-%  \pgfarrowsrightextend{+\pgfutil@tempdimb}
-%}
-%{
-%  \pgfutil@tempdima=0.4pt%
-%  \advance\pgfutil@tempdima by.275\pgflinewidth%
-%  \pgfsetdash{}{+0pt}
-%  \pgfsetroundjoin
-%  \pgfpathmoveto{\pgfqpoint{14\pgfutil@tempdima}{0\pgfutil@tempdima}}
-%  \pgfpathlineto{\pgfqpoint{4\pgfutil@tempdima}{4\pgfutil@tempdima}}
-%  \pgfpathlineto{\pgfqpoint{0\pgfutil@tempdima}{0\pgfutil@tempdima}}
-%  \pgfpathlineto{\pgfqpoint{4\pgfutil@tempdima}{-4\pgfutil@tempdima}}
-%  \pgfpathclose
-%  \pgfusepathqstroke
-%}
-\makeatother
-
-%\tikzset{
-%>=stealth',
-%  phase/.style={
-%    rectangle, 
-%    rounded corners, 
-%    % fill=black!10,
-%    draw=black, very thick,
-%    text width=10em, 
-%    minimum height=3em, 
-%    text centered},
-%  line/.style={draw=black, thin, ->,font=\scriptsize},
-%  noarrow/.style={draw=black, thick, -},
-%  every edge/.style={->,thick,shorten >=1pt},
-%  into/.style={->, thin, dotted, >=mdiamond}
-%}
+\usepackage{indentfirst}
 
 %%% На команде \matrix спотыкается HeVeA, я ее (пока что?) просто затыкаю. -- goga
 %HEVEA\renewcommand{\matrix}{}
@@ -93,8 +48,8 @@
 
 \usepackage{longtable,citehack,enumerate}
 \usepackage[nottoc]{tocbibind}
-%\usepackage[unicode,colorlinks=true,a4paper]{hyperref}
-\usepackage[unicode,a4paper]{hyperref}
+%\usepackage[unicode,colorlinks=true]{hyperref}
+\usepackage[unicode]{hyperref}
 \definecolor{pfpcolorint}{rgb}{0,0.4,0}
 \definecolor{pfpcolorext}{rgb}{0,0,0.6}
 
@@ -116,8 +71,6 @@
 
 \usepackage{fancyvrb}
 
-\usepackage{url}
-\usepackage[dvips]{color}
 \usepackage{stmaryrd}
 \usepackage{marginnote}
 \usepackage{array}
@@ -197,18 +150,17 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \newcommand{\stdcode}[1]{\code{#1}}
 
 %% proper captions for figures, etc
-%\usepackage{caption}
+\usepackage{caption}
+
 %\DeclareCaptionLabelSeparator{Period}{.\hskip.5em}
 %\captionsetup{compatibility=false,margin={-1cm,0pt},oneside,labelsep=Period,labelfont=sc,
 %format=plain,justification=raggedright,singlelinecheck=false,skip=10bp}
 
 
 % Добавляем точку после номера раздела
-%% \usepackage{titlesec}
-%% \titlelabel{\thetitle.\quad}
-%% \usepackage[dotinlabels]{titletoc}
-
-%% 
+\usepackage{titlesec}
+\titlelabel{\thetitle.\quad}
+\usepackage[dotinlabels]{titletoc}
 
 % settings for floating objects
 \renewcommand{\topfraction}{.9}
