@@ -123,10 +123,14 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \newcommand{\citeopenterse}[1]{\citealp{#1}}
 
 \usepackage{bold-extra}
+% \usepackage{courier}
+% \renewcommand{\ttdefault}{pcr}
 \usepackage{listings}
 \definecolor{listingcomment}{gray}{0.3}
 \lstset{%
+  language=lisp,
   basicstyle=\footnotesize\upshape\ttfamily,
+  keywordstyle=\bfseries,
   showtabs=false, 
   showspaces=false, 
   showstringspaces=false,% OK?
@@ -148,6 +152,7 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 #1}}
 \def\codespaceskip{\the\spaceskip}
 \newcommand{\stdcode}[1]{\code{#1}}
+\newcommand{\keyword}[1]{\code{\textbf{#1}}}
 
 %% proper captions for figures, etc
 \usepackage{caption}
