@@ -3,7 +3,7 @@
 %\overfullrule=4bp
 
 \usepackage{url}
-\newcommand{\pclURL}[2]{\href{#1}{#2}\footnote{\href{#1}{#1}}}
+\newcommand{\pclURL}[2]{\href{#1}{#2}\footnote{\href{#1}{#1.}}}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T2A]{fontenc}
@@ -23,6 +23,7 @@
 \usepackage{needspace}
 \usepackage{colonequals}
 \usepackage[nottoc]{tocbibind}
+\usepackage{emptypage}
 
 \usepackage{makeidx}
 \makeindex
@@ -36,7 +37,7 @@
 \newcommand{\ovalbox}[1]{\fbox{#1}}
 
 %\usepackage[unicode,colorlinks=true]{hyperref}
-\usepackage[unicode]{hyperref}
+\usepackage[unicode,]{hyperref}
 %\usepackage{hyperref}
 %\definecolor{pfpcolorint}{rgb}{0,0.4,0}
 %\definecolor{pfpcolorext}{rgb}{0,0,0.6}
@@ -50,6 +51,8 @@
 %	urlcolor=pfpcolorext,
 	bookmarksopen,bookmarksopenlevel=0,
 	pdffitwindow,
+        colorlinks=false,
+        pdfborder={0 0 0},
 	% pdfsubject={},
 	% pdfkeywords={}
 	pdftitle={Practical Common Lisp}
@@ -108,6 +111,10 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 }
 \lstdefinestyle{lisp}{language=Lisp,keywordstyle=\bfseries}
 
+\usepackage{alltt}
+\newenvironment{myverb}[0]{\begin{alltt}\footnotesize}{\end{alltt}}
+\newcommand\bslash{\symbol{`\\}}
+
 \lstdefinestyle{lisprepl}{keywords={}}
 
 \DeclareRobustCommand{\code}[1]{\texttt{\footnotesize\texorpdfstring{\def\ldots{...}%
@@ -138,7 +145,7 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \makeatletter
 \newcommand{\translationnotemark}{{\renewcommand{\@makefnmark}{*}\footnotemark{}}}
 \newcommand{\translationnotetext}[1]{{\renewcommand{\@makefnmark}{*}\footnotetext{#1 \@Acdash \emph{Прим. перев.}}}\addtocounter{footnote}{-1}}
-\newcommand{\translationnote}[1]{\translationnotemark{}\translationnotetext{#1}}
+\newcommand{\translationnote}[1]{\translationnotemark{}\translationnotetext{\hspace{1mm}#1}}
 \newcommand{\unmarkednote}[1]{{\renewcommand{\@makefnmark}{}\footnotemark{}\footnotetext{#1}}\addtocounter{footnote}{-1}}
 \makeatother
 
@@ -150,6 +157,9 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 
 %\usepackage{sections}
 
+\makeatletter
+\renewcommand\@makefnmark{\mbox{\textsuperscript{\normalfont\@thefnmark}\hspace{1mm}}}
+\makeatother
 
 \begin{document}
 % Don't remove! used for tikz nodes align!
