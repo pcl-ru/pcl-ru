@@ -111,13 +111,14 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 }
 \lstdefinestyle{lisp}{language=Lisp,keywordstyle=\bfseries}
 
+% TODO: decrease space before/after myverb...
 \usepackage{alltt}
 \newenvironment{myverb}[0]{\begin{alltt}\footnotesize}{\end{alltt}}
 \newcommand\bslash{\symbol{`\\}}
 
 \lstdefinestyle{lisprepl}{keywords={}}
 
-\DeclareRobustCommand{\code}[1]{\texttt{\footnotesize\texorpdfstring{\def\ldots{...}%
+\DeclareRobustCommand{\code}[1]{\texttt{\small\texorpdfstring{\def\ldots{...}%
 \spaceskip\codespaceskip\relax}{}% \spaceskip3bp plus 1.5bp minus1bp\relax 
 #1}}
 \def\codespaceskip{\the\spaceskip}
