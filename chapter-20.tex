@@ -67,23 +67,23 @@ Common Lisp (когда никто не осуществляет прямой д
 является слишком сложной для её определения как \code{LAMBDA}, или если вам нужно вызвать
 ее несколько раз.  Оба этих оператора имеют одинаковую форму, которая выглядит так:
 
-\begin{lstlisting}
+\begin{myverb}
 (flet (function-definition*)
   body-form*)
-\end{lstlisting}
+\end{myverb}
 
 \noindent{}или так:
 
-\begin{lstlisting}
+\begin{myverb}
 (labels (function-definition*)
   body-form*)
-\end{lstlisting}
+\end{myverb}
 
 \noindent{}где каждая из \code{function-definition} имеет следующую форму:
 
-\begin{lstlisting}
+\begin{myverb}
 (name (parameter*) form*)
-\end{lstlisting}
+\end{myverb}
 
 Разница между \code{FLET} и \code{LABELS} заключается в том, что имена функций, которые
 определены с помощью \code{FLET}, могут использоваться только в теле \code{FLET}, в то
@@ -112,14 +112,14 @@ Common Lisp предоставляет и \code{FLET} и \code{LABELS} по то
 как этого требует функция \code{walk-directory}, но она также может использовать
 переменную \code{versions}, заданную охватывающим \code{LET}:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun count-versions (dir)
   (let ((versions (mapcar #'(lambda (x) (cons x 0)) '(2 3 4))))
     (flet ((count-version (file)
              (incf (cdr (assoc (major-version (read-id3 file)) versions)))))
       (walk-directory dir #'count-version :test #'mp3-p))
     versions))
-\end{lstlisting}
+\end{myverb}
 
 Эта функция также может быть записана с использованием анонимной функции вместо
 использования \code{FLET}, но задание имени делает исходный текст более понятным.
@@ -135,7 +135,7 @@ Common Lisp предоставляет и \code{FLET} и \code{LABELS} по то
 функцию \code{walk} для прохода по дереву и сбора всех объектов дерева в список, который
 затем возвращается \code{collect-leaves} (после его реверсирования):
 
-\begin{lstlisting}
+\begin{myverb}
 (defun collect-leaves (tree)
   (let ((leaves ()))
     (labels ((walk (tree)
@@ -146,7 +146,7 @@ Common Lisp предоставляет и \code{FLET} и \code{LABELS} по то
                     (walk (cdr tree))))))
       (walk tree))
     (nreverse leaves)))
-\end{lstlisting}
+\end{myverb}
 
 
 Снова отметьте, как внутри функции \code{walk} вы можете ссылаться на переменную
@@ -185,20 +185,20 @@ Common Lisp предоставляет и \code{FLET} и \code{LABELS} по то
 <<переменных>>, которые осуществляют доступ к состоянию определённого объекта.  Например,
 следующее выражение \code{WITH-SLOTS}:
 
-\begin{lstlisting}
+\begin{myverb}
 (with-slots (x y z) foo (list x y z)))
-\end{lstlisting}
+\end{myverb}
 
 может быть раскрыто в код, который использует \code{SYMBOL-MACROLET}:
 
-\begin{lstlisting}
+\begin{myverb}
 (let ((#:g149 foo))
   (symbol-macrolet
       ((x (slot-value #:g149 'x))
        (y (slot-value #:g149 'y))
        (z (slot-value #:g149 'z)))
     (list x y z)))
-\end{lstlisting}
+\end{myverb}
 
 Когда вычисляется выражение \code{(list x y z)}, то символы \code{x}, \code{y} и \code{z}
 будут раскрыты в соответствующие формы, такие как \lstinline!(slot-value #:g149 'x)!.\footnote{\code{WITH-SLOTS} не обязательно должен быть реализован с помощью
@@ -207,9 +207,9 @@ Common Lisp предоставляет и \code{FLET} и \code{LABELS} по то
   соответствующие формы \code{SLOT-VALUE}.  Вы можете увидеть как это делает ваша
   реализация, с помощью следующего выражения:
 
-\begin{lstlisting}
+\begin{myverb}
 (macroexpand-1 '(with-slots (x y z) obj (list x y z)))
-\end{lstlisting}
+\end{myverb}
 
 Однако, реализации Lisp легче выполнить такую подстановку внутри своего кода, чем кода,
 написанного пользователем~--- чтобы заменить \code{x}, \code{y} и \code{z} только в случаях,
@@ -242,10 +242,10 @@ Common Lisp предоставляет и \code{FLET} и \code{LABELS} по то
 
 Общий скелет формы \code{BLOCK} таков:
 
-\begin{lstlisting}
+\begin{myverb}
 (block name
   form*)
-\end{lstlisting}
+\end{myverb}
 
 \textit{name} является символом и \textit{form*}, это формы языка. Формы выполняются по
 порядку и значение последней формы возвращается как значение всего \code{BLOCK}, если не
@@ -264,12 +264,12 @@ Common Lisp предоставляет и \code{FLET} и \code{LABELS} по то
 напечатает не более десяти случайных чисел, остановившись сразу же, как только достигнет
 числа большего чем~50:
 
-\begin{lstlisting}
+\begin{myverb}
 (dotimes (i 10)
   (let ((answer (random 100)))
     (print answer)
     (if (> answer 50) (return))))
-\end{lstlisting}
+\end{myverb}
 
 Задающие функции макросы, такие как \code{DEFUN}, \code{FLET} и \code{LABELS}, с другой
 стороны, оборачивают свои тела в \code{BLOCK} с тем же именем, что и функция. Вот почему
@@ -279,10 +279,10 @@ Common Lisp предоставляет и \code{FLET} и \code{LABELS} по то
 \code{RETURN-FROM}: \code{TAGBODY} задаёт контекст в котором определены имена,
 используемые \code{GO}. Скелет \code{TAGBODY} следующий:
 
-\begin{lstlisting}
+\begin{myverb}
 (tagbody
   tag-or-compound-form*)
-\end{lstlisting}
+\end{myverb}
 
 \noindent{}где каждая \textit{tag-or-compound-form}, это или символ, называемый \textit{тег}, или
 непустая списочная форма. Форма выполняется по порядку и теги игнорируются, кроме случая,
@@ -292,34 +292,34 @@ Common Lisp предоставляет и \code{FLET} и \code{LABELS} по то
 тег и выполнение продолжится с формы, следующей за тегом. Например, вы можете написать
 простейший бесконечный цикл с \code{TAGBODY} и \code{GO} вроде этого:
 
-\begin{lstlisting}
+\begin{myverb}
 (tagbody
  top
    (print 'hello)
    (go top))
-\end{lstlisting}
+\end{myverb}
 
 Заметьте, что в то время, как имена тегов должны появляться на верхнем уровне в
 \code{TAGBODY}, не заключёнными внутри форм, специальный оператор \code{GO} может
 появляться где угодно внутри области видимости \code{TAGBODY}. Это означает, что вы можете
 написать цикл, который выполняется случайное число раз, например так:
 
-\begin{lstlisting}
+\begin{myverb}
 (tagbody
  top
    (print 'hello)
    (when (plusp (random 10)) (go top)))
-\end{lstlisting}
+\end{myverb}
 
 Ещё более глупый пример \code{TAGBODY}, который показывает вам, что можно иметь множество
 тегов в одном \code{TAGBODY}, выглядит так:
 
-\begin{lstlisting}
+\begin{myverb}
 (tagbody
  a (print 'a) (if (zerop (random 2)) (go c))
  b (print 'b) (if (zerop (random 2)) (go a))
  c (print 'c) (if (zerop (random 2)) (go b)))
-\end{lstlisting}
+\end{myverb}
 
 Эта форма будет прыгать вокруг случайно печатаемых \textit{a},\textit{b} и \textit{c} до
 тех пор, пока \code{RANDOM} не вернёт~1, и управление наконец достигнет конца
@@ -349,11 +349,11 @@ FORTRAN-to-Common Lisp, f2cl, который переводит исходный
 Дональда Кнута <<Искусство программирования>>, он описывает алгоритмы, используя формат
 <<рецептов>>: 
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
 step 1, do this; 
 step 2, do that; 
 step 3, go back to step 2;
-\end{lstlisting}
+\end{myverb}
 
 и так далее. Для примера на странице 142, <<Искусства программирования>>, Том 2:
 Получисленные алгоритмы, 3-е издание (Addison-Wesley, 1998), он описывает Алгоритм S,
@@ -363,7 +363,7 @@ step 3, go back to step 2;
 множества $N$, где $0 < n <= N$.
 
 %TODO: convert to normal list:
-\begin{lstlisting}
+\begin{myverb}
  * S1. [Инициализировать.] Установить t <-- 0, m <-- 0. (В этом алгоритме m 
 представляет количество записей уже выбранных, а t общее количество 
 записей которые мы просмотрели.)
@@ -379,12 +379,12 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 
  * S5. [Пропустить.] Пропустить следующую запись (не включать её в 
 последовательность), увеличить t на 1, и вернуться к шагу S2.
-\end{lstlisting}
+\end{myverb}
 
 Это описание может быть легко переведено в  функцию Common Lisp, после переименования
 нескольких переменных таким образом:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun algorithm-s (n max) ; max это N в алгоритме Кнута
   (let (seen               ; t в в алгоритме Кнута
         selected           ; m в алгоритме Кнута
@@ -408,7 +408,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
      s5
        (incf seen)
        (go s2))))
-\end{lstlisting}
+\end{myverb}
 
 Это не самый красивый код, но легко проверить, что это канонический перевод алгоритма
 Кнута. Однако этот код, в отличии от прозаического описания у Кнута, может быть запущен и
@@ -420,22 +420,22 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
   \code{algorithm-s}. Например, вы можете сделать FIXME (basic sanity check) общую
   санитарную проверку для \code{algorithm-s} путём выполнения следующего кода:
 
-\begin{lstlisting}
+\begin{myverb}
 (let ((*random-state* (make-random-state nil))) (algorithm-s 10 200))
-\end{lstlisting}
+\end{myverb}
 
 Если ваша рефакторизация на каждом шаге была правильна, это выражение должно выдавать один
 и тот же список каждый раз.}
 
 Сложив все кусочки, вы возможно получите что-то наподобие этого:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun algorithm-s (n max)
   (loop for seen from 0
      when (< (* (- max seen) (random 1.0)) n)
      collect seen and do (decf n)
      until (zerop n)))
-\end{lstlisting}
+\end{myverb}
 
 Хотя это может быть не очевидно, что этот код правильно представляет \textit{Алгоритм~S},
 но если вы пришли к нему посредством серии функций, которые вели себя идентично
@@ -453,7 +453,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 лексического окружения \code{BLOCK} или \code{TAGBODY}. Например, рассмотрим следующую
 функцию:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun foo ()
   (format t "Entering foo~%")
   (block a
@@ -461,28 +461,28 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
     (bar #'(lambda () (return-from a)))
     (format t " Leaving BLOCK~%"))
   (format t "Leaving foo~%"))
-\end{lstlisting}
+\end{myverb}
 
 Анонимная функция, переданная \code{bar} использует \code{RETURN-FROM} для выхода из
 \code{BLOCK}. Но это выражение \code{RETURN-FROM} не будет вычислено до тех пор, пока
 анонимная функция не будет выполнена с помощью \code{FUNCALL} или \code{APPLY}. Теперь,
 предположим что \code{bar} выглядит следующим образом:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun bar (fn)
   (format t "  Entering bar~%")
   (baz fn)
   (format t "  Leaving bar~%"))
-\end{lstlisting}
+\end{myverb}
 
 Все равно, анонимная функция не будет вызвана. Теперь посмотрим на \code{baz}.
 
-\begin{lstlisting}
+\begin{myverb}
 (defun baz (fn)
   (format t "   Entering baz~%")
   (funcall fn)
   (format t "   Leaving baz~%"))
-\end{lstlisting}
+\end{myverb}
 
 И в заключение, функция выполняется. Но к чему приведёт вызов \code{RETURN-FROM} из блока,
 который находится на несколько уровней выше по стеку? На поверку все работает отлично~---
@@ -490,7 +490,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 соответствующего выражения \code{BLOCK}. Вызовы \code{FORMAT} в функциях \code{foo},
 \code{bar} и \code{baz} демонстрируют это:
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   CL-USER> (foo)
   Entering foo
    Entering BLOCK
@@ -498,7 +498,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
      Entering baz
   Leaving foo
   NIL
-\end{lstlisting}
+\end{myverb}
 
 Заметьте, что единственным выдаваемым сообщением \code{Leaving . . .} является то, которое
 было вставлено после выражения \code{BLOCK} в функции \code{foo}.
@@ -509,12 +509,12 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 отличающемся динамическом контексте. Например, \code{bar} также может содержать форму
 \code{BLOCK} с именем \code{a}, например, вот так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun bar (fn)
   (format t "  Entering bar~%")
   (block a (baz fn))
   (format t "  Leaving bar~%"))
-\end{lstlisting}
+\end{myverb}
 
 Это дополнительное выражение \code{BLOCK} никак не изменит поведение \code{foo}~--- поиск
 имён, таких как \code{a}, производится лексически, во время компиляции, а не динамически,
@@ -574,7 +574,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 что вы можете написать новые версии функций \code{foo}, \code{bar} и \code{baz} используя
 \code{CATCH} и \code{THROW} вместо \code{BLOCK} и \code{RETURN-FROM}:
 
-\begin{lstlisting}
+\begin{myverb}
 (defparameter *obj* (cons nil nil)) ; некоторый произвольный объект
 
 (defun foo ()
@@ -594,12 +594,12 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
   (format t "   Entering baz~%")
   (throw *obj* nil)
   (format t "   Leaving baz~%"))
-\end{lstlisting}
+\end{myverb}
 
 Заметьте, что нет необходимости передавать замыкание вниз по стеку~--- \code{baz} может
 напрямую вызвать \code{THROW}.  Результат будет таким же как и раньше.
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   CL-USER> (foo)
   Entering foo
    Entering \code{CATCH}
@@ -607,7 +607,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
      Entering baz
   Leaving foo
   NIL
-\end{lstlisting}
+\end{myverb}
 
 Однако, \code{CATCH} и \code{THROW} слишком динамичные.  И в \code{CATCH}, и в
 \code{THROW}, форма, представляющая тег, вычисляется, что означает, что её значение в
@@ -636,10 +636,10 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
   эквивалентом конструкции \code{try/finally} в Java и Python.}  Базовая форма
 \code{UNWIND-PROTECT} выглядит примерно так:
 
-\begin{lstlisting}
+\begin{myverb}
 (unwind-protect protected-form
   cleanup-form*)
-\end{lstlisting}
+\end{myverb}
 
 Сначала вычисляется одиночное выражение \code{protected-form}, и затем, вне зависимости от
 способа его завершения, будут вычислены выражения заданные \code{cleanup-forms}.  Если
@@ -662,20 +662,20 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
   предоставляет макрос с аналогичной функциональностью, имеющий имя \code{with-database}.
   Домашняя страница CLSQL находится по адресу \url{http://clsql.b9.com}.}
 
-\begin{lstlisting}
+\begin{myverb}
 (defmacro with-database-connection ((var &rest open-args) &body body)
   `(let ((,var (open-connection ,@open-args)))
     (unwind-protect (progn ,@body)
       (close-connection ,var))))
-\end{lstlisting}
+\end{myverb}
 
 что позволяет вам писать в следующем стиле:
 
-\begin{lstlisting}
+\begin{myverb}
 (with-database-connection (conn :host "foo" :user "scott" :password "tiger")
   (do-stuff conn)
   (do-more-stuff conn))
-\end{lstlisting}
+\end{myverb}
 
 и не беспокоиться о закрытии соединения к базе данных, поскольку \code{UNWIND-PROTECT}
 позаботится о его закрытии, вне зависимости от того, что случится в теле формы
@@ -706,9 +706,9 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 которая содержит числа.  Если бы \code{GETHASH} возвращал бы список, то вы бы не могли
 написать что-то подобное:
 
-\begin{lstlisting}
+\begin{myverb}
 (+ (gethash 'a *h*) (gethash 'b *h*))
-\end{lstlisting}
+\end{myverb}
 
 поскольку \code{+} ожидает, что его аргументами будут числа, а не списки. Но поскольку
 механизм работы с множественными значениями просто игнорирует дополнительные возвращаемые
@@ -723,9 +723,9 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 единственный аргумент~--- список значений, и возвращает все его содержимое в виде
 множественных значений.  Иначе говоря:
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   (values-list x) === (apply #'values x)
-\end{lstlisting}
+\end{myverb}
 
 Механизм возврата множественных значений зависит от конкретной реализации, также как и
 механизм передачи аргументов функциям.  Почти все языковые конструкции возвращающие
@@ -755,10 +755,10 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 аргумента, все значения, возвращённые остальными выражениями, указанными в качестве
 аргументов.
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   (funcall #'+ (values 1 2) (values 3 4))             ==> 4
   (multiple-value-call #'+ (values 1 2) (values 3 4)) ==> 10
-\end{lstlisting}
+\end{myverb}
 
 Но скорее всего вы достаточно редко будете просто передавать все значения, возвращённые
 одной функцией, в другую функцию.  Скорее всего вы захотите сохранить множественные
@@ -767,31 +767,31 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 наиболее часто используемым оператором для работы с множественными значениями.  В общем
 виде он выглядит вот так:
 
-\begin{lstlisting}
+\begin{myverb}
 (multiple-value-bind (variable*) values-form
   body-form*)
-\end{lstlisting}
+\end{myverb}
 
 Выражение \code{values-form} вычисляется, и множественные значения, которые возвращаются
 им, присваиваются указанным переменным.  Затем вычисляются выражения \code{body-forms}
 используя указанные переменные.  Так что:
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   (multiple-value-bind (x y) (values 1 2)
     (+ x y)) ==> 3
-\end{lstlisting}
+\end{myverb}
 
 Другой макрос~--- \code{MULTIPLE-VALUE-LIST}, ещё более простой~--- он принимает одно
 выражение, вычисляет его и собирает полученные множественные значения в список.  Другими
 словами, этот макрос выполняет действия обратные действию\code{VALUES-LIST}.
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   CL-USER> (multiple-value-list (values 1 2))
   (1 2)
   CL-USER> (values-list (multiple-value-list (values 1 2)))
   1
   2
-\end{lstlisting}
+\end{myverb}
 
 Однако, если вы обнаружите, что часто используете \code{MULTIPLE-VALUE-LIST}, то это может
 быть сигналом того, что некоторая функция должна возвращать список, а не множественные
@@ -801,7 +801,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 существующим переменным, то вы можете использовать функцию \code{VALUES} для выполнения
 \code{SETF}.  Например:
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   CL-USER> (defparameter *x* nil)
   *X*
   CL-USER> (defparameter *y* nil)
@@ -813,7 +813,7 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
   1
   CL-USER> *y*
   23/34
-\end{lstlisting}
+\end{myverb}
 
 \section{EVAL-WHEN}
 
@@ -843,9 +843,9 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
   другими словами, что-то подобное следующему выражению \code{LET} окружает остальной код
   в реализации \code{LOAD}:
 
-\begin{lstlisting}
+\begin{myverb}
 (let ((*package* *package*)) ...)
-\end{lstlisting}
+\end{myverb}
 
 Любые изменения \code{*PACKAGE*} будут применяться к новой привязке, а старая привязка
 будет восстановлена при выходе из \code{LOAD}.  Аналогичным образом, эта функция связывает
@@ -872,10 +872,10 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 как и предполагает его имя, позволяет контролировать то, когда определённые части кода
 должны вычисляться. В общем виде выражение \code{EVAL-WHEN} выглядит вот так:
 
-\begin{lstlisting}
+\begin{myverb}
 (eval-when (situation*)
   body-form*)
-\end{lstlisting}
+\end{myverb}
 
 Есть три возможных условия (situation)~--- \code{:compile-toplevel}, \code{:load-toplevel}
 и \code{:execute}, и то, которое вы укажите, будет определять то, когда будут вычислены
@@ -936,10 +936,10 @@ a source) файла с исходным текстом, будут скомпи
 и во время компиляции и при загрузке из исходного кода путём раскрытия в выражения
 \code{EVAL-WHEN} выглядящие примерно так:
 
-\begin{lstlisting}
+\begin{myverb}
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (setf *package* (find-package "PACKAGE-NAME")))
-\end{lstlisting}
+\end{myverb}
 
 \noindent{}значение \code{*PACKAGE*} будет выставлено во время компиляции из-за условия
 \code{:compile-toplevel}, во время загрузки FASL из-за условия \code{:load-toplevel} и во
@@ -991,17 +991,17 @@ a source) файла с исходным текстом, будут скомпи
 время загрузки FASL, и код, содержащий выражение \code{LOAD-TIME-VALUE} будет ссылаться на
 вычисленное значение.  Другими словами, вместо того, чтобы писать что-то подобное:
 
-\begin{lstlisting}
+\begin{myverb}
 (defvar *loaded-at* (get-universal-time))
 
 (defun when-loaded () *loaded-at*)
-\end{lstlisting}
+\end{myverb}
 
 \noindent{}вы можете просто написать вот так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun when-loaded () (load-time-value (get-universal-time)))
-\end{lstlisting}
+\end{myverb}
 
 В коде, не обрабатываемом \code{COMPILE-FILE}, выражение \code{LOAD-TIME-VALUE}
 вычисляется однажды, во время компиляции, что может происходить когда вы явно компилируете
@@ -1014,10 +1014,10 @@ a source) файла с исходным текстом, будут скомпи
 интерпретаторов для языков, с динамической областью видимости переменных.  Базовая
 структура этого выражения выглядит вот так:
 
-\begin{lstlisting}
+\begin{myverb}
 (progv symbols-list values-list
   body-form*)
-\end{lstlisting}
+\end{myverb}
 
 \noindent{}где \code{symbols-list} является выражением, которое вычисляется в список символов, а
 \code{values-list}~--- выражение, которое вычисляется в список значений.  Каждый символ

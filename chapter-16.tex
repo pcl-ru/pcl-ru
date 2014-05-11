@@ -110,30 +110,30 @@ Common Lisp все данные являются экземплярами кла
 определённому объекту.  Однако это было не совсем удобно, поскольку это делало вызов
 метода отличным от обычного вызова функции.  Синтаксически вызов метода записывался:
 
-\begin{lstlisting}
+\begin{myverb}
   (send object 'foo)
-\end{lstlisting}
+\end{myverb}
 
 \noindent{}вместо
 
-\begin{lstlisting}
+\begin{myverb}
   (foo object)
-\end{lstlisting}
+\end{myverb}
 
 Более важным являлось то, что поскольку методы не являлись функциями, то они не могли быть
 переданы как аргументы для функций высшего порядка, таких как \code{MAPCAR}; если кто-то
 хотел вызвать метод для всех элементов списка, используя \code{MAPCAR}, то он должен был
 писать вот так:
 
-\begin{lstlisting}
+\begin{myverb}
   (mapcar #'(lambda (object) (send object 'foo)) objects)
-\end{lstlisting}
+\end{myverb}
 
 \noindent{}вместо
 
-\begin{lstlisting}
+\begin{myverb}
   (mapcar #'foo objects)
-\end{lstlisting}
+\end{myverb}
 
 В конечном счёте люди, работавшие над объектными системами Lisp, унифицировали методы и
 функции путём введения нового их вида, называемого обобщённым (generic).  В дополнение к
@@ -153,10 +153,10 @@ Common Lisp все данные являются экземплярами кла
 обобщённую функцию \code{draw}, которая будет использоваться для отрисовки различных фигур
 на экране:
 
-\begin{lstlisting}
+\begin{myverb}
   (defgeneric draw (shape)
     (:documentation "Draw the given shape on the screen."))
-\end{lstlisting}
+\end{myverb}
 
 Я опишу синтаксис \code{DEFGENERIC} в следующем разделе; сейчас лишь замечу, что это
 определение совсем не содержит кода.
@@ -181,13 +181,13 @@ Common Lisp все данные являются экземплярами кла
 как другой метод специализирует \code{shape} для экземпляров класса \code{triangle}.  Они
 могут выглядеть следующим образом (не вдаваясь в подробности рисования конкретных фигур):
 
-\begin{lstlisting}
+\begin{myverb}
   (defmethod draw ((shape circle))
     ...)
 
   (defmethod draw ((shape triangle))
     ...)
-\end{lstlisting}
+\end{myverb}
 
 При вызове обобщённой функции она сравнивает переданные аргументы со специализаторами
 каждого из её методов с целью найти среди них апплицируемые~-- чьи специализаторы
@@ -254,11 +254,11 @@ Common Lisp все данные являются экземплярами кла
 представление о том, что она делает.  Таким образом, вы можете определить \code{withdraw}
 следующим образом:
 
-\begin{lstlisting}
+\begin{myverb}
   (defgeneric withdraw (account amount)
     (:documentation "Withdraw the specified amount from the account.
   Signal an error if the current balance is less than amount."))
-\end{lstlisting}
+\end{myverb}
 
 \section{DEFMETHOD}
 
@@ -297,12 +297,12 @@ Common Lisp все данные являются экземплярами кла
 главе~\ref{ch:19}.  Используя эти две функции, вы можете определить основной метод
 \code{withdraw} примерно так:
 
-\begin{lstlisting}
+\begin{myverb}
   (defmethod withdraw ((account bank-account) amount)
     (when (< (balance account) amount)
       (error "Account overdrawn."))
     (decf (balance account) amount))
-\end{lstlisting}
+\end{myverb}
 
 Как видно из этого кода, форма \code{DEFMETHOD} более похожа на \code{DEFUN}, по сравнению
 с \code{DEFGENERIC}.  Основным отличием является то, что требуемые параметры могут быть
@@ -334,14 +334,14 @@ Common Lisp все данные являются экземплярами кла
 передачи управления методу, специализированному для \code{bank-account}.  Такой метод
 может выглядеть вот так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod withdraw ((account checking-account) amount)
   (let ((overdraft (- amount (balance account))))
     (when (plusp overdraft)
       (withdraw (overdraft-account account) overdraft)
       (incf (balance account) overdraft)))
   (call-next-method))
-\end{lstlisting}
+\end{myverb}
 
 Функция \code{CALL-NEXT-METHOD} является частью системы обобщённых функций и используется
 для комбинации FIXME\textit{подходящих} методов.  Она сообщает, что контроль должен быть
@@ -361,10 +361,10 @@ Common Lisp все данные являются экземплярами кла
 записать этот метод следующим образом (предполагая, что функция \code{proxied-account}
 возвращает соответствующий счёт):
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod withdraw ((proxy proxy-account) amount)
   (withdraw (proxied-account proxy) amount))
-\end{lstlisting}
+\end{myverb}
 
 В заключение, \code{DEFMETHOD} также позволяет вам создавать методы, которые
 специализированы для конкретного объекта используя \code{EQL}-специализатор.  Например,
@@ -376,13 +376,13 @@ Common Lisp все данные являются экземплярами кла
 может попросить вас <<исправить>> функцию \code{withdraw} таким образом, чтобы она
 обрабатывала его счёт другим способом.
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod withdraw ((account (eql *account-of-bank-president*)) amount)
   (let ((overdraft (- amount (balance account))))
     (when (plusp overdraft)
       (incf (balance account) (embezzle *bank* overdraft)))
   (call-next-method)))
-\end{lstlisting}
+\end{myverb}
 
 Однако заметьте, что форма, указанная в \code{EQL}-специализаторе, который используется
 для указания объекта (в нашем случае это \code{*account-of-bank-president*}) вычисляется
@@ -479,9 +479,9 @@ Common Lisp все данные являются экземплярами кла
 функции \code{withdraw}, которые специализирует параметр \code{account} для класса
 \code{bank-account} будет начинаться со следующей строки:
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod withdraw :before ((account bank-account) amount) ...)
-\end{lstlisting}
+\end{myverb}
 
 Каждый вид вспомогательных методов комбинируется в эффективный метод разными способами.
 Все применимые методы \code{:before} (не только наиболее специфические) запускаются как
@@ -493,13 +493,13 @@ Common Lisp все данные являются экземплярами кла
 специализированный для \code{checking-account} для реализации защиты от перерасхода для
 чековых счетов:
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod withdraw :before ((account checking-account) amount)
-  (let ((overdraft (- amount (balance account}))
+  (let ((overdraft (- amount (balance account))))
     (when (plusp overdraft)
       (withdraw (overdraft-account account) overdraft)
       (incf (balance account) overdraft))))
-\end{lstlisting}
+\end{myverb}
 
 Этот метод \code{:before} имеет три преимущества по сравнению с использованием основного
 метода.  Во первых, он явно показывает как метод изменяет общее поведение функции
@@ -595,11 +595,11 @@ Common Lisp все данные являются экземплярами кла
 возвращает сумму значений, возвращаемых отдельными методами, используя комбинатор методов
 \code{+}, вы можете написать следующий код:
 
-\begin{lstlisting}
+\begin{myverb}
 (defgeneric priority (job)
   (:documentation "Return the priority at which the job should be run.")
   (:method-combination +))
-\end{lstlisting}
+\end{myverb}
 
 По умолчанию, все эти комбинаторы методов комбинируют методы в порядке начиная с наиболее
 специфичного.  Однако вы можете изменить порядок, путём указания ключевого слова
@@ -608,19 +608,19 @@ Common Lisp все данные являются экземплярами кла
 \code{+} и методы не имеют побочных эффектов, но в целях демонстрации, я изменю код
 \code{priority} чтобы он использовал порядок \code{most-specific-last}:
 
-\begin{lstlisting}
+\begin{myverb}
 (defgeneric priority (job)
   (:documentation "Return the priority at which the job should be run.")
   (:method-combination + :most-specific-last))
-\end{lstlisting}
+\end{myverb}
 
 Основные методы обобщённых функций, которые используют один из этих комбинаторов, должны
 быть квалифицированы именем комбинатора методов.  Таким образом, основной метод,
 определённый для функции \code{priority} может выглядеть следующим образом:
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod priority + ((job express-job)) 10)
-\end{lstlisting}
+\end{myverb}
 
 Это станет более ясным, если вы рассмотрите определение метода, как конкретную часть
 обобщённой функции.
@@ -666,7 +666,7 @@ Common Lisp все данные являются экземплярами кла
 информации об аргументах, полученной во время компиляции, а не во время исполнения.  Чтобы
 посмотреть как это работает, рассмотрим два следующих класса на языке Java:
 
-\begin{lstlisting}[language=java]
+\begin{myverb}[language=java]
 public class A {
   public void foo(A a) { System.out.println("A/A"); }
   public void foo(B b) { System.out.println("A/B"); }
@@ -676,34 +676,34 @@ public class B extends A {
   public void foo(A a) { System.out.println("B/A"); }
   public void foo(B b) { System.out.println("B/B"); }
 }
-\end{lstlisting}
+\end{myverb}
 
 Теперь посмотрим, что случится, когда вы запустите метод \code{main} из этого класса.
 
-\begin{lstlisting}[language=java]
+\begin{myverb}[language=java]
 public class Main {
   public static void main(String[] argv) {
     A obj = argv[0].equals("A") ? new A() : new B();
     obj.foo(obj);
   }
 }
-\end{lstlisting}
+\end{myverb}
 
 Когда вы заставляете \code{main} создать экземпляр \code{A}, она выдаст \code{A/A}, как вы и
 ожидали.
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   bash$ java com.gigamonkeys.Main A
   A/A
-\end{lstlisting}
+\end{myverb}
 
 Однако, если вы заставите \code{main} создать экземпляр \code{B}, то настоящий тип объекта
 \code{obj} будет принят во внимание не полностью.
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   bash$ java com.gigamonkeys.Main B
   B/A
-\end{lstlisting}
+\end{myverb}
 
 Если бы перегруженные методы работали также как и мультиметоды в Common Lisp, то программа
 бы выдала ожидаемый результат: \code{B/B}.  Существует возможность реализации
@@ -720,23 +720,23 @@ public class Main {
 палочки?  Конечно, он принадлежит обоим предметам.  Для моделирования такой ситуации в
 Common Lisp, вы просто определяете функцию \code{beat}, которая принимает два аргумента.
 
-\begin{lstlisting}
+\begin{myverb}
 (defgeneric beat (drum stick)
   (:documentation
    "Produce a sound by hitting the given drum with the given stick."))
-\end{lstlisting}
+\end{myverb}
 
 Затем, вы можете определять разные мультиметоды для реализации \code{beat} для комбинаций,
 которые вам нужны. Например:
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod beat ((drum snare-drum) (stick wooden-drumstick)) ...)
 (defmethod beat ((drum snare-drum) (stick brush)) ...)
 (defmethod beat ((drum snare-drum) (stick soft-mallet)) ...)
 (defmethod beat ((drum tom-tom) (stick wooden-drumstick)) ...)
 (defmethod beat ((drum tom-tom) (stick brush)) ...)
 (defmethod beat ((drum tom-tom) (stick soft-mallet)) ...)
-\end{lstlisting}
+\end{myverb}
 
 Мультиметоды не помогают от комбинаторного взрыва~-- если вам необходимо смоделировать
 пять видов барабанов и шесть видов палочек, и каждая из комбинаций даёт отдельный звук, то

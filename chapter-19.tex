@@ -137,10 +137,10 @@ Python вы бы выбросили или возбудили исключени
 \code{malformed-log-entry-error} со слотом для хранения аргумента, который был передан в
 \code{parse-log-entry}, вот так:
 
-\begin{lstlisting}
+\begin{myverb}
 (define-condition malformed-log-entry-error (error)
   ((text :initarg :text :reader text)))
-\end{lstlisting}
+\end{myverb}
 
 \section{Обработчики условий}
 
@@ -154,12 +154,12 @@ Python вы бы выбросили или возбудили исключени
 второе более лаконично. Итак, вы можете записать \code{parse-log-entry} в таком виде,
 опуская детали собственно разбора журнальной записи:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun parse-log-entry (text)
   (if (well-formed-log-entry-p text)
     (make-instance 'log-entry ...)
     (error 'malformed-log-entry-error :text text)))
-\end{lstlisting}
+\end{myverb}
 
 То, что происходит, когда сигнализируется ошибка, зависит от кода в стеке вызовов,
 стоящего выше \code{parse-log-entry}. Чтобы избежать попадания в отладчик, вы должны
@@ -184,16 +184,16 @@ Python вы бы выбросили или возбудили исключени
 и затем запустить некоторый код. Макрос \code{HANDLER-CASE} как раз устанавливает такой
 тип обработчика. Базовая форма \code{HANDLER-CASE} такова:
 
-\begin{lstlisting}
+\begin{myverb}
 (handler-case expression
   error-clause*)
-\end{lstlisting}
+\end{myverb}
 
 \noindent{}где каждая конструкция \textit{error-clause} представляет собой следующую форму:
 
-\begin{lstlisting}
+\begin{myverb}
 (condition-type ([var]) code)
-\end{lstlisting}
+\end{myverb}
 
 Если выражение \textit{expression} завершается нормально, тогда его значение возвращается
 из конструкции \code{HANDLER-CASE}. Тело \code{HANDLER-CASE} должно быть одним выражением,
@@ -214,14 +214,14 @@ Python вы бы выбросили или возбудили исключени
 которое ссылается на значение последнего выполненного условия, в данном случае~--- на
 переменную \code{entry}).
 
-\begin{lstlisting}
+\begin{myverb}
 (defun parse-log-file (file)
   (with-open-file (in file :direction :input)
     (loop for text = (read-line in nil nil) while text
        for entry = (handler-case (parse-log-entry text)
                      (malformed-log-entry-error () nil))
        when entry collect it)))
-\end{lstlisting}
+\end{myverb}
 
 Когда функция \code{parse-log-entry} завершается нормально, её значение присваивается
 переменной \code{entry} и затем накапливается циклом \code{LOOP}. Но если функция
@@ -234,34 +234,34 @@ Python вы бы выбросили или возбудили исключени
 \code{HANDLER-CASE} в языке Common Lisp является ближайшим аналогом стиля обработки
 исключений в языках Java и Python. То, что вы можете записать на языке Java как 
 
-\begin{lstlisting}[language=Java]
+\begin{myverb}[language=Java]
 try {
   doStuff();
   doMoreStuff();
 } catch (SomeException se) {
   recover(se);
 }
-\end{lstlisting} 
+\end{myverb} 
 
 \noindent{}или на языке Python как 
 
-\begin{lstlisting}[language=Python]
+\begin{myverb}[language=Python]
 try:
   doStuff()
   doMoreStuff()
 except SomeException, se:
   recover(se)
-\end{lstlisting} 
+\end{myverb} 
 
 в языке Common Lisp вы пишите так: 
 
-\begin{lstlisting}
+\begin{myverb}
 (handler-case
     (progn
       (do-stuff)
       (do-more-stuff))
   (some-exception (se) (recover se)))
-\end{lstlisting} 
+\end{myverb} 
 
 %% END OF TABLE
 
@@ -298,14 +298,14 @@ except SomeException, se:
 \code{parse-log-file} вы можете вызвать перезапуск \code{skip-log-entry} так как он делает
 именно <<пропустить-журнальную-запись>>. Новая версия будет выглядеть так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun parse-log-file (file)
   (with-open-file (in file :direction :input)
     (loop for text = (read-line in nil nil) while text
        for entry = (restart-case (parse-log-entry text)
                      (skip-log-entry () nil))
        when entry collect it)))
-\end{lstlisting}
+\end{myverb}
 
 Если вы вызовете эту версию \code{parse-log-file} на журнальном файле, содержащем
 повреждённую запись, она не обработает ошибку напрямую; вы попадёте в отладчик. Однако
@@ -332,21 +332,21 @@ except SomeException, se:
 \code{analyze-log}, которая в итоге приводит к вызову \code{parse-log-file}. Без
 какой-либо обработки ошибок, это может выглядеть так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun log-analyzer ()
   (dolist (log (find-all-logs))
     (analyze-log log)))
-\end{lstlisting}
+\end{myverb}
 
 Работа \code{analyze-log}~--- это вызвать прямо или непрямо \code{parse-log-file} и затем
 сделать что-то с возвращённым списком журнальных записей. Сверхпростая версия может
 выглядеть так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun analyze-log (log)
   (dolist (entry (parse-log-file log))
     (analyze-entry entry)))
-\end{lstlisting}
+\end{myverb}
 
 \noindent{}где функция \code{analyze-entry} предположительно ответственна за извлечение заботящей вас
 информации про каждую журнальную запись и припрятывание её куда-нибудь.
@@ -364,9 +364,9 @@ except SomeException, se:
 \code{HANDLER-CASE} появляется. Вместо этого, вам надо использовать макрос нижнего уровня
 \code{HANDLER-BIND}. Основная форма \code{HANDLER-BIND} следующая:
 
-\begin{lstlisting}
+\begin{myverb}
 (handler-bind (binding*) form*)
-\end{lstlisting}
+\end{myverb}
 
 \noindent{}где каждая привязка (binding) представляет собой список из типа услоия и обрабатывающей
 функции с одним аргументом. После провязок с обработчиками, тело \code{HANDLER-BIND} может
@@ -382,14 +382,14 @@ except SomeException, se:
     нигде не используется. Вы можете подавить это предупреждение, добавив объявление
     \code{(declare (ignore c}} как первое выражение в тело \code{LAMBDA}.))
 
-\begin{lstlisting}
+\begin{myverb}
 (defun log-analyzer ()
   (handler-bind ((malformed-log-entry-error
                   #'(lambda (c)
                       (invoke-restart 'skip-log-entry))))
     (dolist (log (find-all-logs))
       (analyze-log log))))
-\end{lstlisting}
+\end{myverb}
 
 В этом \code{HANDLER-BIND} обработчик является безымянной функцией, которая вызывает
 перезапуск \code{skip-log-entry}. Вы также могли бы определить функцию с именем, которая
@@ -399,19 +399,19 @@ except SomeException, se:
 называются функциями перезапуска. Можно определить функцию перезапуска
 \code{skip-log-entry} так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun skip-log-entry (c)
   (invoke-restart 'skip-log-entry))
-\end{lstlisting}
+\end{myverb}
 
 Затем вы могли бы изменить определение \code{log-analyzer} на такое:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun log-analyzer ()
   (handler-bind ((malformed-log-entry-error #'skip-log-entry))
     (dolist (log (find-all-logs))
       (analyze-log log))))
-\end{lstlisting}
+\end{myverb}
 
 Как уже было сказано, функция перезапуска \code{skip-log-entry} полагает, что перезапуск
 \code{skip-log-entry} уже был установлен. Если \code{malformed-log-entry-error}
@@ -422,11 +422,11 @@ except SomeException, se:
 просигнализировано из кода в котором перезапуск \code{skip-log-entry} не установлен, то вы
 можете изменить функцию \code{skip-log-entry} таким образом:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun skip-log-entry (c)
   (let ((restart (find-restart 'skip-log-entry)))
     (when restart (invoke-restart restart))))
-\end{lstlisting}
+\end{myverb}
 
 \code{FIND-RESTART} ищет перезапуск с данным именем и возвращает объект, представляющий
 перезапуск, если перезапуск найден или \code{NIL} если нет. Вы можете вызвать перезапуск
@@ -455,14 +455,14 @@ except SomeException, se:
 всего \code{parse-log-entry}, в то время как другой пытается разобрать свой аргумент на
 месте оригинальной журнальной записи.
 
-\begin{lstlisting}
+\begin{myverb}
 (defun parse-log-entry (text)
   (if (well-formed-log-entry-p text)
     (make-instance 'log-entry ...)
     (restart-case (error 'malformed-log-entry-error :text text)
       (use-value (value) value)
       (reparse-entry (fixed-text) (parse-log-entry fixed-text)))))
-\end{lstlisting}
+\end{myverb}
 
 Имя \code{USE-VALUE} является стандартным именем для такого типа перезапуска. Common Lisp
 определяет функцию для \code{USE-VALUE} аналогично \code{skip-log-entry} функции, только
@@ -471,7 +471,7 @@ except SomeException, se:
 могли бы сменить \code{log-analyzer} на такую функцию (предполагая существование
 \code{malformed-log-entry} класса с инициирующим аргументом \code{:text}):
 
-\begin{lstlisting}
+\begin{myverb}
 (defun log-analyzer ()
   (handler-bind ((malformed-log-entry-error
                   #'(lambda (c)
@@ -479,7 +479,7 @@ except SomeException, se:
                        (make-instance 'malformed-log-entry :text (text c))))))
     (dolist (log (find-all-logs))
       (analyze-log log))))
-\end{lstlisting}
+\end{myverb}
 
 Вы могли бы точно также поместить эти новые перезапуски в \code{parse-log-file} вместо
 \code{parse-log-entry}. Хотя вы, вообще-то, хотите поместить перезапуски в код

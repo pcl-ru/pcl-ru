@@ -35,10 +35,10 @@ Lisp являются экземплярами какого-то из класс
 переменными-членами класса или аттрибутами.}  Базовая форма \code{DEFCLASS} выглядит
 достаточно просто.
 
-\begin{lstlisting}
+\begin{myverb}
 (defclass name (direct-superclass-name*)
   (slot-specifier*))
-\end{lstlisting}
+\end{myverb}
 
 Что такое классы, определённые пользователем?
 
@@ -83,13 +83,13 @@ CLOS добавлялся в язык. Но создаваемые им клас
 некоторых из классов, которые мы использовали в предыдущей главе, может выглядеть
 следующим образом:
 
-\begin{lstlisting}
+\begin{myverb}
 (defclass bank-account () ...)
 
 (defclass checking-account (bank-account) ...)
 
 (defclass savings-account (bank-account) ...)
-\end{lstlisting}
+\end{myverb}
 
 В разделе~\ref{sec:17-multi-inheritance} я объясню, что означает указание более чем одного
 суперкласса в списке опции \code{direct-superclass-names}.
@@ -111,19 +111,19 @@ CLOS добавлялся в язык. Но создаваемые им клас
 именем.  Например, вы можете определить класс \code{bank-account} с двумя слотами~---
 \code{customer-name} и \code{balance}, например, вот так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defclass bank-account ()
   (customer-name
    balance))
-\end{lstlisting}
+\end{myverb}
 
 Каждый экземпляр этого класса содержит два слота: один для хранения имени клиента, а
 второй ~--- для хранения текущего баланса счёта.  Используя данное определение вы можете
 создать новые объекты \code{bank-account} с помощью \code{MAKE-INSTANCE}.
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   (make-instance 'bank-account) ==> #<BANK-ACCOUNT @ #x724b93ba>
-\end{lstlisting}
+\end{myverb}
 
 Аргументом \code{MAKE-INSTANCE} является имя класса, а возвращаемым значением~--- новый
 объект.\footnote{В действительности, аргументом \code{MAKE-INSTANCE} может быть либо имя
@@ -144,18 +144,18 @@ CLOS добавлялся в язык. Но создаваемые им клас
 несвязанного значения приведёт к выдаче ошибки, так что вы должны задать значение до того,
 как вы будете считывать значения.
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   (defparameter *account* (make-instance 'bank-account))  ==> *ACCOUNT*
   (setf (slot-value *account* 'customer-name) "John Doe") ==> "John Doe"
   (setf (slot-value *account* 'balance) 1000)             ==> 1000
-\end{lstlisting}
+\end{myverb}
 
 Теперь вы можете получать значения слотов.
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   (slot-value *account* 'customer-name) ==> "John Doe"
   (slot-value *account* 'balance)       ==> 1000
-\end{lstlisting}
+\end{myverb}
 
 \section{Инициализация объекта}
 
@@ -182,24 +182,24 @@ CLOS добавлялся в язык. Но создаваемые им клас
 позволить передавать имя клиента и начальный баланс при вызове \code{MAKE-INSTANCE}, а
 также чтобы установить для баланса начальное значение равное нулю, вы должны написать:
 
-\begin{lstlisting}
+\begin{myverb}
 (defclass bank-account ()
   ((customer-name
     :initarg :customer-name)
    (balance
     :initarg :balance
     :initform 0)))
-\end{lstlisting}
+\end{myverb}
 
 Теперь вы можете одновременно создавать счёт и указывать значения слотов.
 
-\begin{lstlisting}
+\begin{myverb}
 (defparameter *account*
   (make-instance 'bank-account :customer-name "John Doe" :balance 1000))
 
   (slot-value *account* 'customer-name) ==> "John Doe"
   (slot-value *account* 'balance)       ==> 1000
-\end{lstlisting}
+\end{myverb}
 
 Если вы не передадите аргумент \code{:balance} при вызове \code{MAKE-INSTANCE}, то вызов
 \code{SLOT-VALUE} для слота \code{balance} будет получен вычислением формы, указанной
@@ -207,10 +207,10 @@ CLOS добавлялся в язык. Но создаваемые им клас
 слот \code{customer-name} будет пустой, и попытка считывания значения из него, приведёт к
 выдаче ошибки.
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   (slot-value (make-instance 'bank-account) 'balance)       ==> 0
   (slot-value (make-instance 'bank-account) 'customer-name) ==> Ошибка (error)
-\end{lstlisting}
+\end{myverb}
 
 Если вы хотите убедиться, что имя клиента было задано при создании счёта, то вы можете
 выдать ошибку в начальном выражении (\code{initform}), поскольку оно будет вычислено
@@ -221,7 +221,7 @@ CLOS добавлялся в язык. Но создаваемые им клас
 новый слот, \code{account-number}, который инициализируется значением увеличивающегося
 счётчика.
 
-\begin{lstlisting}
+\begin{myverb}
 (defvar *account-numbers* 0)
 
 (defclass bank-account ()
@@ -233,7 +233,7 @@ CLOS добавлялся в язык. Но создаваемые им клас
     :initform 0)
    (account-number
     :initform (incf *account-numbers*))))
-\end{lstlisting}
+\end{myverb}
 
 В большинстве случаев, комбинации опций \code{:initarg} и \code{:initform} будет
 достаточно для нормальной инициализации объекта.  Однако, хотя начальное выражение может
@@ -254,7 +254,7 @@ CLOS добавлялся в язык. Но создаваемые им клас
 Вы можете изменить определение класса на следующее, добавляя слот \code{account-type} без
 каких либо опций:
 
-\begin{lstlisting}
+\begin{myverb}
 (defclass bank-account ()
   ((customer-name
     :initarg :customer-name
@@ -265,7 +265,7 @@ CLOS добавлялся в язык. Но создаваемые им клас
    (account-number
     :initform (incf *account-numbers*))
    account-type))
-\end{lstlisting}
+\end{myverb}
 
 После этого вы можете определить метод \code{:after} для \code{INITIALIZE-INSTANCE},
 который установит значение слота \code{account-type}, основываясь на значении, которое
@@ -277,13 +277,13 @@ CLOS добавлялся в язык. Но создаваемые им клас
   \code{FIND-METHOD}.  Некоторые среды разработки могут предоставлять графический
   интерфейс для выполнения данной задачи.
 
-\begin{lstlisting}
+\begin{myverb}
 (remove-method #'initialize-instance
   (find-method #'initialize-instance () (list (find-class 'bank-account)))
-\end{lstlisting}
+\end{myverb}
 }
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod initialize-instance :after ((account bank-account) &key)
   (let ((balance (slot-value account 'balance)))
     (setf (slot-value account 'account-type)
@@ -291,7 +291,7 @@ CLOS добавлялся в язык. Но создаваемые им клас
             ((>= balance 100000) :gold)
             ((>= balance 50000) :silver)
             (t :bronze)))))
-\end{lstlisting}
+\end{myverb}
 
 Указание \lstinline!&key! в списке параметров требуется обязательно, чтобы сохранить
 список параметров соответствующим списку параметров обобщённой функции~--- список
@@ -308,19 +308,19 @@ CLOS добавлялся в язык. Но создаваемые им клас
 \code{INITIALIZE-INSTANCE}, который получает именованный аргумент, указывающий процент
 премии, например вот так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod initialize-instance :after ((account bank-account)
                                        &key opening-bonus-percentage)
   (when opening-bonus-percentage
     (incf (slot-value account 'balance)
           (* (slot-value account 'balance) (/ opening-bonus-percentage 100)))))
-\end{lstlisting}
+\end{myverb}
 
 Путём определения метода \code{INITIALIZE-INSTANCE}, вы делаете
 \code{:opening-bonus-percentage} допустимым аргументом функции \code{MAKE-INSTANCE} при
 создании объекта \code{bank-account}.
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   CL-USER> (defparameter *acct* (make-instance
                                   'bank-account
                                    :customer-name "Sally Sue"
@@ -329,7 +329,7 @@ CLOS добавлялся в язык. Но создаваемые им клас
   *ACCT*
   CL-USER> (slot-value *acct* 'balance)
   1050
-\end{lstlisting}
+\end{myverb}
 
 \section{Функции доступа}
 
@@ -372,10 +372,10 @@ CLOS добавлялся в язык. Но создаваемые им клас
 
 Определение функции, которая читает содержимое слота \code{balance} является тривиальным.
 
-\begin{lstlisting}
+\begin{myverb}
 (defun balance (account)
   (slot-value account 'balance))
-\end{lstlisting}
+\end{myverb}
 
 Однако, если вы знаете, что вы будете определять подклассы для \code{bank-account}, то
 может быть хорошей идеей определение \code{balance} в качестве обобщённой функции.  Таким
@@ -383,12 +383,12 @@ CLOS добавлялся в язык. Но создаваемые им клас
 или расширить её возможности с помощью вспомогательных методов. Так что вместо предыдущего
 примера можете написать следующее:
 
-\begin{lstlisting}
+\begin{myverb}
 (defgeneric balance (account))
 
 (defmethod balance ((account bank-account))
   (slot-value account 'balance))
-\end{lstlisting}
+\end{myverb}
 
 Как я только что обсуждал, вы не хотите, чтобы пользователь имел возможность устанавливать
 баланс напрямую, но для других слотов, таких как \code{customer-name}, вы также можете
@@ -409,16 +409,16 @@ CLOS добавлялся в язык. Но создаваемые им клас
   нового вида места.}  Например, вы можете определить \code{SETF}-функцию для установки
 значения слота \code{customer-name} в классе \code{bank-account} следующим образом:
 
-\begin{lstlisting}
+\begin{myverb}
 (defun (setf customer-name) (name account)
   (setf (slot-value account 'customer-name) name))
-\end{lstlisting}
+\end{myverb}
 
 После вычисления этого определения, выражения, подобные этому:
 
-\begin{lstlisting}
+\begin{myverb}
 (setf (customer-name my-account) "Sally Sue")
-\end{lstlisting}
+\end{myverb}
 
 будут компилироваться как вызов \code{SETF}-функции, которую вы только что определили с
 значением <<Sally Sue>> в качестве первого аргумента, и значением \code{my-account} в
@@ -427,29 +427,29 @@ CLOS добавлялся в язык. Но создаваемые им клас
 Конечно, также как с функциями чтения, вы вероятно захотите, чтобы ваша
 \code{SETF}-функция была обобщённой, так что вы должны её определить примерно так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defgeneric (setf customer-name) (value account))
 
 (defmethod (setf customer-name) (value (account bank-account))
   (setf (slot-value account 'customer-name) value))
-\end{lstlisting}
+\end{myverb}
 
 И конечно, вы также можете определить функцию чтения для \code{customer-name}.
 
-\begin{lstlisting}
+\begin{myverb}
 (defgeneric customer-name (account))
 
 (defmethod customer-name ((account bank-account))
   (slot-value account 'customer-name))
-\end{lstlisting}
+\end{myverb}
 
 Это позволит вам писать следующим образом:
 
-\begin{lstlisting}[style=lisprepl]
+\begin{myverb}
   (setf (customer-name *account*) "Sally Sue") ==> "Sally Sue"
 
   (customer-name *account*)                    ==> "Sally Sue"
-\end{lstlisting}
+\end{myverb}
 
 Нет ничего сложного в написании этих функций доступа, но написание этих функций вручную
 просто не соответствует The Lisp Way.  Так что \code{DEFCLASS} поддерживает три опции для
@@ -466,12 +466,12 @@ CLOS добавлялся в язык. Но создаваемые им клас
 раньше, вы можете просто изменить спецификатор слота \code{balance} в определении класса
 \code{bank-account} на следующее:
 
-\begin{lstlisting}
+\begin{myverb}
 (balance
  :initarg :balance
  :initform 0
  :reader balance)
-\end{lstlisting}
+\end{myverb}
 
 Опция \code{:writer} используется для создания обобщённой функции и метода для установки
 значения слота.  Создаваемая функция и метод следуют требованиям для \code{SETF}-функции,
@@ -480,31 +480,31 @@ CLOS добавлялся в язык. Но создаваемые им клас
   customer-name)}.  Например, вы можете определить методы чтения и записи для слота
 \code{customer-name}, просто изменяя спецификатор слота на следующее определение:
 
-\begin{lstlisting}
+\begin{myverb}
 (customer-name
  :initarg :customer-name
  :initform (error "Must supply a customer name.")
  :reader customer-name
  :writer (setf customer-name))
-\end{lstlisting}
+\end{myverb}
 
 Поскольку достаточно часто требуется определение обеих функций доступа, то \code{DEFCLASS}
 также имеет опцию \code{:accessor}, которая создаёт и функцию чтения, и соответствующую
 \code{SETF}-функцию.  Так что вместо предыдущего примера можно написать следующим образом:
 
-\begin{lstlisting}
+\begin{myverb}
 (customer-name
  :initarg :customer-name
  :initform (error "Must supply a customer name.")
  :accessor customer-name)
-\end{lstlisting}
+\end{myverb}
 
 В заключение, опишу ещё одну опцию, о которой вы должны знать: опция \code{:documentation}
 позволяет вам задать строку, которая описывает данный слот.  Собирая все в кучу и добавляя
 методы чтения для слотов \code{account-number} и \code{account-type}, определение
 \code{DEFCLASS} для класса \code{bank-account} будет выглядеть примерно так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defclass bank-account ()
   ((customer-name
     :initarg :customer-name
@@ -523,7 +523,7 @@ CLOS добавлялся в язык. Но создаваемые им клас
    (account-type
     :reader account-type
     :documentation "Type of account, one of :gold, :silver, or :bronze.")))
-\end{lstlisting}
+\end{myverb}
 
 \section{\code{WITH-SLOTS} и \code{WITH-ACCESSORS}}
 
@@ -540,20 +540,20 @@ CLOS добавлялся в язык. Но создаваемые им клас
 который вычисляет пеню для \code{bank-account} если баланс снижается ниже некоторого
 минимума, будет засорён вызовами \code{balance} и \code{SLOT-VALUE}:
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod assess-low-balance-penalty ((account bank-account))
   (when (< (balance account) *minimum-balance*)
     (decf (slot-value account 'balance) (* (balance account) .01))))
-\end{lstlisting}
+\end{myverb}
 
 И если вы решите, что вы хотите осуществлять прямой доступ к слоту для того, чтобы
 избежать вызова вспомогательных методов, то ваш код будет ещё больше замусоренным.
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod assess-low-balance-penalty ((account bank-account))
   (when (< (slot-value account 'balance) *minimum-balance*)
     (decf (slot-value account 'balance) (* (slot-value account 'balance) .01))))
-\end{lstlisting}
+\end{myverb}
 
 Два стандартных макроса~--- \code{WITH-SLOTS} и \code{WITH-ACCESSORS}, могут помочь
 избавиться от этого мусора.  Оба макроса создают блок кода, в которых могут использоваться
@@ -563,10 +563,10 @@ CLOS добавлялся в язык. Но создаваемые им клас
 
 Базовая форма  \code{WITH-SLOTS} выглядит следующим образом:
 
-\begin{lstlisting}
+\begin{myverb}
 (with-slots (slot*) instance-form
   body-form*)
-\end{lstlisting}
+\end{myverb}
 
 Каждый элемент списка \code{slot} может быть либо именем слота,которое также является
 именем переменной, либо списком из двух элементов, где первый аргумент является именем,
@@ -582,21 +582,21 @@ CLOS добавлялся в язык. Но создаваемые им клас
   для своих целей.  Я их более подробно опишу в главе~\ref{ch:20}.}  Таким образом, вы можете
   переписать \code{assess-low-balance-penalty} вот так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod assess-low-balance-penalty ((account bank-account))
   (with-slots (balance) account
     (when (< balance *minimum-balance*)
       (decf balance (* balance .01)))))
-\end{lstlisting}
+\end{myverb}
 
 \noindent{}или используя списочную запись, вот так:
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod assess-low-balance-penalty ((account bank-account))
   (with-slots ((bal balance)) account
     (when (< bal *minimum-balance*)
       (decf bal (* bal .01)))))
-\end{lstlisting}
+\end{myverb}
 
 Если вы определили \code{balance} с использованием опции \code{:accessor}, а не
 \code{:reader}, то вы также можете использовать макрос \code{WITH-ACCESSORS}.  Форма
@@ -606,25 +606,25 @@ CLOS добавлялся в язык. Но создаваемые им клас
 аналогична вызову соответствующей функции доступа.  Если функция доступа разрешает
 выполнение \code{SETF}, то тоже самое возможно и для переменной.
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod assess-low-balance-penalty ((account bank-account))
   (with-accessors ((balance balance)) account
     (when (< balance *minimum-balance*)
       (decf balance (* balance .01)))))
-\end{lstlisting}
+\end{myverb}
 
 Первое вхождение \code{balance} является именем переменной, а второе~--- именем функции
 доступа; они не обязательно должны быть одинаковыми.  Например, вы можете написать метод
 для слияния двух счетов, используя два вызова \code{WITH-ACCESSORS}, для каждого из
 счетов.
 
-\begin{lstlisting}
+\begin{myverb}
 (defmethod merge-accounts ((account1 bank-account) (account2 bank-account))
   (with-accessors ((balance1 balance)) account1
     (with-accessors ((balance2 balance)) account2
       (incf balance1 balance2)
       (setf balance2 0))))
-\end{lstlisting}
+\end{myverb}
 
 Выбор между использованием \code{WITH-SLOTS} и \code{WITH-ACCESSORS} примерно таков, как и
 выбор между использованием \code{SLOT-VALUE} и функций доступа: низкоуровневый код,
@@ -715,7 +715,7 @@ Common Lisp решает эту проблему путём слияния вс�
 
 Например, у вас имеются следующие классы:
 
-\begin{lstlisting}
+\begin{myverb}
 (defclass foo ()
   ((a :initarg :a :initform "A" :accessor a)
    (b :initarg :b :initform "B" :accessor b)))
@@ -723,7 +723,7 @@ Common Lisp решает эту проблему путём слияния вс�
 (defclass bar (foo)
   ((a :initform (error "Must supply a value for a"))
    (b :initarg :the-b :accessor the-b :allocation :class)))
-\end{lstlisting}
+\end{myverb}
 
 При создании экземпляра класса \code{bar}, вы можете использовать унаследованный начальный
 аргумент \code{:a} для указания значения для слота \code{a} и, в действительности, должны
@@ -786,20 +786,20 @@ Common Lisp решает эту проблему путём слияния вс�
 клиент может выписывать чеки, но кроме того он получает проценты.  Вы можете определить
 его следующим образом:
 
-\begin{lstlisting}
+\begin{myverb}
 (defclass money-market-account (checking-account savings-account) ())
-\end{lstlisting}
+\end{myverb}
 
 Список следования класса \code{money-market-account} будет следующим:
 
-\begin{lstlisting}
+\begin{myverb}
 (money-market-account
  checking-account
  savings-account
  bank-account
  standard-object
  t)
-\end{lstlisting}
+\end{myverb}
 
 Заметьте, как список удовлетворяет обоим правилам: каждый класс появляется раньше своих
 суперклассов, а \code{checking-account} и \code{savings-account} располагаются в порядке,
