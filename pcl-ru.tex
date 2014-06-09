@@ -67,15 +67,14 @@
 hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep=12bp,headheight=12.5bp,footnotesep=10bp plus2bp minus2bp]{geometry}
 
 % headers & footers
-%% \usepackage{fancyhdr}
-%% \pagestyle{fancy}
-%\include{version}
-%% \fancyhead{}
-%% \fancyhead[RE,LO]{\slshape{\rightmark{}}}
-%% \fancyhead[LE,RO]{\thepage{}}
-%\fancyfoot{}
-%\fancyfoot[LE,RO]{rev. \svnInfoMaxRevision}
-% 
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[RE]{\nouppercase{\rightmark{}}}
+\fancyhead[LO]{\nouppercase{\leftmark{}}}
+\fancyhead[LE,RO]{\thepage{}}
+\fancyfoot{}
+
 \usepackage{graphicx}
 
 \usepackage[round]{natbib}
@@ -135,10 +134,6 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \titlelabel{\thetitle.\quad}
 \usepackage[dotinlabels]{titletoc}
 
-% TODO: remove the page number from chapter page
-% http://stackoverflow.com/questions/2166557/how-to-hide-the-page-number-in-latex-on-first-page-of-a-chapter
-% http://tex.stackexchange.com/questions/88833/page-number-on-the-first-page-of-chapter
-
 % settings for floating objects
 \renewcommand{\topfraction}{.9}
 \renewcommand{\textfraction}{.1}
@@ -158,6 +153,17 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 
 \newcommand\nextpage{\emph{См. след. страницу}}
 
+\newcommand{\textintable}[2]{
+  \begin{table}[htb]%
+    \centering%
+    \begin{longtable}{|p{0.95\textwidth}|}
+        \hline
+        \multicolumn{1}{|c|}{\textbf{#1}}\\
+        \hline
+        {\small #2} \\
+        \hline
+    \end{longtable}%
+\end{table}}
 
 \title{Practical Common Lisp}
 \author{Peter Seibel}
@@ -187,10 +193,8 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \@nameuse{ttl@ps@\string\chapter}
 \makeatother
 
-%%% здесь можно комментировать одно и раскомментировать другое, чтобы
-%%% быстро тестировать компиляцию по главам
-%\input{chapter-13.tex}
 \input{all-chapters}
+%\include{chapter-30}
 
 \end{document}
 
