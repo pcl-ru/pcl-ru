@@ -46,10 +46,14 @@ AllegroServe, которые позволят нам в главе~\ref{ch:29} �
   </html>
 \end{lstlisting}
 
-Рисунок~\ref{fig:26-1}, показывает как браузер отображает эту страницу.
+Рис.~\ref{fig:26-1}, показывает как браузер отображает эту страницу.
 
-%TODO: add picture
-Рисунок 26-1. Пример веб-страницы
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=0.7]{images/new-sample.jpg}
+  \label{fig:26-1}
+  \caption{Пример веб-страницы}
+\end{figure}
 
 Браузер и сервер общаются между собой, используя протокол, называемый Hypertext Transfer
 Protocol (HTTP, протокол передачи гипертекста). Хотя вам не нужно беспокоиться
@@ -247,8 +251,12 @@ refused when attempting to contact localhost:2001>>, то это означае�
 \url{http://localhost:2001/hello.html}, и он должен отобразить что-то наподобие того, что
 изображено на рис.~\ref{fig:26-2}.
 
-%TODO: add picture
-Рисунок 26-2. \url{http://localhost:2001/hello.html}
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=0.7]{images/hello-world.jpg}
+  \label{fig:26-2}
+  \caption{\url{http://localhost:2001/hello.html}}
+\end{figure}
 
 Вы также можете опубликовать целый каталог с помощью функции \lstinline{publish-directory}. Но
 сначала давайте избавимся от уже опубликованной сущности с помощью следующего вызова
@@ -346,8 +354,12 @@ AllegroServe и возвращает поток, в который вы долж
 браузере адрес http://localhost:2001/random-number для получения страницы со случайным
 числом, как это показано на рис.~\ref{fig:26-3}.
 
-%TODO: add picture
-Рисунок 26-3. http://localhost:2001/random-number
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=0.7]{images/random-number.jpg}
+  \label{fig:26-3}
+  \caption{\url{http://localhost:2001/random-number}}
+\end{figure}
 
 \section{Генерация HTML}
 
@@ -641,8 +653,12 @@ AllegroServe, как и большинство других каркасов web
 
 \noindent{}вы получите страницу, подобную показанной на рис.~\ref{fig:26-4}.
 
-%TODO: add picture
-Рисунок 26-4. \url{http://localhost:2001/show-query-params?foo=bar&baz=10}
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=0.7]{images/show-query-params-1a.jpg}
+  \label{fig:26-4}
+  \caption{\url{http://localhost:2001/show-query-params?foo=bar&baz=10}}
+\end{figure}
 
 Для генерации POST-данных нам нужна форма HTML. Следующая функция генерирует простую
 форму, которая посылает свои данные show-query-params:
@@ -671,14 +687,22 @@ AllegroServe, как и большинство других каркасов web
 Перейдите в вашем браузере по адресу \url{http://localhost:2001/simple-form}~-- вы должны
 увидеть страницу, подобную изображённой на рис.~\ref{fig:26-5}.
 
-% TODO: add picture
-Рисунок 26-5. \url{http://localhost:2001/simple-form}
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=0.7]{images/simple-form.jpg}
+  \label{fig:26-5}
+  \caption{\url{http://localhost:2001/simple-form}}
+\end{figure}
 
 Если вы заполните форму значениями <<abc>> и <<def>>, щёлкните на кнопку \texttt{Okay}, то
 получите страницу, сходную с изображённой на рис.~\ref{fig:26-6}.
 
-% TODO: add picture
-Рисунок 26-6. Результат посылки простой формы
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=0.7]{images/show-query-params-2.jpg}
+  \label{fig:26-6}
+  \caption{Результат посылки простой формы}
+\end{figure}
 
 Однако чаще всего вам не нужно проходить по всем параметрам запроса: обычно вам нужно
 просто получить определённый параметр. Например, вы можете захотеть модифицировать
@@ -764,8 +788,12 @@ cookie: \lstinline{:expires}, \lstinline{:path}, \lstinline{:domain} и \lstinli
 отобразить сообщение \lstinline{"No cookies"}, как показано на рис.~\ref{fig:26-7}, так как
 вы ещё ничего не установили.
 
-% TODO: add picture
-Рисунок 26-7. \url{http://localhost:2001/show-cookies} без установленных cookie
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=0.7]{images/show-cookies-no-cookies.jpg}
+  \label{fig:26-7}
+  \caption{\url{http://localhost:2001/show-cookies} без установленных cookie}
+\end{figure}
 
 Для установки cookie нам понадобится другая функция, такая как эта:
 
@@ -792,11 +820,19 @@ cookie: \lstinline{:expires}, \lstinline{:path}, \lstinline{:domain} и \lstinli
 аргумент \lstinline{:expires}, браузер продолжит посылать cookie при каждом запросе, пока вы не
 выйдете из него.
 
-% TODO: add picture
-Рисунок 26-8. \url{http://localhost:2001/set-cookie}
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=0.7]{images/set-cookie.jpg}
+  \label{fig:26-8}
+  \caption{\url{http://localhost:2001/set-cookie}}
+\end{figure}
 
-% TODO: add picture
-Рисунок 26-9. \url{http://localhost:2001/show-cookies} после установки cookie
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=0.7]{images/show-cookies-one-cookie.jpg}
+  \label{fig:26-9}
+  \caption{\url{http://localhost:2001/show-cookies} после установки cookie}
+\end{figure}
 
 \section{Небольшой каркас приложений}
 

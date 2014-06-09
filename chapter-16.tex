@@ -234,10 +234,12 @@ Common Lisp все данные являются экземплярами кла
 вы можете просто предположить, что определённые классы уже существуют: для начала
 предположим, имеется класс \lstinline{bank-account}, и он имеет два подкласса~--
 \lstinline{checking-account} и \lstinline{savings-account}.  Иерархия классов выглядит следующим
-образом (TODO: рис.~\ref{fig:16-1}).
+образом:
 
-%TODO: add picture
-%{{ :pcl:account-hierarchy_1_.png }}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.7]{images/account-hierarchy.png}
+\end{figure}
 
 Первой обобщённой функцией будет \lstinline{withdraw}, которая уменьшает баланс на указанную
 сумму.  Если баланс меньше этой суммы, то она должна выдать ошибку и оставить баланс в

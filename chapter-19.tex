@@ -355,8 +355,10 @@ except SomeException, se:
 Таким образом, путь от функции высшего уровня \lstinline{log-analyzer} к
 \lstinline{parse-log-entry}, которая, собственно, сигнализирует про ошибку, следующий:
 
-%TODO: add picture
-%{{ pcl:restart-call-stack.png  }}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.7]{images/restart-call-stack.png}
+\end{figure}
 
 Предполагая, что вы всегда хотите пропускать неправильно сформированные записи, вы можете
 изменить эту функцию для установки обработчика условия, который вызывает перезапуск
