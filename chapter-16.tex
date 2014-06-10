@@ -113,13 +113,13 @@ Common Lisp все данные являются экземплярами кла
 метода отличным от обычного вызова функции.  Синтаксически вызов метода записывался:
 
 \begin{myverb}
-  (send object 'foo)
+(send object 'foo)
 \end{myverb}
 
 \noindent{}вместо
 
 \begin{myverb}
-  (foo object)
+(foo object)
 \end{myverb}
 
 Более важным являлось то, что поскольку методы не являлись функциями, то они не могли быть
@@ -128,13 +128,13 @@ Common Lisp все данные являются экземплярами кла
 писать вот так:
 
 \begin{myverb}
-  (mapcar #'(lambda (object) (send object 'foo)) objects)
+(mapcar #'(lambda (object) (send object 'foo)) objects)
 \end{myverb}
 
 \noindent{}вместо
 
 \begin{myverb}
-  (mapcar #'foo objects)
+(mapcar #'foo objects)
 \end{myverb}
 
 В конечном счёте люди, работавшие над объектными системами Lisp, унифицировали методы и
@@ -156,8 +156,8 @@ Common Lisp все данные являются экземплярами кла
 на экране:
 
 \begin{myverb}
-  (defgeneric draw (shape)
-    (:documentation "Draw the given shape on the screen."))
+(defgeneric draw (shape)
+  (:documentation "Draw the given shape on the screen."))
 \end{myverb}
 
 Я опишу синтаксис \lstinline{DEFGENERIC} в следующем разделе; сейчас лишь замечу, что это
@@ -184,11 +184,11 @@ Common Lisp все данные являются экземплярами кла
 могут выглядеть следующим образом (не вдаваясь в подробности рисования конкретных фигур):
 
 \begin{myverb}
-  (defmethod draw ((shape circle))
-    ...)
+(defmethod draw ((shape circle))
+  ...)
 
-  (defmethod draw ((shape triangle))
-    ...)
+(defmethod draw ((shape triangle))
+  ...)
 \end{myverb}
 
 При вызове обобщённой функции она сравнивает переданные аргументы со специализаторами
@@ -259,9 +259,9 @@ Common Lisp все данные являются экземплярами кла
 следующим образом:
 
 \begin{myverb}
-  (defgeneric withdraw (account amount)
-    (:documentation "Withdraw the specified amount from the account.
-  Signal an error if the current balance is less than amount."))
+(defgeneric withdraw (account amount)
+  (:documentation "Withdraw the specified amount from the account.
+Signal an error if the current balance is less than amount."))
 \end{myverb}
 
 \section{DEFMETHOD}
@@ -302,10 +302,10 @@ Common Lisp все данные являются экземплярами кла
 \lstinline{withdraw} примерно так:
 
 \begin{myverb}
-  (defmethod withdraw ((account bank-account) amount)
-    (when (< (balance account) amount)
-      (error "Account overdrawn."))
-    (decf (balance account) amount))
+(defmethod withdraw ((account bank-account) amount)
+  (when (< (balance account) amount)
+    (error "Account overdrawn."))
+  (decf (balance account) amount))
 \end{myverb}
 
 Как видно из этого кода, форма \lstinline{DEFMETHOD} более похожа на \lstinline{DEFUN}, по сравнению
@@ -693,16 +693,16 @@ public class Main {
 ожидали.
 
 \begin{myverb}
-  bash\$ java com.gigamonkeys.Main A
-  A/A
+bash\$ java com.gigamonkeys.Main A
+A/A
 \end{myverb}
 
 Однако если вы заставите \lstinline{main} создать экземпляр \lstinline{B}, то настоящий тип объекта
 \lstinline{obj} будет принят во внимание не полностью.
 
 \begin{myverb}
-  bash\$ java com.gigamonkeys.Main B
-  B/A
+bash\$ java com.gigamonkeys.Main B
+B/A
 \end{myverb}
 
 Если бы перегруженные методы работали так же, как и мультиметоды в Common Lisp, то программа

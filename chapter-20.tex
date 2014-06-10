@@ -366,24 +366,24 @@ step 3, go back to step 2;
 \textit{Алгоритм~S} (метод выбора последовательности). Для выбора \textit{n} случайных записей из
 множества $N$, где $0 < n <= N$.
 
-%TODO: convert to normal list:
-\begin{myverb}
- * S1. [Инициализировать.] Установить t <-- 0, m <-- 0. (В этом алгоритме m 
-представляет количество записей уже выбранных, а t общее количество 
-записей которые мы просмотрели.)
+\begin{description}
+\item[S1. (Инициализировать.)] Установить \lstinline!t <-- 0!, \lstinline!m <-- 0!. (В
+  этом алгоритме \lstinline!m! представляет количество записей уже выбранных, а \lstinline!t! общее
+  количество записей которые мы просмотрели.);
 
- * S2. [Сгенерировать U.] Сгенерировать случайное число U, равномерно 
-распределённое между нулём и единицей.
+\item[S2. (Сгенерировать U.)]  Сгенерировать случайное число \lstinline!U!, равномерно
+  распределённое между нулём и единицей;
 
- * S3. [Проверить.] Если (N - t)U >= n - m, то перейти к шагу S5.
+\item[S3. (Проверить.)] Если \lstinline!(N - t)U >= n - m!, то перейти к шагу~\textbf{S5};
 
- * S4. [Выбрать.] Выбрать следующую запись в последовательность и увеличить
-m и t на 1. Если m < n, то перейти к шагу S2; иначе 
-последовательность закончена и алгоритм завершается.
+\item[S4. (Выбрать.)] Выбрать следующую запись в последовательность и увеличить
+\lstinline!m! и \lstinline!t! на~1. Если \lstinline!m < n!, то перейти к шагу~\textbf{S2}; иначе 
+последовательность закончена и алгоритм завершается;
 
- * S5. [Пропустить.] Пропустить следующую запись (не включать её в 
-последовательность), увеличить t на 1, и вернуться к шагу S2.
-\end{myverb}
+\item[S5. (Пропустить.)] Пропустить следующую запись (не включать её в 
+последовательность), увеличить \lstinline!t! на~1, и вернуться к шагу~\textbf{S2}.
+
+\end{description}
 
 Это описание может быть легко переведено в  функцию Common Lisp после переименования
 нескольких переменных таким образом:
@@ -495,13 +495,13 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 \lstinline{bar} и \lstinline{baz} демонстрируют это:
 
 \begin{myverb}
-  CL-USER> (foo)
-  Entering foo
-   Entering BLOCK
-    Entering bar
-     Entering baz
-  Leaving foo
-  NIL
+CL-USER> (foo)
+Entering foo
+ Entering BLOCK
+  Entering bar
+   Entering baz
+Leaving foo
+NIL
 \end{myverb}
 
 Заметьте, что единственным выдаваемым сообщением \lstinline{Leaving . . .} является то, которое
@@ -761,8 +761,8 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 аргументов.
 
 \begin{myverb}
-  (funcall #'+ (values 1 2) (values 3 4))             ==> 4
-  (multiple-value-call #'+ (values 1 2) (values 3 4)) ==> 10
+(funcall #'+ (values 1 2) (values 3 4))             ==> 4
+(multiple-value-call #'+ (values 1 2) (values 3 4)) ==> 10
 \end{myverb}
 
 Но, скорее всего, вы достаточно редко будете просто передавать все значения, возвращённые
@@ -782,8 +782,8 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 при использовании указанных переменных.  Так что:
 
 \begin{myverb}
-  (multiple-value-bind (x y) (values 1 2)
-    (+ x y)) ==> 3
+(multiple-value-bind (x y) (values 1 2)
+  (+ x y)) ==> 3
 \end{myverb}
 
 Другой макрос~-- \lstinline{MULTIPLE-VALUE-LIST}, ещё более простой~-- он принимает одно
@@ -791,11 +791,11 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 словами, этот макрос выполняет действия, обратные действию\lstinline{VALUES-LIST}.
 
 \begin{myverb}
-  CL-USER> (multiple-value-list (values 1 2))
-  (1 2)
-  CL-USER> (values-list (multiple-value-list (values 1 2)))
-  1
-  2
+CL-USER> (multiple-value-list (values 1 2))
+(1 2)
+CL-USER> (values-list (multiple-value-list (values 1 2)))
+1
+2
 \end{myverb}
 
 Однако если вы обнаружите, что часто используете \lstinline{MULTIPLE-VALUE-LIST}, то это может
@@ -807,17 +807,17 @@ m и t на 1. Если m < n, то перейти к шагу S2; иначе
 \lstinline{SETF}.  Например:
 
 \begin{myverb}
-  CL-USER> (defparameter *x* nil)
-  *X*
-  CL-USER> (defparameter *y* nil)
-  *Y*
-  CL-USER> (setf (values *x* *y*) (floor (/ 57 34)))
-  1
-  23/34
-  CL-USER> *x*
-  1
-  CL-USER> *y*
-  23/34
+CL-USER> (defparameter *x* nil)
+*X*
+CL-USER> (defparameter *y* nil)
+*Y*
+CL-USER> (setf (values *x* *y*) (floor (/ 57 34)))
+1
+23/34
+CL-USER> *x*
+1
+CL-USER> *y*
+23/34
 \end{myverb}
 
 \section{EVAL-WHEN}

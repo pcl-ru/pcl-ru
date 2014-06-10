@@ -125,7 +125,7 @@ Lisp являются экземплярами какого-то из класс
 создать новые объекты \lstinline{bank-account} с помощью \lstinline{MAKE-INSTANCE}.
 
 \begin{myverb}
-  (make-instance 'bank-account) ==> #<BANK-ACCOUNT @ #x724b93ba>
+(make-instance 'bank-account) ==> #<BANK-ACCOUNT @ #x724b93ba>
 \end{myverb}
 
 Аргументом \lstinline{MAKE-INSTANCE} является имя класса, а возвращаемым значением~-- новый
@@ -148,16 +148,16 @@ Lisp являются экземплярами какого-то из класс
 как будете считывать значения.
 
 \begin{myverb}
-  (defparameter *account* (make-instance 'bank-account))  ==> *ACCOUNT*
-  (setf (slot-value *account* 'customer-name) "John Doe") ==> "John Doe"
-  (setf (slot-value *account* 'balance) 1000)             ==> 1000
+(defparameter *account* (make-instance 'bank-account))  ==> *ACCOUNT*
+(setf (slot-value *account* 'customer-name) "John Doe") ==> "John Doe"
+(setf (slot-value *account* 'balance) 1000)             ==> 1000
 \end{myverb}
 
 Теперь вы можете получать значения слотов.
 
 \begin{myverb}
-  (slot-value *account* 'customer-name) ==> "John Doe"
-  (slot-value *account* 'balance)       ==> 1000
+(slot-value *account* 'customer-name) ==> "John Doe"
+(slot-value *account* 'balance)       ==> 1000
 \end{myverb}
 
 \section{Инициализация объекта}
@@ -212,8 +212,8 @@ Lisp являются экземплярами какого-то из класс
 выдаче ошибки.
 
 \begin{myverb}
-  (slot-value (make-instance 'bank-account) 'balance)       ==> 0
-  (slot-value (make-instance 'bank-account) 'customer-name) ==> Ошибка (error)
+(slot-value (make-instance 'bank-account) 'balance)       ==> 0
+(slot-value (make-instance 'bank-account) 'customer-name) ==> Ошибка (error)
 \end{myverb}
 
 Если вы хотите убедиться, что имя клиента было задано при создании счёта, то вы можете
@@ -325,14 +325,14 @@ Lisp являются экземплярами какого-то из класс
 создании объекта \lstinline{bank-account}.
 
 \begin{myverb}
-  CL-USER> (defparameter *acct* (make-instance
-                                  'bank-account
-                                   :customer-name "Sally Sue"
-                                   :balance 1000
-                                   :opening-bonus-percentage 5))
-  *ACCT*
-  CL-USER> (slot-value *acct* 'balance)
-  1050
+CL-USER> (defparameter *acct* (make-instance
+                                'bank-account
+                                 :customer-name "Sally Sue"
+                                 :balance 1000
+                                 :opening-bonus-percentage 5))
+*ACCT*
+CL-USER> (slot-value *acct* 'balance)
+1050
 \end{myverb}
 
 \section{Функции доступа}

@@ -54,13 +54,13 @@
 \section{Основы двоичного формата}
 
 Начальной точкой в чтении и записи двоичных файлов является открытие файла для чтения и
-записи отдельных байтов. Как я описывал в главе~\ref{ch:14}, и \textbf{OPEN}, и
-\textbf{WITH-OPEN-FILE} принимают ключевой аргумент \code{:element-type}, который
+записи отдельных байтов. Как я описывал в главе~\ref{ch:14}, и \lstinline{OPEN}, и
+\lstinline{WITH-OPEN-FILE} принимают ключевой аргумент \lstinline{:element-type}, который
 устанавливает базовую единицу передачи данных для потока. Для работы с двоичными файлами
-нужно указать \code{(unsigned-byte 8)}. Входной поток, открытый с таким параметром
-\code{:element-type}, будет возвращать числа от 0 до 255 при каждой его передаче в вызов
-\textbf{READ-BYTE}. И наоборот, мы можем записывать байты в выходной поток с типом
-элементов \code{(unsigned-byte 8)} путём передачи чисел от 0 до 255 в \textbf{WRITE-BYTE}.
+нужно указать \lstinline{(unsigned-byte 8)}. Входной поток, открытый с таким параметром
+\lstinline{:element-type}, будет возвращать числа от 0 до 255 при каждой его передаче в вызов
+\lstinline{READ-BYTE}. И наоборот, мы можем записывать байты в выходной поток с типом
+элементов \lstinline{(unsigned-byte 8)} путём передачи чисел от 0 до 255 в \lstinline{WRITE-BYTE}.
 
 Выше уровня отдельных байтов большинство двоичных форматов используют минимальное
 количество примитивных типов данных: различные представления чисел, текстовые строки,
@@ -89,95 +89,95 @@
   \url{http://khavrinen.lcs.mit.edu/wollman/ien-137.txt}.}, когда наиболее значащий байт идёт
 первым, мы можем прочитать такое число с помощью следующей функции:
 
-\begin{lstlisting}
-  (defun read-u2 (in)
-    (+ (* (read-byte in) 256) (read-byte in)))
-\end{lstlisting}
+\begin{myverb}
+(defun read-u2 (in)
+  (+ (* (read-byte in) 256) (read-byte in)))
+\end{myverb}
 
 Однако Common Lisp предоставляет более удобный способ осуществления такого рода операций
-с битами. Функция \textbf{LDB}, чьё имя происходит от load byte, может быть использована
-для извлечения и присваивания (с помощью \textbf{SETF}) любого/любому числу идущих подряд
-бит из целого числа\footnote{\textbf{LDB} и связанная функция \textbf{DPB} были названы по
+с битами. Функция \lstinline{LDB}, чьё имя происходит от load byte, может быть использована
+для извлечения и присваивания (с помощью \lstinline{SETF}) любого/любому числу идущих подряд
+бит из целого числа\footnote{\lstinline{LDB} и связанная функция \lstinline{DPB} были названы по
   функциям ассемблера DEC PDP-10, которые осуществляли в точности эти же вещи. Обе функции
   осуществляют операции над целыми числами, как если бы они хранились в формате дополнения
   до двух, вне зависимости от внутреннего представления, используемого определённой
   реализацией Common Lisp.}. Число бит и их местоположение в целом числе задаются
-спецификатором байта, создаваемым функцией \textbf{BYTE}. \textbf{BYTE} получает два
+спецификатором байта, создаваемым функцией \lstinline{BYTE}. \lstinline{BYTE} получает два
 аргумента, число бит для извлечения (или присваивания) и позицию самого правого бита, где
-наименее значимый бит имеет нулевую позицию. \textbf{LDB} принимает спецификатор байта и
+наименее значимый бит имеет нулевую позицию. \lstinline{LDB} принимает спецификатор байта и
 целое, из которого нужно извлечь биты, и возвращает положительное целое, представляющее
 извлечённые биты. Таким образом, мы можем извлечь наименее значащие восемь бит из целого
 числа подобным образом:
 
-\begin{lstlisting}
-  (ldb (byte 8 0) #xabcd) ==> 205 ; 205 is #xcd
-\end{lstlisting}
+\begin{myverb}
+(ldb (byte 8 0) #xabcd) ==> 205 ; 205 is #xcd
+\end{myverb}
 
-Для получения следующих восьми бит нам нужно использовать спецификатор байта \code{(byte 8
-  8)} следующим образом:
+Для получения следующих восьми бит нам нужно использовать спецификатор байта
+\lstinline{(byte 8 8)} следующим образом:
 
-\begin{lstlisting}
-  (ldb (byte 8 8) #xabcd) ==> 171 ; 171 is #xab
-\end{lstlisting}
+\begin{myverb}
+(ldb (byte 8 8) #xabcd) ==> 171 ; 171 is #xab
+\end{myverb}
 
-Мы можем использовать \textbf{LDB} с \textbf{SETF} для присваивания заданным битам целого
+Мы можем использовать \lstinline{LDB} с \lstinline{SETF} для присваивания заданным битам целого
 числа, сохранённого в SETFable месте.
 
-\begin{lstlisting}[style=lisprepl]
-  CL-USER> (defvar *num* 0)
-  *NUM*
-  CL-USER> (setf (ldb (byte 8 0) *num*) 128)
-  128
-  CL-USER> *num*
-  128
-  CL-USER> (setf (ldb (byte 8 8) *num*) 255)
-  255
-  CL-USER> *num*
-  65408
-\end{lstlisting}
+\begin{myverb}
+CL-USER> (defvar *num* 0)
+*NUM*
+CL-USER> (setf (ldb (byte 8 0) *num*) 128)
+128
+CL-USER> *num*
+128
+CL-USER> (setf (ldb (byte 8 8) *num*) 255)
+255
+CL-USER> *num*
+65408
+\end{myverb}
 
-Итак, мы можем написать \code{read-u2} также следующим образом\footnote{Common Lisp также предоставляет функции для сдвига и маскирования битов целых чисел способом, который может быть более знаком программистам на C и Java. Например, мы можем написать \code{read-u2} третьим способом путём использования этих функций следующим образом:
+Итак, мы можем написать \lstinline{read-u2} также следующим образом\footnote{Common Lisp также предоставляет функции для сдвига и маскирования битов целых чисел способом, который может быть более знаком программистам на C и Java. Например, мы можем написать \lstinline{read-u2} третьим способом путём использования этих функций следующим образом:
 
-\begin{lstlisting}
-  (defun read-u2 (in)
-    (logior (ash (read-byte in) 8) (read-byte in)))
-\end{lstlisting}
+\begin{myverb}
+(defun read-u2 (in)
+  (logior (ash (read-byte in) 8) (read-byte in)))
+\end{myverb}
 
-что будет примерным эквивалентом следующего метода Java:
+\noindent{}что будет примерным эквивалентом следующего метода Java:
 
 \begin{lstlisting}[language=Java]
-  public int readU2 (InputStream in) throws IOException {
-    return (in.read() << 8) | (in.read());
-  }
+public int readU2 (InputStream in) throws IOException {
+  return (in.read() << 8) | (in.read());
+}
 \end{lstlisting}
 
-Имена \textbf{LOGIOR} и \textbf{ASH} являются сокращениями для \textit{LOGical Inclusive
-  OR} и \textit{Arithmetic SHift}. \textbf{ASH} производит сдвиг целого числа на заданное
+Имена \lstinline{LOGIOR} и \lstinline{ASH} являются сокращениями для \textit{LOGical Inclusive
+  OR} и \textit{Arithmetic SHift}. \lstinline{ASH} производит сдвиг целого числа на заданное
 количество бит влево, если её второй аргумент является положительным, или вправо, если её
-второй аргумент отрицателен. \textbf{LOGIOR} комбинирует целые путём осуществления
-логической операции ИЛИ над каждым их битом. Другая функция, \textbf{LOGAND}, осуществляет
+второй аргумент отрицателен. \lstinline{LOGIOR} комбинирует целые путём осуществления
+логической операции ИЛИ над каждым их битом. Другая функция, \lstinline{LOGAND}, осуществляет
 побитовое И, которое может быть использовано для маскирования определённых битов. Однако
 для тех видов операций манипулирования с битами, которые мы будем осуществлять в следующей
-главе и далее, \textbf{LDB} и \textbf{BYTE} обе будут более удобными и более идиоматичными
+главе и далее, \lstinline{LDB} и \lstinline{BYTE} обе будут более удобными и более идиоматичными
 для стиля Common Lisp.}:
 
-\begin{lstlisting}
-  (defun read-u2 (in)
-    (let ((u2 0))
-      (setf (ldb (byte 8 8) u2) (read-byte in))
-      (setf (ldb (byte 8 0) u2) (read-byte in))
-      u2))
-\end{lstlisting}
+\begin{myverb}
+(defun read-u2 (in)
+  (let ((u2 0))
+    (setf (ldb (byte 8 8) u2) (read-byte in))
+    (setf (ldb (byte 8 0) u2) (read-byte in))
+    u2))
+\end{myverb}
 
 Для записи числа как 16-битового целого нам нужно извлечь отдельные байты и записать их
 один за одним. Для извлечения отдельных байтов нам просто нужно воспользоваться
-\textbf{LDB} с такими же спецификаторами байтов.
+\lstinline{LDB} с такими же спецификаторами байтов.
 
-\begin{lstlisting}
-  (defun write-u2 (out value)
-    (write-byte (ldb (byte 8 8) value) out)
-    (write-byte (ldb (byte 8 0) value) out))
-\end{lstlisting}
+\begin{myverb}
+(defun write-u2 (out value)
+  (write-byte (ldb (byte 8 8) value) out)
+  (write-byte (ldb (byte 8 0) value) out))
+\end{myverb}
 
 Конечно, мы также можем закодировать целые множеством других способов: с различным числом
 байтов, в различном порядке, а также путём использования знакового или беззнакового
@@ -226,15 +226,15 @@ ASCII, будет эквивалентен этому же тексту, но з
 быть более компактно закодирован простой двухбайтовой кодировкой.
 
 Common Lisp предоставляет две функции для преобразования между численными кодами знаков и
-объектами знаков: \textbf{CODE-CHAR}, которая получает численный код и возвращает знак, и
-\textbf{CHAR-CODE}, которая получает знак и возвращает его численный код. Стандарт языка
+объектами знаков: \lstinline{CODE-CHAR}, которая получает численный код и возвращает знак, и
+\lstinline{CHAR-CODE}, которая получает знак и возвращает его численный код. Стандарт языка
 не определяет, какую кодировку знаков должны использовать реализации языка, поэтому нет
 гарантии того, что мы сможем представить любой знак, который может быть закодирован в
 данном формате файла, как знак Lisp. Однако почти все современные реализации Common Lisp
 используют ASCII, ISO-8859-1 или Unicode в качестве своего внутреннего знакового кода. Так
 как Unicode является надмножеством ISO-8859-1, который, в свою очередь, является
-надмножеством ASCII, то, если ваша реализация Lisp использует Unicode, \textbf{CODE-CHAR}
-и \textbf{CHAR-CODE} могут быть использованы напрямую для преобразования любого из этих
+надмножеством ASCII, то, если ваша реализация Lisp использует Unicode, \lstinline{CODE-CHAR}
+и \lstinline{CHAR-CODE} могут быть использованы напрямую для преобразования любого из этих
 трёх знаковых кодов\footnote{Если нам нужно производить разбор формата файлов, который
   использует другие знаковые коды, или делать то же самое для файлов, содержащих
   произвольные строки Unicode, используя не Unicode-реализацию Common Lisp, мы всегда
@@ -268,32 +268,32 @@ Common Lisp предоставляет две функции для преобр
 использует ASCII либо одно из её надмножеств, такое как ISO-8859-1 или Unicode, в качестве
 своей внутренней кодировки:
 
-\begin{lstlisting}
-  (defconstant +null+ (code-char 0))
+\begin{myverb}
+(defconstant +null+ (code-char 0))
 
-  (defun read-null-terminated-ascii (in)
-    (with-output-to-string (s)
-      (loop for char = (code-char (read-byte in))
-            until (char= char +null+) do (write-char char s))))
-\end{lstlisting}
+(defun read-null-terminated-ascii (in)
+  (with-output-to-string (s)
+    (loop for char = (code-char (read-byte in))
+          until (char= char +null+) do (write-char char s))))
+\end{myverb}
 
-Макрос \textbf{WITH-OUTPUT-TO-STRING}, который упоминался в главе~\ref{ch:14}, является
+Макрос \lstinline{WITH-OUTPUT-TO-STRING}, который упоминался в главе~\ref{ch:14}, является
 простым способом построения строки в случае, когда мы не знаем, какой длины она
-окажется. Этот макрос создаёт \textbf{STRING-STREAM} и связывает его с указанным именем
-переменной, в данном случае \code{s}. Все знаки, записанные в этот поток, будут собраны в
+окажется. Этот макрос создаёт \lstinline{STRING-STREAM} и связывает его с указанным именем
+переменной, в данном случае \lstinline{s}. Все знаки, записанные в этот поток, будут собраны в
 строку, которая затем будет возвращена в качестве значения формы
-\textbf{WITH-OUTPUT-TO-STRING}.
+\lstinline{WITH-OUTPUT-TO-STRING}.
 
 Для записи строки нам просто нужно преобразовать знаки обратно в численные значения,
-которые могут быть записаны с помощью \textbf{WRITE-BYTE}, а затем записать признак конца
+которые могут быть записаны с помощью \lstinline{WRITE-BYTE}, а затем записать признак конца
 строки после её содержимого.
 
-\begin{lstlisting}
-  (defun write-null-terminated-ascii (string out)
-    (loop for char across string
-          do (write-byte (char-code char) out))
-    (write-byte (char-code +null+) out))
-\end{lstlisting}
+\begin{myverb}
+(defun write-null-terminated-ascii (string out)
+  (loop for char across string
+        do (write-byte (char-code char) out))
+  (write-byte (char-code +null+) out))
+\end{myverb}
 
 Как показывает этот пример, главной интеллектуальной задачей (может? и не совсем таковой,
 но все же) чтения и записи базовых элементов двоичных файлов является понимание того, как
@@ -327,50 +327,50 @@ structures) и отображения их на объекты Lisp.
 Если вы глядите на мир через призму объектной ориентации, сложные структуры выглядят
 весьма похожими на классы. Например, мы можем написать класс для представления тега ID3.
 
-\begin{lstlisting}
-  (defclass id3-tag ()
-    ((identifier    :initarg :identifier    :accessor identifier)
-     (major-version :initarg :major-version :accessor major-version)
-     (revision      :initarg :revision      :accessor revision)
-     (flags         :initarg :flags         :accessor flags)
-     (size          :initarg :size          :accessor size)
-     (frames        :initarg :frames        :accessor frames)))
-\end{lstlisting}
+\begin{myverb}
+(defclass id3-tag ()
+  ((identifier    :initarg :identifier    :accessor identifier)
+   (major-version :initarg :major-version :accessor major-version)
+   (revision      :initarg :revision      :accessor revision)
+   (flags         :initarg :flags         :accessor flags)
+   (size          :initarg :size          :accessor size)
+   (frames        :initarg :frames        :accessor frames)))
+\end{myverb}
 
 Экземпляр этого класса может быть отличным местом хранения данных, необходимых для
 представления тега ID3. Затем мы можем написать функции чтения и записи экземпляров этого
 класса. Например, предположив существование функций чтения соответствующих примитивных
-типов данных, функция \code{read-id3-tag} может выглядеть следующим образом:
+типов данных, функция \lstinline{read-id3-tag} может выглядеть следующим образом:
 
-\begin{lstlisting}
-  (defun read-id3-tag (in)
-    (let ((tag (make-instance 'id3-tag)))
-      (with-slots (identifier major-version revision flags size frames) tag
-        (setf identifier    (read-iso-8859-1-string in :length 3))
-        (setf major-version (read-u1 in))
-        (setf revision      (read-u1 in))
-        (setf flags         (read-u1 in))
-        (setf size          (read-id3-encoded-size in))
-        (setf frames        (read-id3-frames in :tag-size size)))
-      tag))
-\end{lstlisting}
+\begin{myverb}
+(defun read-id3-tag (in)
+  (let ((tag (make-instance 'id3-tag)))
+    (with-slots (identifier major-version revision flags size frames) tag
+      (setf identifier    (read-iso-8859-1-string in :length 3))
+      (setf major-version (read-u1 in))
+      (setf revision      (read-u1 in))
+      (setf flags         (read-u1 in))
+      (setf size          (read-id3-encoded-size in))
+      (setf frames        (read-id3-frames in :tag-size size)))
+    tag))
+\end{myverb}
 
-Функция \code{write-id3-tag} будет структурирована схожим образом: мы будем использовать
-соответствующие функции \code{write-*} для записи значений, хранящихся в слотах объекта
-\code{id3-tag}.
+Функция \lstinline{write-id3-tag} будет структурирована схожим образом: мы будем использовать
+соответствующие функции \lstinline{write-*} для записи значений, хранящихся в слотах объекта
+\lstinline{id3-tag}.
 
 Несложно увидеть, как мы можем написать соответствующие классы для представления всех
-сложных структур данных спецификации наряду с функциями \code{read-foo} и \code{write-foo}
+сложных структур данных спецификации наряду с функциями \lstinline{read-foo} и \lstinline{write-foo}
 для каждого класса и необходимых примитивных типов. Но также легко заметить, что все
 функции чтения и записи будут весьма похожими, отличающимися только тем, данные каких
 типов они читают, и именами слотов, в которые они сохраняют эти данные. Это станет
 особенно утомительным, когда мы учтём тот факт, что описание структуры тега ID3 заняло
 почти четыре строки текста, в то время как мы уже написали одиннадцать строк кода, все ещё
-не написав \code{write-id3-tag}.
+не написав \lstinline{write-id3-tag}.
 
 Что нам действительно нужно, так это способ описания структур наподобие тега ID3 в форме,
 которая лаконична так же, как и псевдокод спецификации, и чтобы это описание раскрывалось
-в код, который определяет класс \code{id3-tag} и функции, осуществляющие преобразование
+в код, который определяет класс \lstinline{id3-tag} и функции, осуществляющие преобразование
 между байтами на диске и экземплярами этого класса. Звучит как работа для системы
 макросов.
 
@@ -383,13 +383,12 @@ structures) и отображения их на объекты Lisp.
 краткого, как и псевдокод спецификации ID3, мы можем начать с него. Заголовок тега ID3
 определяется следующим образом:
 
-\begin{lstlisting}[style=lisprepl]
-  ID3/file identifier      "ID3"
-  ID3 version              $02 00
-  ID3 flags                %xx000000
-  ID3 size             4 * %0xxxxxxx
-\end{lstlisting}
-%$
+\begin{myverb}
+ID3/file identifier      "ID3"
+ID3 version              \$02 00
+ID3 flags                %xx000000
+ID3 size             4 * %0xxxxxxx
+\end{myverb}
 
 В нотации спецификации это означает, что слот <<file identifier>> тега ID3 является строкой
 <<ID3>> в кодировке ISO-8859-1. Слот version состоит из двух байт, первый из которых, для
@@ -407,163 +406,163 @@ structures) и отображения их на объекты Lisp.
 которое раскроется в класс, и определения функций, которые нам иначе бы пришлось писать
 вручную: что-то, возможно, вроде этого:
 
-\begin{lstlisting}
-  (define-binary-class id3-tag
-    ((file-identifier (iso-8859-1-string :length 3))
-     (major-version   u1)
-     (revision        u1)
-     (flags           u1)
-     (size            id3-tag-size)
-     (frames          (id3-frames :tag-size size))))
-\end{lstlisting}
+\begin{myverb}
+(define-binary-class id3-tag
+  ((file-identifier (iso-8859-1-string :length 3))
+   (major-version   u1)
+   (revision        u1)
+   (flags           u1)
+   (size            id3-tag-size)
+   (frames          (id3-frames :tag-size size))))
+\end{myverb}
 
-Основной идеей является то, что эта форма определяет класс \code{id3-tag} подобно тому,
-как мы можем сделать сами с помощью \textbf{DEFCLASS}, но вместо определения таких вещей,
-как \code{:initarg} и \code{:accessor}, каждое определение слота состоит из имени слота
-~--- \code{file-identifier}, \code{major-version} и т.~д.~--- и информации о том, как этот
-слот представляется на диске. Так как мы всего лишь немного пофантазировали, нам не нужно
-беспокоиться о том, как именно макрос \code{define-binary-class} будет знать, что делать с
-такими выражениями, как \code{(iso-8859-1-string :length 3)}, \code{u1},
-\code{id3-tag-size} и \code{(id3-frames :tag-size size)}; пока каждое выражение содержит
+Основной идеей является то, что эта форма определяет класс \lstinline{id3-tag} подобно тому,
+как мы можем сделать сами с помощью \lstinline{DEFCLASS}, но вместо определения таких вещей,
+как \lstinline{:initarg} и \lstinline{:accessor}, каждое определение слота состоит из имени
+слота~--- \lstinline{file-identifier}, \lstinline{major-version} и т.~д.~--- и информации о том, как
+этот слот представляется на диске. Так как мы всего лишь немного пофантазировали, нам не
+нужно беспокоиться о том, как именно макрос \lstinline{define-binary-class} будет знать, что
+делать с такими выражениями, как \lstinline{(iso-8859-1-string :length 3)}, \lstinline{u1},
+\lstinline{id3-tag-size} и \lstinline{(id3-frames :tag-size size)}; пока каждое выражение содержит
 информацию, необходимую для знания того, как читать и записывать определённые данные, все
 должно быть хорошо.
 
 \section{Делаем мечту реальностью}
 
 Хорошо, достаточно фантазий о хорошо выглядящем коде; теперь нужно приступать к работе по
-написанию \code{define-binary-class}: написанию кода, который будет преобразовывать
+написанию \lstinline{define-binary-class}: написанию кода, который будет преобразовывать
 краткое выражение, описывающее, как выглядит тег ID3, в код, который может представлять
 этот тег в памяти, считывать с диска и записывать его обратно.
 
 Для начала нам стоит определить пакет для нашей библиотеки. Вот файл пакета, который
 поставляется с версией, которую вы можете скачать с веб-сайта книги:% TODO: add url
 
-\begin{lstlisting}
-  (in-package :cl-user)
+\begin{myverb}
+(in-package :cl-user)
 
-  (defpackage :com.gigamonkeys.binary-data
-    (:use :common-lisp :com.gigamonkeys.macro-utilities)
-    (:export :define-binary-class
-             :define-tagged-binary-class
-             :define-binary-type
-             :read-value
-             :write-value
-             :*in-progress-objects*
-             :parent-of-type
-             :current-binary-object
-             :+null+))
-\end{lstlisting}
+(defpackage :com.gigamonkeys.binary-data
+  (:use :common-lisp :com.gigamonkeys.macro-utilities)
+  (:export :define-binary-class
+           :define-tagged-binary-class
+           :define-binary-type
+           :read-value
+           :write-value
+           :*in-progress-objects*
+           :parent-of-type
+           :current-binary-object
+           :+null+))
+\end{myverb}
 
-Пакет \code{COM.GIGAMONKEYS.MACRO-UTILITIES} содержит макросы \code{with-gensyms} и
-\code{once-only} из главы~\ref{ch:08}.
+Пакет \lstinline{COM.GIGAMONKEYS.MACRO-UTILITIES} содержит макросы \lstinline{with-gensyms} и
+\lstinline{once-only} из главы~\ref{ch:08}.
 
 Так как мы уже имеем написанную вручную версию кода, который хотим сгенерировать, не
 должно быть очень сложно написать такой макрос. Просто разберём его на небольшие части,
-начав с версии \code{define-binary-class}, которая просто генерирует форму
-\textbf{DEFCLASS}.
+начав с версии \lstinline{define-binary-class}, которая просто генерирует форму
+\lstinline{DEFCLASS}.
 
-Если мы вновь взглянем на форму \code{define-binary-class}, то увидим, что она принимает
-два аргумента: имя \code{id3-tag} и список спецификаторов слотов, каждый из которых сам
+Если мы вновь взглянем на форму \lstinline{define-binary-class}, то увидим, что она принимает
+два аргумента: имя \lstinline{id3-tag} и список спецификаторов слотов, каждый из которых сам
 является двухэлементным списком. По этим частям нам нужно построить соответствующую форму
-\textbf{DEFCLASS}. Очевидно, что наибольшее различие между формой
-\code{define-binary-class} и правильной формой \textbf{DEFCLASS} заключается в
-спецификаторах слотов. Одиночный спецификатор слота из \code{define-binary-class} выглядит
+\lstinline{DEFCLASS}. Очевидно, что наибольшее различие между формой
+\lstinline{define-binary-class} и правильной формой \lstinline{DEFCLASS} заключается в
+спецификаторах слотов. Одиночный спецификатор слота из \lstinline{define-binary-class} выглядит
 подобным образом:
 
-\begin{lstlisting}
-  (major-version u1)
-\end{lstlisting}
+\begin{myverb}
+(major-version u1)
+\end{myverb}
 
-Но это не является верным спецификатором слота для \textbf{DEFCLASS}. Вместо этого нам
+Но это не является верным спецификатором слота для \lstinline{DEFCLASS}. Вместо этого нам
 нужно что-то вот такое:
 
-\begin{lstlisting}
-  (major-version :initarg :major-version :accessor major-version)
-\end{lstlisting}
+\begin{myverb}
+(major-version :initarg :major-version :accessor major-version)
+\end{myverb}
 
 Достаточно просто. Для начала определим простую функцию преобразования символа в
 соответствующий ключевой символ.
 
-\begin{lstlisting}
-  (defun as-keyword (sym) (intern (string sym) :keyword))
-\end{lstlisting}
+\begin{myverb}
+(defun as-keyword (sym) (intern (string sym) :keyword))
+\end{myverb}
 
-Теперь определим функцию, которая получает спецификатор слота \code{define-binary-class} и возвращает спецификатор слота \textbf{DEFCLASS}.
+Теперь определим функцию, которая получает спецификатор слота \lstinline{define-binary-class} и возвращает спецификатор слота \lstinline{DEFCLASS}.
 
-\begin{lstlisting}
-  (defun slot->defclass-slot (spec)
-    (let ((name (first spec)))
-      `(,name :initarg ,(as-keyword name) :accessor ,name)))
-\end{lstlisting}
+\begin{myverb}
+(defun slot->defclass-slot (spec)
+  (let ((name (first spec)))
+    `(,name :initarg ,(as-keyword name) :accessor ,name)))
+\end{myverb}
 
 Мы можем протестировать эту функцию в REPL после переключения в наш новый пакет путём
-вызова \textbf{IN-PACKAGE}.
+вызова \lstinline{IN-PACKAGE}.
 
-\begin{lstlisting}[style=lisprepl]
-  BINARY-DATA> (slot->defclass-slot '(major-version u1))
-  (MAJOR-VERSION :INITARG :MAJOR-VERSION :ACCESSOR MAJOR-VERSION)
-\end{lstlisting}
+\begin{myverb}
+BINARY-DATA> (slot->defclass-slot '(major-version u1))
+(MAJOR-VERSION :INITARG :MAJOR-VERSION :ACCESSOR MAJOR-VERSION)
+\end{myverb}
 
-Выглядит неплохо. Теперь написание первой версии \code{define-binary-class} тривиально.
+Выглядит неплохо. Теперь написание первой версии \lstinline{define-binary-class} тривиально.
 
-\begin{lstlisting}
-  (defmacro define-binary-class (name slots)
-    `(defclass ,name ()
-       ,(mapcar #'slot->defclass-slot slots)))
-\end{lstlisting}
+\begin{myverb}
+(defmacro define-binary-class (name slots)
+  `(defclass ,name ()
+     ,(mapcar #'slot->defclass-slot slots)))
+\end{myverb}
 
-Это простой макрос, написанный в template-стиле: \code{define-binary-class} генерирует
-форму \textbf{DEFCLASS} путём подстановки (interpolating) имени класса и списка
-спецификаторов слотов, сконструированного путём применения \code{slot->defclass-slot} к
-каждому элементу списка спецификаторов слотов формы \code{define-binary-class}.
+Это простой макрос, написанный в template-стиле: \lstinline{define-binary-class} генерирует
+форму \lstinline{DEFCLASS} путём подстановки (interpolating) имени класса и списка
+спецификаторов слотов, сконструированного путём применения \lstinline{slot->defclass-slot} к
+каждому элементу списка спецификаторов слотов формы \lstinline{define-binary-class}.
 
 Для просмотра кода, который генерирует этот макрос, мы можем вычислить в REPL следующее
 выражение:
 
-\begin{lstlisting}
-  (macroexpand-1 '(define-binary-class id3-tag
-    ((identifier      (iso-8859-1-string :length 3))
-     (major-version   u1)
-     (revision        u1)
-     (flags           u1)
-     (size            id3-tag-size)
-     (frames          (id3-frames :tag-size size)))))
-\end{lstlisting}
+\begin{myverb}
+(macroexpand-1 '(define-binary-class id3-tag
+  ((identifier      (iso-8859-1-string :length 3))
+   (major-version   u1)
+   (revision        u1)
+   (flags           u1)
+   (size            id3-tag-size)
+   (frames          (id3-frames :tag-size size)))))
+\end{myverb}
 
 Результат, слегка переформатированный в целях улучшения читаемости, должен казаться вам
 знакомым, так как это в точности то определение класса, которое мы написали вручную ранее:
 
-\begin{lstlisting}
-  (defclass id3-tag ()
-    ((identifier      :initarg :identifier    :accessor identifier)
-     (major-version   :initarg :major-version :accessor major-version)
-     (revision        :initarg :revision      :accessor revision)
-     (flags           :initarg :flags         :accessor flags)
-     (size            :initarg :size          :accessor size)
-     (frames          :initarg :frames        :accessor frames)))
-\end{lstlisting}
+\begin{myverb}
+(defclass id3-tag ()
+  ((identifier      :initarg :identifier    :accessor identifier)
+   (major-version   :initarg :major-version :accessor major-version)
+   (revision        :initarg :revision      :accessor revision)
+   (flags           :initarg :flags         :accessor flags)
+   (size            :initarg :size          :accessor size)
+   (frames          :initarg :frames        :accessor frames)))
+\end{myverb}
 
 \section{Чтение двоичных объектов}
 
-Следующим шагом нам нужно заставить \code{define-binary-class} также генерировать функцию,
-которая может прочитать экземпляр нового класса. Учитывая функцию \code{read-id3-tag},
-написанную нами ранее, кажется, это будет немного сложнее, так как \code{read-id3-tag} не
+Следующим шагом нам нужно заставить \lstinline{define-binary-class} также генерировать функцию,
+которая может прочитать экземпляр нового класса. Учитывая функцию \lstinline{read-id3-tag},
+написанную нами ранее, кажется, это будет немного сложнее, так как \lstinline{read-id3-tag} не
 является столь же однородной: для чтения значений каждого слота нам приходится вызывать
-различные функции, не говоря уже о том, что имя функции, \code{read-id3-tag}, хоть и
+различные функции, не говоря уже о том, что имя функции, \lstinline{read-id3-tag}, хоть и
 получается из имени определяемого нами класса, не является одним из аргументов
-\code{define-binary-class}, а следовательно, не может быть просто подставлено в шаблон.
+\lstinline{define-binary-class}, а следовательно, не может быть просто подставлено в шаблон.
 
 Мы можем решить обе эти проблемы, следуя такому соглашению по именованию, при котором
 макрос сможет вычислять имя функции, основываясь на имени типа в спецификаторе
-слота. Однако тогда \code{define-binary-class} придётся генерировать имя
-\code{read-id3-tag}, что возможно, но является плохой идеей. Макросам, создающим
+слота. Однако тогда \lstinline{define-binary-class} придётся генерировать имя
+\lstinline{read-id3-tag}, что возможно, но является плохой идеей. Макросам, создающим
 глобальные определения, следует в общем случае использовать только имена, переданные им;
 макросы, сами генерирующие имена, могут привести к сложно предсказуемым и
 трудно отлаживаемым конфликтам имён, когда сгенерированные имена оказываются теми же, что
 уже где-нибудь используются\footnote{К сожалению, сам язык не всегда подаёт хороший пример
-  в этом отношении: макрос \textbf{DEFSTRUCT}, которого я не обсуждал, так как он почти
-  полностью вытеснен \textbf{DEFCLASS}, генерирует функции с именами, получающимися на
-  основе имени, данного структуре. Плохой пример \textbf{DEFSTRUCT} сбивает с истинного
+  в этом отношении: макрос \lstinline{DEFSTRUCT}, которого я не обсуждал, так как он почти
+  полностью вытеснен \lstinline{DEFCLASS}, генерирует функции с именами, получающимися на
+  основе имени, данного структуре. Плохой пример \lstinline{DEFSTRUCT} сбивает с истинного
   пути многих новичков.}.
 
 Мы можем избежать обоих этих неудобств, заметив, что все функции, считывающие значения
@@ -571,194 +570,194 @@ structures) и отображения их на объекты Lisp.
 типа из потока. Говоря просто, мы можем увидеть, что все они являются экземплярами одной
 обобщённой операции. И простое использование слова <<обобщённый>> должно подтолкнуть вас
 прямо к решению проблемы: вместо определения множества независимых функций, имеющих
-различные имена, мы можем определить одну обобщённую функцию \code{read-value} с методами,
+различные имена, мы можем определить одну обобщённую функцию \lstinline{read-value} с методами,
 специализированными для чтения значений различных типов.
 
-Таким образом, вместо определения функций \code{read-iso-8859-1-string} и \code{read-u1}
-мы можем определить \code{read-value} как обобщённую функцию, принимающую два обязательных
+Таким образом, вместо определения функций \lstinline{read-iso-8859-1-string} и \lstinline{read-u1}
+мы можем определить \lstinline{read-value} как обобщённую функцию, принимающую два обязательных
 аргумента: тип и поток, а также, возможно, некоторые ключевые аргументы.
 
-\begin{lstlisting}
-  (defgeneric read-value (type stream &key)
-    (:documentation "Read a value of the given type from the stream."))
-\end{lstlisting}
+\begin{myverb}
+(defgeneric read-value (type stream &key)
+  (:documentation "Read a value of the given type from the stream."))
+\end{myverb}
 
 Путём указания \lstinline!&key! без самих ключевых параметров мы позволяем различным
 методам определять свои собственные \lstinline!&key! параметры, но не требуя этого от
-них. Это значит, что каждый метод, специализирующий \code{read-value}, должен будет
+них. Это значит, что каждый метод, специализирующий \lstinline{read-value}, должен будет
 включить либо \lstinline!&key!, либо \lstinline!&rest! в свой список параметров, чтобы
 быть совместимым с обобщённой функцией.
 
 Затем мы определяем методы, использующие специализаторы EQL для специализации аргумента
 типа по имени типа значений, которые хотим считывать.
 
-\begin{lstlisting}
-  (defmethod read-value ((type (eql 'iso-8859-1-string)) in &key length) ...)
+\begin{myverb}
+(defmethod read-value ((type (eql 'iso-8859-1-string)) in &key length) ...)
 
-  (defmethod read-value ((type (eql 'u1)) in &key) ...)
-\end{lstlisting}
+(defmethod read-value ((type (eql 'u1)) in &key) ...)
+\end{myverb}
 
-Затем мы можем изменить \code{define-binary-class} так, чтобы он генерировал метод
-\code{read-value}, специализированный по имени типа \code{id3-tag} и реализованный в
-терминах вызовов \code{read-value} с соответствующими типами слотов в качестве первого
+Затем мы можем изменить \lstinline{define-binary-class} так, чтобы он генерировал метод
+\lstinline{read-value}, специализированный по имени типа \lstinline{id3-tag} и реализованный в
+терминах вызовов \lstinline{read-value} с соответствующими типами слотов в качестве первого
 аргумента. Код, который мы хотим сгенерировать, выглядит следующим образом:
 
-\begin{lstlisting}
-  (defmethod read-value ((type (eql 'id3-tag)) in &key)
-    (let ((object (make-instance 'id3-tag)))
-      (with-slots (identifier major-version revision flags size frames) object
-        (setf identifier    (read-value 'iso-8859-1-string in :length 3))
-        (setf major-version (read-value 'u1 in))
-        (setf revision      (read-value 'u1 in))
-        (setf flags         (read-value 'u1 in))
-        (setf size          (read-value 'id3-encoded-size in))
-        (setf frames        (read-value 'id3-frames in :tag-size size)))
-      object))
-\end{lstlisting}
+\begin{myverb}
+(defmethod read-value ((type (eql 'id3-tag)) in &key)
+  (let ((object (make-instance 'id3-tag)))
+    (with-slots (identifier major-version revision flags size frames) object
+      (setf identifier    (read-value 'iso-8859-1-string in :length 3))
+      (setf major-version (read-value 'u1 in))
+      (setf revision      (read-value 'u1 in))
+      (setf flags         (read-value 'u1 in))
+      (setf size          (read-value 'id3-encoded-size in))
+      (setf frames        (read-value 'id3-frames in :tag-size size)))
+    object))
+\end{myverb}
 
-Теперь, так же как для генерации формы \textbf{DEFCLASS}, нам нужна была функция,
-транслирующая спецификатор слота \code{define-binary-class} в спецификатор слота
-\textbf{DEFCLASS}, теперь нам нужна функция, получающая спецификатор слота
-\code{define-binary-class} и генерирующая соответствующую форму \textbf{SETF}, то есть
+Теперь, так же как для генерации формы \lstinline{DEFCLASS}, нам нужна была функция,
+транслирующая спецификатор слота \lstinline{define-binary-class} в спецификатор слота
+\lstinline{DEFCLASS}, теперь нам нужна функция, получающая спецификатор слота
+\lstinline{define-binary-class} и генерирующая соответствующую форму \lstinline{SETF}, то есть
 что-то, получающее вот такое:
 
-\begin{lstlisting}
-  (identifier (iso-8859-1-string :length 3))
-\end{lstlisting}
+\begin{myverb}
+(identifier (iso-8859-1-string :length 3))
+\end{myverb}
 
-и возвращающее это:
+\noindent{}и возвращающее это:
 
-\begin{lstlisting}
-  (setf identifier (read-value 'iso-8859-1-string in :length 3))
-\end{lstlisting}
+\begin{myverb}
+(setf identifier (read-value 'iso-8859-1-string in :length 3))
+\end{myverb}
 
-Однако существует различие между этим кодом и спецификатором слота \textbf{DEFCLASS}:
-этот код включает в себя ссылку на переменную \code{in}, параметр метода
-\code{read-value}, который не был получен из спецификатора слота. Он не обязательно должен
-называться \code{in}, но какое бы имя мы не использовали, оно должно быть тем же, что
+Однако существует различие между этим кодом и спецификатором слота \lstinline{DEFCLASS}:
+этот код включает в себя ссылку на переменную \lstinline{in}, параметр метода
+\lstinline{read-value}, который не был получен из спецификатора слота. Он не обязательно должен
+называться \lstinline{in}, но какое бы имя мы не использовали, оно должно быть тем же, что
 используется в списке параметров метода, а также в других вызовах
-\code{read-value}. Сейчас мы можем уклониться от проблемы того, откуда получается это имя,
-определив \code{slot->read-value} таким образом, чтобы она принимала второй аргумент,
+\lstinline{read-value}. Сейчас мы можем уклониться от проблемы того, откуда получается это имя,
+определив \lstinline{slot->read-value} таким образом, чтобы она принимала второй аргумент,
 содержащий имя переменной потока.
 
-\begin{lstlisting}
-  (defun slot->read-value (spec stream)
-    (destructuring-bind (name (type &rest args)) (normalize-slot-spec spec)
-      `(setf ,name (read-value ',type ,stream ,@args))))
-\end{lstlisting}
+\begin{myverb}
+(defun slot->read-value (spec stream)
+  (destructuring-bind (name (type &rest args)) (normalize-slot-spec spec)
+    `(setf ,name (read-value ',type ,stream ,@args))))
+\end{myverb}
 
-Функция \code{normalize-slot-spec} нормализует второй элемент спецификатора слота, преобразуя символ, такой как \code{u1}, в список \code{(u1)}, так что \textbf{DESTRUCTURING-BIND} может осуществить его разбор. Она выглядит так:
+Функция \lstinline{normalize-slot-spec} нормализует второй элемент спецификатора слота, преобразуя символ, такой как \lstinline{u1}, в список \lstinline{(u1)}, так что \lstinline{DESTRUCTURING-BIND} может осуществить его разбор. Она выглядит так:
 
-\begin{lstlisting}
-  (defun normalize-slot-spec (spec)
-    (list (first spec) (mklist (second spec))))
+\begin{myverb}
+(defun normalize-slot-spec (spec)
+  (list (first spec) (mklist (second spec))))
 
-  (defun mklist (x) (if (listp x) x (list x)))
-\end{lstlisting}
+(defun mklist (x) (if (listp x) x (list x)))
+\end{myverb}
 
-Мы можем протестировать \code{slot->read-value} с каждым типом спецификаторов слотов.
+Мы можем протестировать \lstinline{slot->read-value} с каждым типом спецификаторов слотов.
 
-\begin{lstlisting}[style=lisprepl]
-  BINARY-DATA> (slot->read-value '(major-version u1) 'stream)
-  (SETF MAJOR-VERSION (READ-VALUE 'U1 STREAM))
-  BINARY-DATA> (slot->read-value '(identifier (iso-8859-1-string :length 3)) 'stream)
-  (SETF IDENTIFIER (READ-VALUE 'ISO-8859-1-STRING STREAM :LENGTH 3))
-\end{lstlisting}
+\begin{myverb}
+BINARY-DATA> (slot->read-value '(major-version u1) 'stream)
+(SETF MAJOR-VERSION (READ-VALUE 'U1 STREAM))
+BINARY-DATA> (slot->read-value '(identifier (iso-8859-1-string :length 3)) 'stream)
+(SETF IDENTIFIER (READ-VALUE 'ISO-8859-1-STRING STREAM :LENGTH 3))
+\end{myverb}
 
-Со всеми этими функциями мы уже готовы добавить \code{read-value} в
-\code{define-binary-class}. Если мы возьмём вручную написанный метод \code{read-value} и
+Со всеми этими функциями мы уже готовы добавить \lstinline{read-value} в
+\lstinline{define-binary-class}. Если мы возьмём вручную написанный метод \lstinline{read-value} и
 удалим из него все то, что касается определённого класса, у нас останется следующий
 каркас:
 
-\begin{lstlisting}
-  (defmethod read-value ((type (eql ...)) stream &key)
-    (let ((object (make-instance ...)))
-      (with-slots (...) object
-        ...
-      object)))
-\end{lstlisting}
+\begin{myverb}
+(defmethod read-value ((type (eql ...)) stream &key)
+  (let ((object (make-instance ...)))
+    (with-slots (...) object
+      ...
+    object)))
+\end{myverb}
 
-Все, что нам нужно сделать,~--- это добавить этот каркас в шаблон \code{define-binary-class},
+Все, что нам нужно сделать,~--- это добавить этот каркас в шаблон \lstinline{define-binary-class},
 заменив многоточия кодом, который заполнит этот каркас подходящими именами и кодом. Мы
-также захотим заменить переменные \code{type}, \code{stream} и \code{object}
-сгенерированными \textbf{GENSYM} именами для избежания потенциальных конфликтов с именами
-слотов\footnote{Технически для \code{type} или \code{object} не существует возможности
+также захотим заменить переменные \lstinline{type}, \lstinline{stream} и \lstinline{object}
+сгенерированными \lstinline{GENSYM} именами для избежания потенциальных конфликтов с именами
+слотов\footnote{Технически для \lstinline{type} или \lstinline{object} не существует возможности
   конфликтования с именами слотов: в худшем случае они будут скрыты внутри формы
-  \textbf{WITH-SLOTS}. Но все же не будет ничего плохого в том, чтобы просто
-  сгенерировать с помощью \textbf{GENSYM} все локальные переменные, используемые внутри
-  шаблона макроса.}, что мы можем сделать с помощью макроса \code{with-gensyms},
+  \lstinline{WITH-SLOTS}. Но все же не будет ничего плохого в том, чтобы просто
+  сгенерировать с помощью \lstinline{GENSYM} все локальные переменные, используемые внутри
+  шаблона макроса.}, что мы можем сделать с помощью макроса \lstinline{with-gensyms},
 рассмотренного в главе~\ref{ch:08}.
 
 Также, так как макрос должен раскрываться в одиночную форму, мы должны <<обернуть>>
-какую-то вокруг \textbf{DEFCLASS} и \textbf{DEFMETHOD}. Обычно для макросов, которые
-раскрываются в несколько определений, используется \textbf{PROGN} из-за спе\-циаль\-ной
+какую-то вокруг \lstinline{DEFCLASS} и \lstinline{DEFMETHOD}. Обычно для макросов, которые
+раскрываются в несколько определений, используется \lstinline{PROGN} из-за спе\-циаль\-ной
 трактовки, которую она получает от компилятора, когда находится на верхнем уровне файла,
 что было обсуждено в главе~\ref{ch:20}.
 
-Таким образом, мы можем изменить \code{define-binary-class} следующим образом:
+Таким образом, мы можем изменить \lstinline{define-binary-class} следующим образом:
 
-\begin{lstlisting}
-  (defmacro define-binary-class (name slots)
-    (with-gensyms (typevar objectvar streamvar)
-      `(progn
-         (defclass ,name ()
-           ,(mapcar #'slot->defclass-slot slots))
+\begin{myverb}
+(defmacro define-binary-class (name slots)
+  (with-gensyms (typevar objectvar streamvar)
+    `(progn
+       (defclass ,name ()
+         ,(mapcar #'slot->defclass-slot slots))
 
-         (defmethod read-value ((,typevar (eql ',name)) ,streamvar &key)
-           (let ((,objectvar (make-instance ',name)))
-             (with-slots ,(mapcar #'first slots) ,objectvar
-               ,@(mapcar #'(lambda (x) (slot->read-value x streamvar)) slots))
-             ,objectvar)))))
-\end{lstlisting}
+       (defmethod read-value ((,typevar (eql ',name)) ,streamvar &key)
+         (let ((,objectvar (make-instance ',name)))
+           (with-slots ,(mapcar #'first slots) ,objectvar
+             ,@(mapcar #'(lambda (x) (slot->read-value x streamvar)) slots))
+           ,objectvar)))))
+\end{myverb}
 
 \section{Запись двоичных объектов}
 
 Генерация кода для записи экземпляра двоичного класса происходит схожим образом. Для
-начала мы можем определить обобщённую функцию \code{write-value}.
+начала мы можем определить обобщённую функцию \lstinline{write-value}.
 
-\begin{lstlisting}
-  (defgeneric write-value (type stream value &key)
-    (:documentation "Write a value as the given type to the stream."))
-\end{lstlisting}
+\begin{myverb}
+(defgeneric write-value (type stream value &key)
+  (:documentation "Write a value as the given type to the stream."))
+\end{myverb}
 
 Затем мы определяем вспомогательную функцию, которая транслирует спецификатор слота
-\code{define-binary-class} в код, который записывает этот слот с помощью
-\code{write-value}. Как и для функции \code{slot->read-value}, эта вспомогательная функция
+\lstinline{define-binary-class} в код, который записывает этот слот с помощью
+\lstinline{write-value}. Как и для функции \lstinline{slot->read-value}, эта вспомогательная функция
 принимает имя переменной потока в качестве параметра.
 
-\begin{lstlisting}
-  (defun slot->write-value (spec stream)
-    (destructuring-bind (name (type &rest args)) (normalize-slot-spec spec)
-      `(write-value ',type ,stream ,name ,@args)))
-\end{lstlisting}
+\begin{myverb}
+(defun slot->write-value (spec stream)
+  (destructuring-bind (name (type &rest args)) (normalize-slot-spec spec)
+    `(write-value ',type ,stream ,name ,@args)))
+\end{myverb}
 
-После этого мы можем добавить шаблон \code{write-value} в макрос
-\code{define-binary-class}.
+После этого мы можем добавить шаблон \lstinline{write-value} в макрос
+\lstinline{define-binary-class}.
 
-\begin{lstlisting}
-  (defmacro define-binary-class (name slots)
-    (with-gensyms (typevar objectvar streamvar)
-      `(progn
-         (defclass ,name ()
-           ,(mapcar #'slot->defclass-slot slots))
+\begin{myverb}
+(defmacro define-binary-class (name slots)
+  (with-gensyms (typevar objectvar streamvar)
+    `(progn
+       (defclass ,name ()
+         ,(mapcar #'slot->defclass-slot slots))
 
-         (defmethod read-value ((,typevar (eql ',name)) ,streamvar &key)
-           (let ((,objectvar (make-instance ',name)))
-             (with-slots ,(mapcar #'first slots) ,objectvar
-               ,@(mapcar #'(lambda (x) (slot->read-value x streamvar)) slots))
-             ,objectvar))
-
-         (defmethod write-value ((,typevar (eql ',name)) ,streamvar ,objectvar &key)
+       (defmethod read-value ((,typevar (eql ',name)) ,streamvar &key)
+         (let ((,objectvar (make-instance ',name)))
            (with-slots ,(mapcar #'first slots) ,objectvar
-             ,@(mapcar #'(lambda (x) (slot->write-value x streamvar)) slots))))))
-\end{lstlisting}
+             ,@(mapcar #'(lambda (x) (slot->read-value x streamvar)) slots))
+           ,objectvar))
+
+       (defmethod write-value ((,typevar (eql ',name)) ,streamvar ,objectvar &key)
+         (with-slots ,(mapcar #'first slots) ,objectvar
+           ,@(mapcar #'(lambda (x) (slot->write-value x streamvar)) slots))))))
+\end{myverb}
 
 \section{Добавление наследования и помеченных (tagged) структур}
 
-Хотя эта версия \code{define-binary-class} будет обрабатывать автономные (stand-alone)
+Хотя эта версия \lstinline{define-binary-class} будет обрабатывать автономные (stand-alone)
 структуры, двоичные форматы файлов часто определяют такие структуры на диске (on-disk
 structures), которые было бы естественно моделировать отношениями подклассов и
-суперклассов. Поэтому мы можем захотеть расширить \code{define-binary-class} для поддержки
+суперклассов. Поэтому мы можем захотеть расширить \lstinline{define-binary-class} для поддержки
 наследования.
 
 Родственной техникой, используемой во многих двоичных форматах, является такая, при
@@ -770,477 +769,481 @@ structures), которые было бы естественно моделир�
 определения вида просматриваемого фрейма, а следовательно, того, как осуществлять разбор
 его тела.
 
-Текущая версия макроса \code{define-binary-class} не предоставляет способа осуществления
-такого рода считывания: мы можем использовать \code{define-binary-class} для определения
+Текущая версия макроса \lstinline{define-binary-class} не предоставляет способа осуществления
+такого рода считывания: мы можем использовать \lstinline{define-binary-class} для определения
 класса, представляющего любой вид фрейма, но мы не имеем возможности узнать, какой тип
 фрейма считывать, без считывания, по меньшей мере, идентификатора. И если другой код
-считывает идентификатор, чтобы определить, какой тип передавать функции \code{read-value},
-то это нарушит работу \code{read-value}, поскольку она ожидает возможности считать все
+считывает идентификатор, чтобы определить, какой тип передавать функции \lstinline{read-value},
+то это нарушит работу \lstinline{read-value}, поскольку она ожидает возможности считать все
 данные, составляющие экземпляр класса, создаваемый ею.
 
 Мы можем решить эту проблему, добавив возможность наследования в
-\code{define-binary-class}, а затем написав другой макрос
-\code{define-tagged-binary-class}, предназначенный для определения <<абстрактных>>
+\lstinline{define-binary-class}, а затем написав другой макрос
+\lstinline{define-tagged-binary-class}, предназначенный для определения <<абстрактных>>
 классов, экземляры которых не создаются напрямую, но по которым могут быть
-специализированы методы \code{read-value}, которые знают, как считывать достаточно данных
+специализированы методы \lstinline{read-value}, которые знают, как считывать достаточно данных
 для определения конкретного класса, экземпляр которого нужно создать.
 
-Первым шагом добавления возможности наследования в \code{define-binary-class} является
+Первым шагом добавления возможности наследования в \lstinline{define-binary-class} является
 добавление в макрос параметра, принимающего список суперклассов.
 
-\begin{lstlisting}
-  (defmacro define-binary-class (name (&rest superclasses) slots) ...
-\end{lstlisting}
+\begin{myverb}
+(defmacro define-binary-class (name (&rest superclasses) slots) ...
+\end{myverb}
 
-Затем в шаблоне \textbf{DEFCLASS} подставим это значение вместо пустого списка.
+Затем в шаблоне \lstinline{DEFCLASS} подставим это значение вместо пустого списка.
 
-\begin{lstlisting}
-  (defclass ,name ,superclasses
-    ...)
-\end{lstlisting}
+\begin{myverb}
+(defclass ,name ,superclasses
+  ...)
+\end{myverb}
 
-Однако нужно сделать немного больше. Нам также нужно изменить методы \code{read-value} и
-\code{write-value} так, чтобы методы, сгенерированные при определении супер\-клас\-са, могли
+Однако нужно сделать немного больше. Нам также нужно изменить методы \lstinline{read-value} и
+\lstinline{write-value} так, чтобы методы, сгенерированные при определении супер\-клас\-са, могли
 бы быть использованы методами, сгенерированными как часть подкласса, для чтения и записи
 наследуемых слотов.
 
-Способ, которым работает текущая версия \code{read-value}, совершенно не подходит, так как
+Способ, которым работает текущая версия \lstinline{read-value}, совершенно не подходит, так как
 он инстанцирует объект перед его заполнением. То есть у вас есть метод, ответственный за
 чтение полей суперкласса, инстанцирующий один объект, и метод подкласса, инстанцирующий и
 заполняющий другой объект.
 
-Мы можем исправить эту проблему путём разделения \code{read-value} на две части: одну~---
+Мы можем исправить эту проблему путём разделения \lstinline{read-value} на две части: одну~---
 ответственную за инстанцирование правильного вида объекта, а другую~--- за заполнение
 слотов уже существующего объекта. На стороне записи все несколько проще, но и там мы можем
 использовать схожую технику.
 
-Поэтому мы определим две новые обобщённые функции: \code{read-object} и
-\code{write-object}, обе получающие существующий объект и поток. Методы этих обобщённых
+Поэтому мы определим две новые обобщённые функции: \lstinline{read-object} и
+\lstinline{write-object}, обе получающие существующий объект и поток. Методы этих обобщённых
 функций будут ответственны за чтение и запись слотов, специфичных для классов, для которых
 они специализированы.
 
-\begin{lstlisting}
-  (defgeneric read-object (object stream)
-    (:method-combination progn :most-specific-last)
-    (:documentation "Fill in the slots of object from stream."))
+\begin{myverb}
+(defgeneric read-object (object stream)
+  (:method-combination progn :most-specific-last)
+  (:documentation "Fill in the slots of object from stream."))
 
-  (defgeneric write-object (object stream)
-    (:method-combination progn :most-specific-last)
-    (:documentation "Write out the slots of object to the stream."))
-\end{lstlisting}
+(defgeneric write-object (object stream)
+  (:method-combination progn :most-specific-last)
+  (:documentation "Write out the slots of object to the stream."))
+\end{myverb}
 
-Определение этих обобщённых функций с использованием комбинатора методов \textbf{PROGN} с
-опцией \code{:most-specific-last} позволяет нам определять методы, специализированные для
+Определение этих обобщённых функций с использованием комбинатора методов \lstinline{PROGN} с
+опцией \lstinline{:most-specific-last} позволяет нам определять методы, специализированные для
 каждого двоичного класса и работающие только со слотами, действительно определёнными в
-таком классе; комбинатор методов \textbf{PROGN} скомбинирует все применимые методы так,
+таком классе; комбинатор методов \lstinline{PROGN} скомбинирует все применимые методы так,
 что метод, специализированный для наименее специфичного класса в иерархии, выполнится
 первым, считывая или записывая слоты, определённые в этом классе, затем выполнится метод,
 специализированный для следующего наименее специфичного класса и т.~д. И, так как теперь
-вся тяжёлая, специфичная для класса работа осуществляется методами \code{read-object} и
-\code{write-object}, нам даже не нужно определять специализированные методы
-\code{read-value} и \code{write-value}: мы можем определить методы по умолчанию, которые
+вся тяжёлая, специфичная для класса работа осуществляется методами \lstinline{read-object} и
+\lstinline{write-object}, нам даже не нужно определять специализированные методы
+\lstinline{read-value} и \lstinline{write-value}: мы можем определить методы по умолчанию, которые
 считают аргумент типа именем двоичного класса.
 
-\begin{lstlisting}
-  (defmethod read-value ((type symbol) stream &key)
-    (let ((object (make-instance type)))
-      (read-object object stream)
-      object))
+\begin{myverb}
+(defmethod read-value ((type symbol) stream &key)
+  (let ((object (make-instance type)))
+    (read-object object stream)
+    object))
 
-  (defmethod write-value ((type symbol) stream value &key)
-    (assert (typep value type))
-    (write-object value stream))
-\end{lstlisting}
+(defmethod write-value ((type symbol) stream value &key)
+  (assert (typep value type))
+  (write-object value stream))
+\end{myverb}
 
-Обратите внимание на то, как мы можем использовать \textbf{MAKE-INSTANCE} в ка\-чест\-ве
+Обратите внимание на то, как мы можем использовать \lstinline{MAKE-INSTANCE} в ка\-чест\-ве
 обобщённой фабрики объектов (generic object factory): хотя обычно мы вызываем
-\textbf{MAKE-INSTANCE} с закавыченным (quoted) символом в качестве первого аргумента, так
+\lstinline{MAKE-INSTANCE} с закавыченным (quoted) символом в качестве первого аргумента, так
 как чаще всего знаем, экземпляр какого именно класса хотим создать, мы можем использовать
 любое выражение, которое вычисляется в имя класса, как в данном случае используем параметр
-\code{type} метода \code{read-value}.
+\lstinline{type} метода \lstinline{read-value}.
 
-Действительные изменения, внесённые в \code{define-binary-class} для определения методов
-\code{read-object} и \code{write-object} вместо \code{read-value} и \code{write-value},
+Действительные изменения, внесённые в \lstinline{define-binary-class} для определения методов
+\lstinline{read-object} и \lstinline{write-object} вместо \lstinline{read-value} и \lstinline{write-value},
 довольно незначительны.
 
-\begin{lstlisting}
-  (defmacro define-binary-class (name (&rest superclasses) slots)
-    (with-gensyms (objectvar streamvar)
-      `(progn
-         (defclass ,name ,superclasses
-           ,(mapcar #'slot->defclass-slot slots))
+\begin{myverb}
+(defmacro define-binary-class (name (&rest superclasses) slots)
+  (with-gensyms (objectvar streamvar)
+    `(progn
+       (defclass ,name ,superclasses
+         ,(mapcar #'slot->defclass-slot slots))
 
-         (defmethod read-object progn ((,objectvar ,name) ,streamvar)
-           (with-slots ,(mapcar #'first slots) ,objectvar
-             ,@(mapcar #'(lambda (x) (slot->read-value x streamvar)) slots)))
+       (defmethod read-object progn ((,objectvar ,name) ,streamvar)
+         (with-slots ,(mapcar #'first slots) ,objectvar
+           ,@(mapcar #'(lambda (x) (slot->read-value x streamvar)) slots)))
 
-         (defmethod write-object progn ((,objectvar ,name) ,streamvar)
-           (with-slots ,(mapcar #'first slots) ,objectvar
-             ,@(mapcar #'(lambda (x) (slot->write-value x streamvar)) slots))))))
-\end{lstlisting}
+       (defmethod write-object progn ((,objectvar ,name) ,streamvar)
+         (with-slots ,(mapcar #'first slots) ,objectvar
+           ,@(mapcar #'(lambda (x) (slot->write-value x streamvar)) slots))))))
+\end{myverb}
 
 \section{Отслеживание унаследованных слотов}
 
 Это определение будет работать для многих случаев. Однако оно не обрабатывает одну
 достаточно распространённую ситуацию, а именно когда нам нужен подкласс, которому
 необходимо ссылаться на унаследованные слоты в своих собственных определениях
-слотов. Например, имея текущее определение \code{define-binary-class}, мы можем определить
+слотов. Например, имея текущее определение \lstinline{define-binary-class}, мы можем определить
 следующий одиночный класс:
 
-\begin{lstlisting}
-  (define-binary-class generic-frame ()
-    ((id (iso-8859-1-string :length 3))
-     (size u3)
-     (data (raw-bytes :bytes size))))
-\end{lstlisting}
+\begin{myverb}
+(define-binary-class generic-frame ()
+  ((id (iso-8859-1-string :length 3))
+   (size u3)
+   (data (raw-bytes :bytes size))))
+\end{myverb}
 
-Ссылка на \code{size} в определении \code{data} работает ожидаемым образом, так как
-выражения, считывающие и записывающие слот \code{data}, обернуты формой
-\textbf{WITH-SLOTS}, которая перечисляет все слоты объекта. Однако если мы попытаемся
+Ссылка на \lstinline{size} в определении \lstinline{data} работает ожидаемым образом, так как
+выражения, считывающие и записывающие слот \lstinline{data}, обернуты формой
+\lstinline{WITH-SLOTS}, которая перечисляет все слоты объекта. Однако если мы попытаемся
 разделить этот класс на два класса следующим образом:
-\begin{lstlisting}
-  (define-binary-class frame ()
-    ((id (iso-8859-1-string :length 3))
-     (size u3)))
 
-  (define-binary-class generic-frame (frame)
-    ((data (raw-bytes :bytes size))))
-\end{lstlisting}
-мы получим предупреждение времени компиляции при компиляции определения
-\code{generic-frame} и ошибку времени выполнения при попытке его использования, так как в
-методах \code{read-object} и \code{write-object}, специализированных для
-\code{generic-frame}, не будет лексически видимой переменной \code{size}.
+\begin{myverb}
+(define-binary-class frame ()
+  ((id (iso-8859-1-string :length 3))
+   (size u3)))
+
+(define-binary-class generic-frame (frame)
+  ((data (raw-bytes :bytes size))))
+\end{myverb}
+
+\noindent{}мы получим предупреждение времени компиляции при компиляции определения
+\lstinline{generic-frame} и ошибку времени выполнения при попытке его использования, так как в
+методах \lstinline{read-object} и \lstinline{write-object}, специализированных для
+\lstinline{generic-frame}, не будет лексически видимой переменной \lstinline{size}.
 
 Что нам нужно, так это отслеживание слотов, определённых каждый двоичным классом, а затем
-включение всех наследуемых слотов в формы \textbf{WITH-SLOTS} методов \code{read-object} и
-\code{write-object}.
+включение всех наследуемых слотов в формы \lstinline{WITH-SLOTS} методов \lstinline{read-object} и
+\lstinline{write-object}.
 
 Наиболее простым способом отслеживания подобной информации является связывание её с
 символом, именующим класс. Как мы обсуждали в главе~\ref{ch:21}, каждый символьный объект
 имеет ассоциированный с ним список свойств, доступ к которому можно получить с помощью
-функций \textbf{SYMBOL-PLIST} и \textbf{GET}. Мы можем связать произвольную пару
+функций \lstinline{SYMBOL-PLIST} и \lstinline{GET}. Мы можем связать произвольную пару
 ключ/значение с символом, добавив их в список свойств этого символа с помощью вызова
-\textbf{SETF} для результата \textbf{GET}. Например, если двоичный класс \code{foo}
-определяет три слота \code{x}, \code{y} и \code{z}, мы можем отследить этот факт, добавив
-в список свойств символа \code{foo} ключ \code{slots} со значением \code{(x y z)} с
+\lstinline{SETF} для результата \lstinline{GET}. Например, если двоичный класс \lstinline{foo}
+определяет три слота \lstinline{x}, \lstinline{y} и \lstinline{z}, мы можем отследить этот факт, добавив
+в список свойств символа \lstinline{foo} ключ \lstinline{slots} со значением \lstinline{(x y z)} с
 помощью следующего выражения:
 
-\begin{lstlisting}
-  (setf (get 'foo 'slots) '(x y z))
-\end{lstlisting}
+\begin{myverb}
+(setf (get 'foo 'slots) '(x y z))
+\end{myverb}
 
-Мы хотим осуществлять этот учёт как часть вычисления \code{define-binary-class} для
-\code{foo}. Однако не совсем очевидно, куда поместить это выражение. Если мы будем
+Мы хотим осуществлять этот учёт как часть вычисления \lstinline{define-binary-class} для
+\lstinline{foo}. Однако не совсем очевидно, куда поместить это выражение. Если мы будем
 вычислять его при вычислении раскрытий макросов, это выражение вычислится при компиляции
-формы \code{define-binary-class}, но не во время последующей загрузки файла, содержащего
+формы \lstinline{define-binary-class}, но не во время последующей загрузки файла, содержащего
 полученный скомпилированный код. С другой стороны, если мы включим это выражение в
 раскрытие макроса, то оно не будет вычисляться во время компиляции, а это означает, что
-при компиляции файла с несколькими формами \code{define-binary-class} никакой информации о
+при компиляции файла с несколькими формами \lstinline{define-binary-class} никакой информации о
 том, какие классы определяют какие слоты, не будет доступно до полной загрузки файла, что
 слишком поздно.
 
-Это как раз тот случай, для которого предназначен специальный оператор \textbf{EVAL-WHEN},
-который мы обсуждали в главе~\ref{ch:20}. Обернув форму в \textbf{EVAL-WHEN}, мы можем
+Это как раз тот случай, для которого предназначен специальный оператор \lstinline{EVAL-WHEN},
+который мы обсуждали в главе~\ref{ch:20}. Обернув форму в \lstinline{EVAL-WHEN}, мы можем
 контролировать то, вычисляется ли она во время компиляции, либо во время загрузки
 скомпилированного кода, либо в обоих случаях. Для таких случаев, как данный, когда мы
 хотим собрать некоторую информацию во время компиляции формы макроса, к которой мы хотим
 также иметь доступ после загрузки скомпилированной формы, нам следует обернуть выражения
-сбора этой информации в \textbf{EVAL-WHEN} следующим образом:
+сбора этой информации в \lstinline{EVAL-WHEN} следующим образом:
 
-\begin{lstlisting}
-  (eval-when (:compile-toplevel :load-toplevel :execute)
-    (setf (get 'foo 'slots) '(x y z)))
-\end{lstlisting}
-и включить форму \textbf{EVAL-WHEN} в раскрытие, генерируемое макросом. Итак, мы можем
+\begin{myverb}
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (get 'foo 'slots) '(x y z)))
+\end{myverb}
+
+\noindent{}и включить форму \lstinline{EVAL-WHEN} в раскрытие, генерируемое макросом. Итак, мы можем
 сохранить слоты и прямые суперклассы двоичного класса, добавив следующую форму в раскрытие,
-генерируемое \code{define-binary-class}:
+генерируемое \lstinline{define-binary-class}:
 
-\begin{lstlisting}
-  (eval-when (:compile-toplevel :load-toplevel :execute)
-    (setf (get ',name 'slots) ',(mapcar #'first slots))
-    (setf (get ',name 'superclasses) ',superclasses))
-\end{lstlisting}
+\begin{myverb}
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (get ',name 'slots) ',(mapcar #'first slots))
+  (setf (get ',name 'superclasses) ',superclasses))
+\end{myverb}
 
 Теперь мы можем определить три вспомогательные функции для осуществления доступа к этой
 информации. Первая просто возвращает слоты, определённые двоичным классом. Хорошей идеей
 является возвращение копии списка, так как мы не хотим, чтобы посторонний код
 модифицировал список слотов после того, как двоичный класс уже был определён.
 
-\begin{lstlisting}
-  (defun direct-slots (name)
-    (copy-list (get name 'slots)))
-\end{lstlisting}
+\begin{myverb}
+(defun direct-slots (name)
+  (copy-list (get name 'slots)))
+\end{myverb}
 
 Следующая функция возвращает слоты, унаследованные от других двоичных классов.
 
-\begin{lstlisting}
-  (defun inherited-slots (name)
-    (loop for super in (get name 'superclasses)
-          nconc (direct-slots super)
-          nconc (inherited-slots super)))
-\end{lstlisting}
+\begin{myverb}
+(defun inherited-slots (name)
+  (loop for super in (get name 'superclasses)
+        nconc (direct-slots super)
+        nconc (inherited-slots super)))
+\end{myverb}
 
 И наконец, мы можем определить функцию, которая возвращает список, содержащий имена всех
 определённых и унаследованных слотов.
 
-\begin{lstlisting}
-  (defun all-slots (name)
-    (nconc (direct-slots name) (inherited-slots name)))
-\end{lstlisting}
+\begin{myverb}
+(defun all-slots (name)
+  (nconc (direct-slots name) (inherited-slots name)))
+\end{myverb}
 
-Итак, мы хотим, чтобы при вычислении раскрытия формы \code{define-binary-class}
-генерировалась форма \textbf{WITH-SLOTS}, содержащая имена всех слотов, определённых в
-новом классе и во всех его суперклассах. Однако мы не можем использовать \code{all-slots}
+Итак, мы хотим, чтобы при вычислении раскрытия формы \lstinline{define-binary-class}
+генерировалась форма \lstinline{WITH-SLOTS}, содержащая имена всех слотов, определённых в
+новом классе и во всех его суперклассах. Однако мы не можем использовать \lstinline{all-slots}
 во время генерации раскрытия, так как информация не будет доступна до того момента, когда
 это раскрытие будет скомпилировано. Вместо этого нам следует воспользоваться следующей
 функцией, получающей список спецификаторов слотов и список суперклассов, переданных в
-\code{define-binary-class}, и использующую их для вычисления списка всех слотов нового
+\lstinline{define-binary-class}, и использующую их для вычисления списка всех слотов нового
 класса:
 
-\begin{lstlisting}
-  (defun new-class-all-slots (slots superclasses)
-    (nconc (mapcan #'all-slots superclasses) (mapcar #'first slots)))
-\end{lstlisting}
+\begin{myverb}
+(defun new-class-all-slots (slots superclasses)
+  (nconc (mapcan #'all-slots superclasses) (mapcar #'first slots)))
+\end{myverb}
 
-Имея эти функции, мы можем изменить \code{define-binary-class} таким образом, чтобы он
+Имея эти функции, мы можем изменить \lstinline{define-binary-class} таким образом, чтобы он
 сохранял информацию об определяемом в данный момент классе и использовал уже сохранённую
-информацию о слотах суперклассов для генерации форм \textbf{WITH-SLOTS}.
+информацию о слотах суперклассов для генерации форм \lstinline{WITH-SLOTS}.
 
-\begin{lstlisting}
-  (defmacro define-binary-class (name (&rest superclasses) slots)
-    (with-gensyms (objectvar streamvar)
-      `(progn
-         (eval-when (:compile-toplevel :load-toplevel :execute)
-           (setf (get ',name 'slots) ',(mapcar #'first slots))
-           (setf (get ',name 'superclasses) ',superclasses))
+\begin{myverb}
+(defmacro define-binary-class (name (&rest superclasses) slots)
+  (with-gensyms (objectvar streamvar)
+    `(progn
+       (eval-when (:compile-toplevel :load-toplevel :execute)
+         (setf (get ',name 'slots) ',(mapcar #'first slots))
+         (setf (get ',name 'superclasses) ',superclasses))
 
-         (defclass ,name ,superclasses
-           ,(mapcar #'slot->defclass-slot slots))
+       (defclass ,name ,superclasses
+         ,(mapcar #'slot->defclass-slot slots))
 
-         (defmethod read-object progn ((,objectvar ,name) ,streamvar)
-           (with-slots ,(new-class-all-slots slots superclasses) ,objectvar
-             ,@(mapcar #'(lambda (x) (slot->read-value x streamvar)) slots)))
+       (defmethod read-object progn ((,objectvar ,name) ,streamvar)
+         (with-slots ,(new-class-all-slots slots superclasses) ,objectvar
+           ,@(mapcar #'(lambda (x) (slot->read-value x streamvar)) slots)))
 
-         (defmethod write-object progn ((,objectvar ,name) ,streamvar)
-           (with-slots ,(new-class-all-slots slots superclasses) ,objectvar
-             ,@(mapcar #'(lambda (x) (slot->write-value x streamvar)) slots))))))
-\end{lstlisting}
+       (defmethod write-object progn ((,objectvar ,name) ,streamvar)
+         (with-slots ,(new-class-all-slots slots superclasses) ,objectvar
+           ,@(mapcar #'(lambda (x) (slot->write-value x streamvar)) slots))))))
+\end{myverb}
 
 \section{Помеченные структуры}
 
 Имея возможность определения двоичных классов, которые расширяют другие двоичные классы,
 мы готовы определить новый макрос, предназначенный для определения классов, представляющих
 <<помеченные>> структуры. В основе нашего способа чтения помеченных структур будет
-определение специализированного метода \code{read-value}, который знает, как считывать
+определение специализированного метода \lstinline{read-value}, который знает, как считывать
 значения, составляющие начало структуры, и как затем использовать эти значения для
 определения подкласса, экземпляр которого нужно создать. Затем этот метод создаёт
-экземпляр класса с помощью \textbf{MAKE-INSTANCE}, передавая уже прочитанные значения в
-качестве аргументов инициализации (initags), и передаёт объект в \code{read-object},
+экземпляр класса с помощью \lstinline{MAKE-INSTANCE}, передавая уже прочитанные значения в
+качестве аргументов инициализации (initags), и передаёт объект в \lstinline{read-object},
 позволяя действительному классу объекта определять, как именно считывается остальная часть
 структуры.
 
-Новый макрос \code{define-tagged-binary-class} будет выглядеть как
-\code{define-binary-class} с добавочной опцией \code{:dispatch}, используемой для указания
-формы, которая должна вычисляться в имя двоичного класса. Форма \code{:dispatch} будет
+Новый макрос \lstinline{define-tagged-binary-class} будет выглядеть как
+\lstinline{define-binary-class} с добавочной опцией \lstinline{:dispatch}, используемой для указания
+формы, которая должна вычисляться в имя двоичного класса. Форма \lstinline{:dispatch} будет
 вычислена в том контексте, в котором имена слотов, определённых помеченным классом,
 связываются с переменными, содержащими значения, прочитанные из файла. Класс, чьё имя
 возвращается этой формой, должен принимать аргументы инициализации (initargs),
 соответствующие именам слотов, определённых помеченным классом. Это легко обеспечивается в
-том случае, если форма \code{:dispatch} всегда вычисляется в имя класса, являющегося
+том случае, если форма \lstinline{:dispatch} всегда вычисляется в имя класса, являющегося
 подклассом помеченного класса.
 
-Например, представив, что мы имеем функцию \code{find-frame-class}, которая отображает
+Например, представив, что мы имеем функцию \lstinline{find-frame-class}, которая отображает
 строковый идентификатор на двоичный класс, представляющий определённый вид фрейма ID3, мы
-можем определить помеченный двоичный класс \code{id3-frame} следующим образом:
+можем определить помеченный двоичный класс \lstinline{id3-frame} следующим образом:
 
-\begin{lstlisting}
-  (define-tagged-binary-class id3-frame ()
-    ((id   (iso-8859-1-string :length 3))
-     (size u3))
-    (:dispatch (find-frame-class id)))
-\end{lstlisting}
+\begin{myverb}
+(define-tagged-binary-class id3-frame ()
+  ((id   (iso-8859-1-string :length 3))
+   (size u3))
+  (:dispatch (find-frame-class id)))
+\end{myverb}
 
-Раскрытие \code{define-tagged-binary-class} будет содержать \textbf{DEFCLASS} и метод \code{write-object} так же, как и раскрытие \code{define-binary-class}, но вместо метода \code{read-object} оно будет содержать метод \code{read-value}, выглядящий следующим образом:
+Раскрытие \lstinline{define-tagged-binary-class} будет содержать \lstinline{DEFCLASS} и метод \lstinline{write-object} так же, как и раскрытие \lstinline{define-binary-class}, но вместо метода \lstinline{read-object} оно будет содержать метод \lstinline{read-value}, выглядящий следующим образом:
 
-\begin{lstlisting}
-  (defmethod read-value ((type (eql 'id3-frame)) stream &key)
-    (let ((id (read-value 'iso-8859-1-string stream :length 3))
-          (size (read-value 'u3 stream)))
-      (let ((object (make-instance (find-frame-class id) :id id :size size)))
-        (read-object object stream)
-        object)))
-\end{lstlisting}
+\begin{myverb}
+(defmethod read-value ((type (eql 'id3-frame)) stream &key)
+  (let ((id (read-value 'iso-8859-1-string stream :length 3))
+        (size (read-value 'u3 stream)))
+    (let ((object (make-instance (find-frame-class id) :id id :size size)))
+      (read-object object stream)
+      object)))
+\end{myverb}
 
-Так как раскрытия \code{define-tagged-binary-class} и \code{define-binary-class} будут
+Так как раскрытия \lstinline{define-tagged-binary-class} и \lstinline{define-binary-class} будут
 идентичными, за исключением метода чтения, мы можем вынести общие части во вспомогательный
-макрос \code{define-generic-binary-class}, который принимает метод чтения в качестве
+макрос \lstinline{define-generic-binary-class}, который принимает метод чтения в качестве
 параметра и подставляет его в своё раскрытие.
 
-\begin{lstlisting}
-  (defmacro define-generic-binary-class (name (&rest superclasses) slots read-method)
-    (with-gensyms (objectvar streamvar)
-      `(progn
-         (eval-when (:compile-toplevel :load-toplevel :execute)
-           (setf (get ',name 'slots) ',(mapcar #'first slots))
-           (setf (get ',name 'superclasses) ',superclasses))
+\begin{myverb}
+(defmacro define-generic-binary-class (name (&rest superclasses) slots read-method)
+  (with-gensyms (objectvar streamvar)
+    `(progn
+       (eval-when (:compile-toplevel :load-toplevel :execute)
+         (setf (get ',name 'slots) ',(mapcar #'first slots))
+         (setf (get ',name 'superclasses) ',superclasses))
 
-         (defclass ,name ,superclasses
-           ,(mapcar #'slot->defclass-slot slots))
+       (defclass ,name ,superclasses
+         ,(mapcar #'slot->defclass-slot slots))
 
-         ,read-method
+       ,read-method
 
-         (defmethod write-object progn ((,objectvar ,name) ,streamvar)
-           (declare (ignorable ,streamvar))
-           (with-slots ,(new-class-all-slots slots superclasses) ,objectvar
-             ,@(mapcar #'(lambda (x) (slot->write-value x streamvar)) slots))))))
-\end{lstlisting}
+       (defmethod write-object progn ((,objectvar ,name) ,streamvar)
+         (declare (ignorable ,streamvar))
+         (with-slots ,(new-class-all-slots slots superclasses) ,objectvar
+           ,@(mapcar #'(lambda (x) (slot->write-value x streamvar)) slots))))))
+\end{myverb}
 
-Теперь мы можем определить \code{define-binary-class} и \code{define-tagged-binary-class} так, чтобы они раскрывались в вызов \code{define-generic-binary-class}. Вот новая версия \code{define-binary-class}, которая генерирует при полном своём раскрытии тот же код, что и более ранняя:
+Теперь мы можем определить \lstinline{define-binary-class} и \lstinline{define-tagged-binary-class} так, чтобы они раскрывались в вызов \lstinline{define-generic-binary-class}. Вот новая версия \lstinline{define-binary-class}, которая генерирует при полном своём раскрытии тот же код, что и более ранняя:
 
-\begin{lstlisting}
-  (defmacro define-binary-class (name (&rest superclasses) slots)
-    (with-gensyms (objectvar streamvar)
-      `(define-generic-binary-class ,name ,superclasses ,slots
-         (defmethod read-object progn ((,objectvar ,name) ,streamvar)
-           (declare (ignorable ,streamvar))
-           (with-slots ,(new-class-all-slots slots superclasses) ,objectvar
-             ,@(mapcar #'(lambda (x) (slot->read-value x streamvar)) slots))))))
-\end{lstlisting}
+\begin{myverb}
+(defmacro define-binary-class (name (&rest superclasses) slots)
+  (with-gensyms (objectvar streamvar)
+    `(define-generic-binary-class ,name ,superclasses ,slots
+       (defmethod read-object progn ((,objectvar ,name) ,streamvar)
+         (declare (ignorable ,streamvar))
+         (with-slots ,(new-class-all-slots slots superclasses) ,objectvar
+           ,@(mapcar #'(lambda (x) (slot->read-value x streamvar)) slots))))))
+\end{myverb}
 
-А вот \code{define-tagged-binary-class} вместе с двумя вспомогательными функциями, которые
+А вот \lstinline{define-tagged-binary-class} вместе с двумя вспомогательными функциями, которые
 он использует:
 
-\begin{lstlisting}
-  (defmacro define-tagged-binary-class (name (&rest superclasses) slots &rest options)
-    (with-gensyms (typevar objectvar streamvar)
-      `(define-generic-binary-class ,name ,superclasses ,slots
-        (defmethod read-value ((,typevar (eql ',name)) ,streamvar &key)
-          (let* ,(mapcar #'(lambda (x) (slot->binding x streamvar)) slots)
-            (let ((,objectvar
-                   (make-instance 
-                    ,@(or (cdr (assoc :dispatch options))
-                          (error "Must supply :dispatch form."))
-                    ,@(mapcan #'slot->keyword-arg slots))))
-              (read-object ,objectvar ,streamvar)
-              ,objectvar))))))
+\begin{myverb}
+(defmacro define-tagged-binary-class (name (&rest superclasses) slots &rest options)
+  (with-gensyms (typevar objectvar streamvar)
+    `(define-generic-binary-class ,name ,superclasses ,slots
+      (defmethod read-value ((,typevar (eql ',name)) ,streamvar &key)
+        (let* ,(mapcar #'(lambda (x) (slot->binding x streamvar)) slots)
+          (let ((,objectvar
+                 (make-instance 
+                  ,@(or (cdr (assoc :dispatch options))
+                        (error "Must supply :dispatch form."))
+                  ,@(mapcan #'slot->keyword-arg slots))))
+            (read-object ,objectvar ,streamvar)
+            ,objectvar))))))
 
-  (defun slot->binding (spec stream)
-    (destructuring-bind (name (type &rest args)) (normalize-slot-spec spec)
-      `(,name (read-value ',type ,stream ,@args))))
+(defun slot->binding (spec stream)
+  (destructuring-bind (name (type &rest args)) (normalize-slot-spec spec)
+    `(,name (read-value ',type ,stream ,@args))))
 
-  (defun slot->keyword-arg (spec)
-    (let ((name (first spec)))
-      `(,(as-keyword name) ,name)))
-\end{lstlisting}
+(defun slot->keyword-arg (spec)
+  (let ((name (first spec)))
+    `(,(as-keyword name) ,name)))
+\end{myverb}
 
 \section{Примитивные двоичные типы}
 
-Хотя \code{define-binary-class} и \code{define-tagged-binary-class} делают лёгким
-определение сложных структур, мы все ещё должны написать методы \code{read-value} и
-\code{write-value} для примитивных типов данных вручную. Мы могли бы смириться с этим,
+Хотя \lstinline{define-binary-class} и \lstinline{define-tagged-binary-class} делают лёгким
+определение сложных структур, мы все ещё должны написать методы \lstinline{read-value} и
+\lstinline{write-value} для примитивных типов данных вручную. Мы могли бы смириться с этим,
 специфицировав, что пользователь библиотеки должен написать соответствующие методы
-\code{read-value} и \code{write-value} для поддержки примитивных типов, используемых его
+\lstinline{read-value} и \lstinline{write-value} для поддержки примитивных типов, используемых его
 двоичными классами.
 
 Однако вместо документирования того, как написать подходящую пару методов
-\code{read-value}/\code{write-value}, мы можем предоставить макрос, делающий это
+\lstinline{read-value}/\lstinline{write-value}, мы можем предоставить макрос, делающий это
 автоматически. Это также даст пользу уменьшения <<протечки>> абстракции, созданной
-\code{define-binary-class}. Сейчас \code{define-binary-class} зависит от наличия методов
-\code{read-value} и \code{write-value}, определённых неким специфическим образом, который
+\lstinline{define-binary-class}. Сейчас \lstinline{define-binary-class} зависит от наличия методов
+\lstinline{read-value} и \lstinline{write-value}, определённых неким специфическим образом, который
 в действительности является деталью реализации. Определив макрос генерации методов
-\code{read-value} и \code{write-value} для примитивных типов, мы скроем эти детали за
+\lstinline{read-value} и \lstinline{write-value} для примитивных типов, мы скроем эти детали за
 управляемой нами абстракцией. Приняв позднее решение изменить реализацию
-\code{define-binary-class}, мы сможем изменить наш макрос определения примитивных типов
+\lstinline{define-binary-class}, мы сможем изменить наш макрос определения примитивных типов
 так, что не потребуется вносить изменения в код, использующий нашу библиотеку двоичных
 данных.
 
-Итак, мы должны определить последний макрос, \code{define-binary-type}, который будет
-генерировать методы \code{read-value} и \code{write-value} для чтения и записи значений,
+Итак, мы должны определить последний макрос, \lstinline{define-binary-type}, который будет
+генерировать методы \lstinline{read-value} и \lstinline{write-value} для чтения и записи значений,
 предствляющих экземпляры уже существующих, а не определённых с помощью
-\code{define-binary-class}, классов.
+\lstinline{define-binary-class}, классов.
 
-В качестве конкретного примера рассмотрим тип, используемый классом \code{id3-tag}: строку
+В качестве конкретного примера рассмотрим тип, используемый классом \lstinline{id3-tag}: строку
 знаков фиксированной длины, закодирированную с помощью ISO-8859-1. Я подразумеваю, как
 делал это и раньше, что внутренней кодировкой вашей реализации Lisp является ISO-8859-1
-или её надмножество, так что вы можете использовать функции \textbf{CODE-CHAR} и
-\textbf{CHAR-CODE} для преобразования байтов в знаки и обратно.
+или её надмножество, так что вы можете использовать функции \lstinline{CODE-CHAR} и
+\lstinline{CHAR-CODE} для преобразования байтов в знаки и обратно.
 
 Как всегда, нашей целью является написание макроса, который позволит нам ограничиться
 выражением только самой существенной информации, необходимой для генерации требуемого
 кода. В данном случае есть четыре части такой существенной информации: имя типа,
-\code{iso-8859-1-string}; \lstinline!&key! параметры, которые должны приниматься методами
-\code{read-value} и \code{write-value}, в нашем случае это \code{length}; код считывания
+\lstinline{iso-8859-1-string}; \lstinline!&key! параметры, которые должны приниматься методами
+\lstinline{read-value} и \lstinline{write-value}, в нашем случае это \lstinline{length}; код считывания
 из потока; код записи в поток. Вот выражение, содержащее все четыре части информации:
 
-\begin{lstlisting}
-  (define-binary-type iso-8859-1-string (length)
-    (:reader (in)
-      (let ((string (make-string length)))
-        (dotimes (i length)
-          (setf (char string i) (code-char (read-byte in))))
-        string))
-    (:writer (out string)
+\begin{myverb}
+(define-binary-type iso-8859-1-string (length)
+  (:reader (in)
+    (let ((string (make-string length)))
       (dotimes (i length)
-        (write-byte (char-code (char string i)) out))))
-\end{lstlisting}
+        (setf (char string i) (code-char (read-byte in))))
+      string))
+  (:writer (out string)
+    (dotimes (i length)
+      (write-byte (char-code (char string i)) out))))
+\end{myverb}
 
 Теперь все, что нам нужно,~--- так это макрос, осуществляющий разбор такой формы и
-преобразующий её в две \textbf{DEFMETHOD}, обернутые в форму \textbf{PROGN}. Если мы
-определим список параметров \code{define-binary-type} следующим образом:
+преобразующий её в две \lstinline{DEFMETHOD}, обернутые в форму \lstinline{PROGN}. Если мы
+определим список параметров \lstinline{define-binary-type} следующим образом:
 
-\begin{lstlisting}
-  (defmacro define-binary-type (name (&rest args) &body spec) ...
-\end{lstlisting}
-то внутри макроса параметр \code{spec} будет списком, содержащим определения процедур
-чтения и записи. Вы можете использовать функцию \textbf{ASSOC} для извлечения элементов
-\code{spec} с помощью меток \code{:reader} и \code{:writer}, а затем
-\textbf{DESTRUCTURING-BIND} для разбора \textbf{REST}-части каждого
-элемента\footnote{Использование \textbf{ASSOC} для извлечения элементов \code{:reader} и
-  \code{:writer} параметра \code{spec} позволяет пользователям макроса
-  \code{define-binary-type} включать эти элементы в любом порядке; решив, что элемент
-  \code{:reader} всегда будет на первом месте, мы могли бы использовать \code{(rest (first
-    spec))} для извлечения части для чтения данных и \code{(rest (second spec))} для
+\begin{myverb}
+(defmacro define-binary-type (name (&rest args) &body spec) ...
+\end{myverb}
+
+\noindent{}то внутри макроса параметр \lstinline{spec} будет списком, содержащим определения процедур
+чтения и записи. Вы можете использовать функцию \lstinline{ASSOC} для извлечения элементов
+\lstinline{spec} с помощью меток \lstinline{:reader} и \lstinline{:writer}, а затем
+\lstinline{DESTRUCTURING-BIND} для разбора \lstinline{REST}-части каждого
+элемента\footnote{Использование \lstinline{ASSOC} для извлечения элементов \lstinline{:reader} и
+  \lstinline{:writer} параметра \lstinline{spec} позволяет пользователям макроса
+  \lstinline{define-binary-type} включать эти элементы в любом порядке; решив, что элемент
+  \lstinline{:reader} всегда будет на первом месте, мы могли бы использовать 
+\lstinline{(rest (first spec))} для извлечения части для чтения данных и \lstinline{(rest (second spec))} для
 извлечения части для их записи. Однако, так как мы решили использовать ключевые слова
-\code{:reader} и \code{:writer} для улучшения читаемости форм \code{define-binary-type},
+\lstinline{:reader} и \lstinline{:writer} для улучшения читаемости форм \lstinline{define-binary-type},
 мы также можем использовать их для извлечения правильных данных.}.
 
 Остальная работа является всего лишь делом подстановки извлечённых значений в шаблоны
-квазицитирования (backquoted templates) методов \code{read-value} и \code{write-value}.
+квазицитирования (backquoted templates) методов \lstinline{read-value} и \lstinline{write-value}.
 
-\begin{lstlisting}
-  (defmacro define-binary-type (name (&rest args) &body spec)
-    (with-gensyms (type)
-      `(progn
-        ,(destructuring-bind ((in) &body body) (rest (assoc :reader spec))
-          `(defmethod read-value ((,type (eql ',name)) ,in &key ,@args)
-            ,@body))
-        ,(destructuring-bind ((out value) &body body) (rest (assoc :writer spec))
-          `(defmethod write-value ((,type (eql ',name)) ,out ,value &key ,@args)
-            ,@body)))))
-\end{lstlisting}
+\begin{myverb}
+(defmacro define-binary-type (name (&rest args) &body spec)
+  (with-gensyms (type)
+    `(progn
+      ,(destructuring-bind ((in) &body body) (rest (assoc :reader spec))
+        `(defmethod read-value ((,type (eql ',name)) ,in &key ,@args)
+          ,@body))
+      ,(destructuring-bind ((out value) &body body) (rest (assoc :writer spec))
+        `(defmethod write-value ((,type (eql ',name)) ,out ,value &key ,@args)
+          ,@body)))))
+\end{myverb}
 
 Обратите внимание на вложенность шаблонов квазицитирования: самый внешний шаблон
-начинается с закавыченной формы \textbf{PROGN}. Этот шаблон состоит из символа
-\textbf{PROGN} и двух <<раскавыченных>> (comma-unquoted) выражений
-\textbf{DESTRUCTURING-BIND}. Таким образом, внешний шаблон заполняется путём вычисления
-выражений \textbf{DESTRUCTURING-BIND} и подстановки значений их результатов. Каждое
-выражение \textbf{DESTRUCTURING-BIND}, в свою очередь, также содержит шаблон
+начинается с закавыченной формы \lstinline{PROGN}. Этот шаблон состоит из символа
+\lstinline{PROGN} и двух <<раскавыченных>> (comma-unquoted) выражений
+\lstinline{DESTRUCTURING-BIND}. Таким образом, внешний шаблон заполняется путём вычисления
+выражений \lstinline{DESTRUCTURING-BIND} и подстановки значений их результатов. Каждое
+выражение \lstinline{DESTRUCTURING-BIND}, в свою очередь, также содержит шаблон
 квазицитирования, каждый из которых используется для генерации определения метода для
 подстановки его во внешний шаблон.
 
-Теперь данная ранее форма \code{define-binary-type} раскрывается в такой код:
+Теперь данная ранее форма \lstinline{define-binary-type} раскрывается в такой код:
 
-\begin{lstlisting}
-  (progn
-    (defmethod read-value ((#:g1618 (eql 'iso-8859-1-string)) in &key length)
-      (let ((string (make-string length)))
-        (dotimes (i length)
-          (setf (char string i) (code-char (read-byte in))))
-        string))
-    (defmethod write-value ((#:g1618 (eql 'iso-8859-1-string)) out string &key length)
+\begin{myverb}
+(progn
+  (defmethod read-value ((#:g1618 (eql 'iso-8859-1-string)) in &key length)
+    (let ((string (make-string length)))
       (dotimes (i length)
-        (write-byte (char-code (char string i)) out))))
-\end{lstlisting}
+        (setf (char string i) (code-char (read-byte in))))
+      string))
+  (defmethod write-value ((#:g1618 (eql 'iso-8859-1-string)) out string &key length)
+    (dotimes (i length)
+      (write-byte (char-code (char string i)) out))))
+\end{myverb}
 
 Конечно, сейчас, когда у нас есть такой хороший макрос для определения двоичных типов,
 привлекательной кажется мысль об улучшении этого макроса таким образом, чтобы он
@@ -1251,62 +1254,64 @@ structures), которые было бы естественно моделир�
 Теги ID3, подобно многим другим двоичным форматам, используют множество примитивных типов,
 являющихся небольшими вариациями на одну тему, такими как беззнаковые целые размерами
 один, два, три и четыре байта. Конечно же мы можем определить каждый такой тип с помощью
-\code{define-binary-type}. Но мы также можем вынести общий алгоритм чтения и записи
+\lstinline{define-binary-type}. Но мы также можем вынести общий алгоритм чтения и записи
 n-байтных беззнаковых целых во вспомогательную функцию.
 
-Но представим, что мы уже определили двоичный тип, \code{unsigned-integer}, который
-принимает параметр \code{:bytes} для указания того, как много байт нужно считывать и
+Но представим, что мы уже определили двоичный тип, \lstinline{unsigned-integer}, который
+принимает параметр \lstinline{:bytes} для указания того, как много байт нужно считывать и
 записывать. Используя этот тип, мы можем определить слот, представляющий однобайтное целое,
-с помощью спецификатора \code{(unsigned-integer :bytes 1)}. Но, если определённый двоичный
+с помощью спецификатора \lstinline{(unsigned-integer :bytes 1)}. Но, если определённый двоичный
 формат определяет множество слотов этого типа, было бы неплохо иметь возможность лёгкого
-определения нового типа, скажем \code{u1}, означающего то же, что и используемый тип. На
-самом деле несложно изменить \code{define-binary-type} так, чтобы он поддерживал две
-формы: длинную форму, состоящую из пары \code{:reader} и \code{:writer}, и короткую форму,
+определения нового типа, скажем \lstinline{u1}, означающего то же, что и используемый тип. На
+самом деле несложно изменить \lstinline{define-binary-type} так, чтобы он поддерживал две
+формы: длинную форму, состоящую из пары \lstinline{:reader} и \lstinline{:writer}, и короткую форму,
 которая определяет новый двоичный тип в терминах уже су\-щест\-вую\-щего типа. Используя
-короткую форму \code{define-binary-type}, вы можете определить \code{u1} следующим образом:
+короткую форму \lstinline{define-binary-type}, вы можете определить \lstinline{u1} следующим образом:
 
-\begin{lstlisting}
-  (define-binary-type u1 () (unsigned-integer :bytes 1))
-\end{lstlisting}
-что раскроется в такое:
-\begin{lstlisting}
-  (progn
-    (defmethod read-value ((#:g161887 (eql 'u1)) #:g161888 &key)
-      (read-value 'unsigned-integer #:g161888 :bytes 1))
-    (defmethod write-value ((#:g161887 (eql 'u1)) #:g161888 #:g161889 &key)
-      (write-value 'unsigned-integer #:g161888 #:g161889 :bytes 1)))
-\end{lstlisting}
+\begin{myverb}
+(define-binary-type u1 () (unsigned-integer :bytes 1))
+\end{myverb}
 
-Для поддержки и длинной, и короткой форм \code{define-binary-type} нам нужно различать эти
-два случая, основываясь на значении аргумента \code{spec}. Если \code{spec} содержит два
+\noindent{}что раскроется в такое:
+
+\begin{myverb}
+(progn
+  (defmethod read-value ((#:g161887 (eql 'u1)) #:g161888 &key)
+    (read-value 'unsigned-integer #:g161888 :bytes 1))
+  (defmethod write-value ((#:g161887 (eql 'u1)) #:g161888 #:g161889 &key)
+    (write-value 'unsigned-integer #:g161888 #:g161889 :bytes 1)))
+\end{myverb}
+
+Для поддержки и длинной, и короткой форм \lstinline{define-binary-type} нам нужно различать эти
+два случая, основываясь на значении аргумента \lstinline{spec}. Если \lstinline{spec} содержит два
 элемента, он представляет длинную форму, а эти два элемента должны быть определениями
-\code{:reader} и \code{:writer}, извлечение которых было реализовано нами раньше. Если же
+\lstinline{:reader} и \lstinline{:writer}, извлечение которых было реализовано нами раньше. Если же
 этот аргумент содержит лишь один элемент, этот элемент должен быть спецификатором типа,
-разбор которого будет отличаться. Мы можем использовать \textbf{ECASE} для осуществления
-дифференциации по длине аргумента \code{spec} с целью дальнейшего осуществления разбора
+разбор которого будет отличаться. Мы можем использовать \lstinline{ECASE} для осуществления
+дифференциации по длине аргумента \lstinline{spec} с целью дальнейшего осуществления разбора
 этого аргумента и генерации соответствующего форме (длинной или короткой) раскрытия.
 
-\begin{lstlisting}
-  (defmacro define-binary-type (name (&rest args) &body spec)
-    (ecase (length spec)
-      (1
-       (with-gensyms (type stream value)
-         (destructuring-bind (derived-from &rest derived-args) (mklist (first spec))
-           `(progn
-              (defmethod read-value ((,type (eql ',name)) ,stream &key ,@args)
-                (read-value ',derived-from ,stream ,@derived-args))
-              (defmethod write-value ((,type (eql ',name)) ,stream ,value &key ,@args)
-                (write-value ',derived-from ,stream ,value ,@derived-args))))))
-      (2
-       (with-gensyms (type)
+\begin{myverb}
+(defmacro define-binary-type (name (&rest args) &body spec)
+  (ecase (length spec)
+    (1
+     (with-gensyms (type stream value)
+       (destructuring-bind (derived-from &rest derived-args) (mklist (first spec))
          `(progn
-            ,(destructuring-bind ((in) &body body) (rest (assoc :reader spec))
-               `(defmethod read-value ((,type (eql ',name)) ,in &key ,@args)
-                  ,@body))
-            ,(destructuring-bind ((out value) &body body) (rest (assoc :writer spec))
-               `(defmethod write-value ((,type (eql ',name)) ,out ,value &key ,@args)
-                  ,@body)))))))
-\end{lstlisting}
+            (defmethod read-value ((,type (eql ',name)) ,stream &key ,@args)
+              (read-value ',derived-from ,stream ,@derived-args))
+            (defmethod write-value ((,type (eql ',name)) ,stream ,value &key ,@args)
+              (write-value ',derived-from ,stream ,value ,@derived-args))))))
+    (2
+     (with-gensyms (type)
+       `(progn
+          ,(destructuring-bind ((in) &body body) (rest (assoc :reader spec))
+             `(defmethod read-value ((,type (eql ',name)) ,in &key ,@args)
+                ,@body))
+          ,(destructuring-bind ((out value) &body body) (rest (assoc :writer spec))
+             `(defmethod write-value ((,type (eql ',name)) ,out ,value &key ,@args)
+                ,@body)))))))
+\end{myverb}
 
 \section{Стек обрабатываемых в данный момент объектов}
 
@@ -1314,63 +1319,63 @@ n-байтных беззнаковых целых во вспомогатель
 возможность обращения к двоичному объекту, чтение или запись которого производится в
 данный момент. То есть во время чтения или записи вложенных сложных объектов было бы
 удобно иметь возможность получения доступа к объекту, чтение или запись которого
-производится в данный момент. Благодаря динамическим переменным и методам \code{:around}
+производится в данный момент. Благодаря динамическим переменным и методам \lstinline{:around}
 мы можем добавить это улучшение, написав всего лишь около дюжины строк кода. Для начала
 нам нужно определить динамическую переменную, которая будет содержать стек объектов,
 чтение или запись которых осуществляется в данный момент.
 
-\begin{lstlisting}
-  (defvar *in-progress-objects* nil)
-\end{lstlisting}
+\begin{myverb}
+(defvar *in-progress-objects* nil)
+\end{myverb}
 
-Затем мы можем определить методы \code{:around} для \code{read-object} и
-\code{write-object}, которые помещают объект, чтение или запись которого будет
-осуществляться, в определённую ранее переменную перед вызовом \textbf{CALL-NEXT-METHOD}.
+Затем мы можем определить методы \lstinline{:around} для \lstinline{read-object} и
+\lstinline{write-object}, которые помещают объект, чтение или запись которого будет
+осуществляться, в определённую ранее переменную перед вызовом \lstinline{CALL-NEXT-METHOD}.
 
-\begin{lstlisting}
-  (defmethod read-object :around (object stream)
-    (declare (ignore stream))
-    (let ((*in-progress-objects* (cons object *in-progress-objects*)))
-      (call-next-method)))
+\begin{myverb}
+(defmethod read-object :around (object stream)
+  (declare (ignore stream))
+  (let ((*in-progress-objects* (cons object *in-progress-objects*)))
+    (call-next-method)))
 
-  (defmethod write-object :around (object stream)
-    (declare (ignore stream))
-    (let ((*in-progress-objects* (cons object *in-progress-objects*)))
-      (call-next-method)))
-\end{lstlisting}
+(defmethod write-object :around (object stream)
+  (declare (ignore stream))
+  (let ((*in-progress-objects* (cons object *in-progress-objects*)))
+    (call-next-method)))
+\end{myverb}
 
-Обратите внимание, как мы пересвязали \code{*in-progress-objects*} со списком, содержащим
+Обратите внимание, как мы пересвязали \lstinline{*in-progress-objects*} со списком, содержащим
 новый элемент в своём начале, вместо присвоения ему нового значения. Поступив так, мы
-получили тот эффект, что в конце \textbf{LET}, после возврата из
-\textbf{CALL-NEXT-METHOD}, старое значение \code{*in-progress-objects*} будет
+получили тот эффект, что в конце \lstinline{LET}, после возврата из
+\lstinline{CALL-NEXT-METHOD}, старое значение \lstinline{*in-progress-objects*} будет
 восстановлено (то есть последний помещённый в стек элемент будет из него удалён).
 
 Имея эти определения методов, мы можем предоставить две удобные функции для получения
-отдельных объектов из стека обрабатываемых объектов. Функция \code{current-binary-object}
-будет возвращать вершину стека, то есть объект, чей метод \code{read-object} или
-\code{write-object} был вызван наиболее недавно. Вторая, \code{parent-of-type}, получает
+отдельных объектов из стека обрабатываемых объектов. Функция \lstinline{current-binary-object}
+будет возвращать вершину стека, то есть объект, чей метод \lstinline{read-object} или
+\lstinline{write-object} был вызван наиболее недавно. Вторая, \lstinline{parent-of-type}, получает
 аргумент, который должен быть именем класса двоичного типа, и возвращает наиболее недавно
-помещённый в стек объект данного типа, используя функцию \textbf{TYPEP}, которая
+помещённый в стек объект данного типа, используя функцию \lstinline{TYPEP}, которая
 проверяет, является ли переданный ей объект экземпляром определённого типа.
 
-\begin{lstlisting}
-  (defun current-binary-object () (first *in-progress-objects*))
+\begin{myverb}
+(defun current-binary-object () (first *in-progress-objects*))
 
-  (defun parent-of-type (type)
-    (find-if #'(lambda (x) (typep x type)) *in-progress-objects*))
-\end{lstlisting}
+(defun parent-of-type (type)
+  (find-if #'(lambda (x) (typep x type)) *in-progress-objects*))
+\end{myverb}
 
 Эти две функции могут быть использованы из любого кода, который будет вызван в
-динамической протяжённости вызова \code{read-object} или \code{write-object}. Мы увидим
-один пример использования \code{current-binary-object} в следующей главе\footnote{Формат
-  ID3 не требует использования функции \code{parent-of-type}, так как имеет сравнительно
+динамической протяжённости вызова \lstinline{read-object} или \lstinline{write-object}. Мы увидим
+один пример использования \lstinline{current-binary-object} в следующей главе\footnote{Формат
+  ID3 не требует использования функции \lstinline{parent-of-type}, так как имеет сравнительно
   <<плоскую>> структуру. Эта функция становится очень полезной, если вы осуществляете
   разбор формата, состоящего из множества глубоко вложенных структур, чей разбор зависит от
   информации, сохранённой в структурах более высокого уровня. Например, в формате файлов
   классов Java структура файлов классов верхнего уровня содержит пул констант,
   отображающий числовые значения, используемые в других подструктурах внутри файла класса,
   на константные значения, которые нужны во время разбора этих подструктур. Если бы мы писали
-  программу разбора файлов классов, то могли бы использовать \code{parent-of-type} в коде
+  программу разбора файлов классов, то могли бы использовать \lstinline{parent-of-type} в коде
   чтения и записи этих подструктур для обращения к объекту файла класса верхнего уровня, а
   по нему~--- к пулу констант.}.
 

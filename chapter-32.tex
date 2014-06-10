@@ -237,18 +237,18 @@ functions), другие~-- нет. Библиотека Universal Foreign Funct
 долго работающая функция, которая вызывает две другие функции, примерно так:
 
 \begin{myverb}
-  (defun foo ()
-    (bar)
-    (baz))
+(defun foo ()
+  (bar)
+  (baz))
 \end{myverb}
 
 Если вы хотите увидеть, какая из функций работает дольше, то можете изменить определение
 функции таким образом:
 
 \begin{myverb}
-  (defun foo ()
-    (time (bar))
-    (time (baz)))
+(defun foo ()
+  (time (bar))
+  (time (baz)))
 \end{myverb}
 
 Теперь вы можете вызвать \lstinline{foo}, и Lisp напечатает два отчёта, один для \lstinline{bar},

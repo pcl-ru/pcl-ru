@@ -39,7 +39,7 @@
   массивы.  Одинаково корректно (хотя и несколько неуклюже) ссылаться на них как на
   \textit{одномерные массивы} (\textit{one-dimensional arrays}).}. С другой стороны,
 векторы с изменяемым размером более похожи на векторы в Perl или Ruby, списки в Python
-или на класс \code{ArrayList} в Java: они скрывают конкретный способ хранения, позволяя
+или на класс \lstinline{ArrayList} в Java: они скрывают конкретный способ хранения, позволяя
 векторам менять размер по мере добавления или удаления элементов.
 
 Вы можете создать вектор фиксированной длины, содержащий конкретные значения, с помощью
@@ -47,9 +47,9 @@
 новый вектор фиксированного размера, содержащий переданные значения.
 
 \begin{myverb}
-  (vector)     ==> #()
-  (vector 1)   ==> #(1)
-  (vector 1 2) ==> #(1 2)
+(vector)     ==> #()
+(vector 1)   ==> #(1)
+(vector 1 2) ==> #(1 2)
 \end{myverb}
 
 Синтаксис \lstinline!#(...)!~-- способ записи векторов, используемый процедурами
@@ -75,7 +75,7 @@
 Таким образом, создать вектор из пяти элементов, равных \lstinline{NIL}, можно так:
 
 \begin{myverb}
-  (make-array 5 :initial-element nil) ==> #(NIL NIL NIL NIL NIL)
+(make-array 5 :initial-element nil) ==> #(NIL NIL NIL NIL NIL)
 \end{myverb}
 
 \lstinline{MAKE-ARRAY} также используется для создания векторов переменного размера.
@@ -92,7 +92,7 @@
 равен нулю:
 
 \begin{myverb}
-  (make-array 5 :fill-pointer 0) ==> #()
+(make-array 5 :fill-pointer 0) ==> #()
 \end{myverb}
 
 Чтобы добавить элемент в конец вектора, можно использовать функцию
@@ -102,20 +102,20 @@
 указатель заполнения на единицу.
 
 \begin{myverb}
-  (defparameter *x* (make-array 5 :fill-pointer 0))
-  
-  (vector-push 'a *x*) ==> 0
-  *x*                  ==> #(A)
-  (vector-push 'b *x*) ==> 1
-  *x*                  ==> #(A B)
-  (vector-push 'c *x*) ==> 2
-  *x*                  ==> #(A B C)
-  (vector-pop *x*)     ==> C
-  *x*                  ==> #(A B)
-  (vector-pop *x*)     ==> B
-  *x*                  ==> #(A)
-  (vector-pop *x*)     ==> A
-  *x*                  ==> #()
+(defparameter *x* (make-array 5 :fill-pointer 0))
+
+(vector-push 'a *x*) ==> 0
+*x*                  ==> #(A)
+(vector-push 'b *x*) ==> 1
+*x*                  ==> #(A B)
+(vector-push 'c *x*) ==> 2
+*x*                  ==> #(A B C)
+(vector-pop *x*)     ==> C
+*x*                  ==> #(A B)
+(vector-pop *x*)     ==> B
+*x*                  ==> #(A)
+(vector-pop *x*)     ==> A
+*x*                  ==> #()
 \end{myverb}
 
 Однако даже вектор с указателем заполнения на самом деле не является вектором с изменяемыми
@@ -124,7 +124,7 @@
 именованный аргумент: \lstinline{:adjustable}.
 
 \begin{myverb}
-  (make-array 5 :fill-pointer 0 :adjustable t) ==> #()
+(make-array 5 :fill-pointer 0 :adjustable t) ==> #()
 \end{myverb}
 
 Этот вызов создаст \textit{приспособляемый} (\textit{adjustable}) вектор, размер которого
@@ -203,22 +203,22 @@
 указателем.
 
 \begin{myverb}
-  (defparameter *x* (vector 1 2 3))
-  
-  (length *x*) ==> 3
-  (elt *x* 0)  ==> 1
-  (elt *x* 1)  ==> 2
-  (elt *x* 2)  ==> 3
-  (elt *x* 3)  ==> error
+(defparameter *x* (vector 1 2 3))
+
+(length *x*) ==> 3
+(elt *x* 0)  ==> 1
+(elt *x* 1)  ==> 2
+(elt *x* 2)  ==> 3
+(elt *x* 3)  ==> error
 \end{myverb}
 
 \lstinline{ELT} возвращает ячейку, для которой можно выполнить \lstinline{SETF}, так что вы можете
 установить значение отдельного элемента с помощью вот такого кода:
 
 \begin{myverb}
-  (setf (elt *x* 0) 10)
-  
-  *x* ==> #(10 2 3)
+(setf (elt *x* 0) 10)
+
+*x* ==> #(10 2 3)
 \end{myverb}
 
 \section{Функции для работы с элементами последовательностей}
@@ -250,16 +250,16 @@
 Вот несколько простых примеров использования этих функций:
 
 \begin{myverb}
-  (count 1 #(1 2 1 2 3 1 2 3 4))         ==> 3
-  (remove 1 #(1 2 1 2 3 1 2 3 4))        ==> #(2 2 3 2 3 4)
-  (remove 1 '(1 2 1 2 3 1 2 3 4))        ==> (2 2 3 2 3 4)
-  (remove #\bslash{}a "foobarbaz")               ==> "foobrbz"
-  (substitute 10 1 #(1 2 1 2 3 1 2 3 4)) ==> #(10 2 10 2 3 10 2 3 4)
-  (substitute 10 1 '(1 2 1 2 3 1 2 3 4)) ==> (10 2 10 2 3 10 2 3 4)
-  (substitute #\bslash{}x #\bslash{}b "foobarbaz")       ==> "fooxarxaz"
-  (find 1 #(1 2 1 2 3 1 2 3 4))          ==> 1
-  (find 10 #(1 2 1 2 3 1 2 3 4))         ==> NIL
-  (position 1 #(1 2 1 2 3 1 2 3 4))      ==> 0
+(count 1 #(1 2 1 2 3 1 2 3 4))         ==> 3
+(remove 1 #(1 2 1 2 3 1 2 3 4))        ==> #(2 2 3 2 3 4)
+(remove 1 '(1 2 1 2 3 1 2 3 4))        ==> (2 2 3 2 3 4)
+(remove #\bslash{}a "foobarbaz")               ==> "foobrbz"
+(substitute 10 1 #(1 2 1 2 3 1 2 3 4)) ==> #(10 2 10 2 3 10 2 3 4)
+(substitute 10 1 '(1 2 1 2 3 1 2 3 4)) ==> (10 2 10 2 3 10 2 3 4)
+(substitute #\bslash{}x #\bslash{}b "foobarbaz")       ==> "fooxarxaz"
+(find 1 #(1 2 1 2 3 1 2 3 4))          ==> 1
+(find 10 #(1 2 1 2 3 1 2 3 4))         ==> NIL
+(position 1 #(1 2 1 2 3 1 2 3 4))      ==> 0
 \end{myverb}
 
 Заметьте, что \lstinline{REMOVE} и \lstinline{SUBSTITUTE} всегда возвращают последовательность
@@ -282,13 +282,13 @@
   писать вот так:
 
 \begin{myverb}
-  (count x sequence :test (complement #'some-test))
+(count x sequence :test (complement #'some-test))
 \end{myverb}
 
 \noindent{}вместо:
 
 \begin{myverb}
-  (count x sequence :test-not #'some-test)
+(count x sequence :test-not #'some-test)
 \end{myverb}
 
 }. Во-вторых, используя именованный параметр \lstinline{:key}, вы можете передать функцию одного
@@ -298,8 +298,8 @@
 возвращать элементы, а не ключи, извлечённые из этих элементов.
 
 \begin{myverb}
-  (count "foo" #("foo" "bar" "baz") :test #'string=)    ==> 1
-  (find 'c #((a 10) (b 20) (c 30) (d 40)) :key #'first) ==> (C 30)
+(count "foo" #("foo" "bar" "baz") :test #'string=)    ==> 1
+(find 'c #((a 10) (b 20) (c 30) (d 40)) :key #'first) ==> (C 30)
 \end{myverb}
 
 Для ограничения действия этих функций в рамках только определённых пределов вы можете
@@ -315,8 +315,8 @@
 может затронуть результаты \lstinline{FIND} и \lstinline{POSITION}.  Например:
 
 \begin{myverb}
-  (find 'a #((a 10) (b 20) (a 30) (b 40)) :key #'first)             ==> (A 10)
-  (find 'a #((a 10) (b 20) (a 30) (b 40)) :key #'first :from-end t) ==> (A 30)
+(find 'a #((a 10) (b 20) (a 30) (b 40)) :key #'first)             ==> (A 10)
+(find 'a #((a 10) (b 20) (a 30) (b 40)) :key #'first :from-end t) ==> (A 30)
 \end{myverb}
 
 Также использование \lstinline{:from-end} может влиять на работу \lstinline{REMOVE} и
@@ -326,8 +326,8 @@
 зависеть от того, с какого конца последовательности вы начинаете обработку:
 
 \begin{myverb}
-  (remove #\bslash{}a "foobarbaz" :count 1)             ==> "foobrbaz"
-  (remove #\bslash{}a "foobarbaz" :count 1 :from-end t) ==> "foobarbz"
+(remove #\bslash{}a "foobarbaz" :count 1)             ==> "foobrbaz"
+(remove #\bslash{}a "foobarbaz" :count 1 :from-end t) ==> "foobarbz"
 \end{myverb}
 
 И хотя \lstinline{:from-end} не может изменить результат функции \lstinline{COUNT}, его
@@ -336,22 +336,22 @@
 Например:
 
 \begin{myverb}
-  CL-USER> (defparameter *v* #((a 10) (b 20) (a 30) (b 40)))
-  *V*
-  CL-USER> (defun verbose-first (x) (format t "Looking at ~s~%" x) (first x))
-  VERBOSE-FIRST
-  CL-USER> (count 'a *v* :key #'verbose-first)
-  Looking at (A 10)
-  Looking at (B 20)
-  Looking at (A 30)
-  Looking at (B 40)
-  2
-  CL-USER> (count 'a *v* :key #'verbose-first :from-end t)
-  Looking at (B 40)
-  Looking at (A 30)
-  Looking at (B 20)
-  Looking at (A 10)
-  2
+CL-USER> (defparameter *v* #((a 10) (b 20) (a 30) (b 40)))
+*V*
+CL-USER> (defun verbose-first (x) (format t "Looking at ~s~%" x) (first x))
+VERBOSE-FIRST
+CL-USER> (count 'a *v* :key #'verbose-first)
+Looking at (A 10)
+Looking at (B 20)
+Looking at (A 30)
+Looking at (B 40)
+2
+CL-USER> (count 'a *v* :key #'verbose-first :from-end t)
+Looking at (B 40)
+Looking at (A 30)
+Looking at (B 20)
+Looking at (A 10)
+2
 \end{myverb}
 
 В таб.~\ref{table:11-2} приведены описания всех стандартных аргументов.
@@ -386,14 +386,14 @@
 для которых функция \textit{не} возвращает истинного значения.
 
 \begin{myverb}
-  (count-if #'evenp #(1 2 3 4 5))         ==> 2
+(count-if #'evenp #(1 2 3 4 5))         ==> 2
 
-  (count-if-not #'evenp #(1 2 3 4 5))     ==> 3
+(count-if-not #'evenp #(1 2 3 4 5))     ==> 3
 
-  (position-if #'digit-char-p "abcd0001") ==> 4
+(position-if #'digit-char-p "abcd0001") ==> 4
 
-  (remove-if-not #'(lambda (x) (char= (elt x 0) #\bslash{}f))
-    #("foo" "bar" "baz" "foom")) ==> #("foo" "foom")
+(remove-if-not #'(lambda (x) (char= (elt x 0) #\bslash{}f))
+  #("foo" "bar" "baz" "foom")) ==> #("foo" "foom")
 \end{myverb}
 
 В соответствии со стандартом языка функции с суффиксом \lstinline{-IF-NOT} являются
@@ -403,7 +403,7 @@
 \lstinline{REMOVE-IF}.  За исключением своего отрицательно звучащего имени, в действительности
 \lstinline{REMOVE-IF-NOT} является положительной функцией~-- она возвращает элементы, которые
 соответствуют предикату\footnote{Эта функция обеспечивает ту же функциональность, что и
-  \code{grep} в Perl и \code{filter} в Python.}.
+  \lstinline{grep} в Perl и \lstinline{filter} в Python.}.
 
 Оба варианта функций принимают те же именованные аргументы, что и базовые функции, за
 исключением аргумента \lstinline{:test}, который не нужен, поскольку главный аргумент сам
@@ -417,23 +417,23 @@
   путём указания объекта в функции-предикате.
 
 \begin{myverb}
-  (count char string) ===
-    (count-if #'(lambda (c) (eql char c)) string)
-  
-  (count char string :test #'CHAR-EQUAL) ===
-    (count-if #'(lambda (c) (char-equal char c)) string)
+(count char string) ===
+  (count-if #'(lambda (c) (eql char c)) string)
+
+(count char string :test #'CHAR-EQUAL) ===
+  (count-if #'(lambda (c) (char-equal char c)) string)
 \end{myverb}
 
 }.  При указании аргумента \lstinline{:key} функции передаётся значение, извлечённое функцией
 аргумента \lstinline{:key}, а не сам элемент.
 
 \begin{myverb}
-  (count-if #'evenp #((1 a) (2 b) (3 c) (4 d) (5 e)) :key #'first)     ==> 2
+(count-if #'evenp #((1 a) (2 b) (3 c) (4 d) (5 e)) :key #'first)     ==> 2
 
-  (count-if-not #'evenp #((1 a) (2 b) (3 c) (4 d) (5 e)) :key #'first) ==> 3
+(count-if-not #'evenp #((1 a) (2 b) (3 c) (4 d) (5 e)) :key #'first) ==> 3
 
-  (remove-if-not #'alpha-char-p
-    #("foo" "bar" "1baz") :key #'(lambda (x) (elt x 0))) ==> #("foo" "bar")
+(remove-if-not #'alpha-char-p
+  #("foo" "bar" "1baz") :key #'(lambda (x) (elt x 0))) ==> #("foo" "bar")
 \end{myverb}
 
 Семейство функций \lstinline{REMOVE} также имеет четвёртый вариант, функцию
@@ -443,7 +443,7 @@
 \lstinline{:count}, поскольку она всегда удаляет все дубликаты.
 
 \begin{myverb}
-  (remove-duplicates #(1 2 1 2 3 1 2 3 4)) ==> #(1 2 3 4)
+(remove-duplicates #(1 2 1 2 3 1 2 3 4)) ==> #(1 2 3 4)
 \end{myverb}
 
 \section{Работа с последовательностью целиком}
@@ -470,9 +470,9 @@
   этого вектора.}.  Например:
 
 \begin{myverb}
-  (concatenate 'vector #(1 2 3) '(4 5 6))    ==> #(1 2 3 4 5 6)
-  (concatenate 'list #(1 2 3) '(4 5 6))      ==> (1 2 3 4 5 6)
-  (concatenate 'string "abc" '(#\bslash{}d #\bslash{}e #\bslash{}f)) ==> "abcdef"
+(concatenate 'vector #(1 2 3) '(4 5 6))    ==> #(1 2 3 4 5 6)
+(concatenate 'list #(1 2 3) '(4 5 6))      ==> (1 2 3 4 5 6)
+(concatenate 'string "abc" '(#\bslash{}d #\bslash{}e #\bslash{}f)) ==> "abcdef"
 \end{myverb}
 
 \section{Сортировка и слияние}
@@ -482,7 +482,7 @@
 возвращают отсортированную последовательность.
 
 \begin{myverb}
-  (sort (vector "foo" "bar" "baz") #'string<) ==> #("bar" "baz" "foo")
+(sort (vector "foo" "bar" "baz") #'string<) ==> #("bar" "baz" "foo")
 \end{myverb}
 
 Разница между этими функциями заключается в том, что \lstinline{STABLE-SORT} гарантирует, что
@@ -508,13 +508,13 @@
   поскольку функции сортировки могут изменять списки произвольным образом.}:
 
 \begin{myverb}
-  (setf my-sequence (sort my-sequence #'string<))
+(setf my-sequence (sort my-sequence #'string<))
 \end{myverb}
 
 \noindent{}вместо:
 
 \begin{myverb}
-  (sort my-sequence #'string<)
+(sort my-sequence #'string<)
 \end{myverb}
 
 Обе эти функции принимают именованный аргумент \lstinline{:key}, который, так же как и аргумент
@@ -534,8 +534,8 @@
 которая будет получена в результате работы.
 
 \begin{myverb}
-  (merge 'vector #(1 3 5) #(2 4 6) #'<) ==> #(1 2 3 4 5 6)
-  (merge 'list #(1 3 5) #(2 4 6) #'<)   ==> (1 2 3 4 5 6)
+(merge 'vector #(1 3 5) #(2 4 6) #'<) ==> #(1 2 3 4 5 6)
+(merge 'list #(1 3 5) #(2 4 6) #'<)   ==> (1 2 3 4 5 6)
 \end{myverb}
 
 \section{Работа с частями последовательностей}
@@ -546,8 +546,8 @@
 последовательности.  Например:
 
 \begin{myverb}
-  (subseq "foobarbaz" 3)   ==> "barbaz"
-  (subseq "foobarbaz" 3 6) ==> "bar"
+(subseq "foobarbaz" 3)   ==> "barbaz"
+(subseq "foobarbaz" 3 6) ==> "bar"
 \end{myverb}
 
 Для результата \lstinline{SUBSEQ} также можно выполнить \lstinline{SETF}, но таким образом нельзя увеличить
@@ -555,16 +555,16 @@
 разные длины, то более короткое из них определяет то, как много знаков будет изменено.
 
 \begin{myverb}
-  (defparameter *x* (copy-seq "foobarbaz"))
+(defparameter *x* (copy-seq "foobarbaz"))
 
-  (setf (subseq *x* 3 6) "xxx")  ; subsequence and new value are same length
-  *x* ==> "fooxxxbaz"
+(setf (subseq *x* 3 6) "xxx")  ; subsequence and new value are same length
+*x* ==> "fooxxxbaz"
 
-  (setf (subseq *x* 3 6) "abcd") ; new value too long, extra character ignored.
-  *x* ==> "fooabcbaz"
+(setf (subseq *x* 3 6) "abcd") ; new value too long, extra character ignored.
+*x* ==> "fooabcbaz"
 
-  (setf (subseq *x* 3 6) "xx")   ; new value too short, only two characters changed
-  *x* ==> "fooxxcbaz"
+(setf (subseq *x* 3 6) "xx")   ; new value too short, only two characters changed
+*x* ==> "fooxxcbaz"
 \end{myverb}
 
 Вы можете использовать функцию \lstinline{FILL} для заполнения нескольких значений
@@ -578,8 +578,8 @@
 аргументом является последовательность, а не единичное значение.
 
 \begin{myverb}
-  (position #\bslash{}b "foobarbaz") ==> 3
-  (search "bar" "foobarbaz") ==> 3
+(position #\bslash{}b "foobarbaz") ==> 3
+(search "bar" "foobarbaz") ==> 3
 \end{myverb}
 
 Для того чтобы, напротив, найти позицию, в которой две последовательности с общим
@@ -600,7 +600,7 @@
 суффикс последовательностей.
 
 \begin{myverb}
-  (mismatch "foobar" "bar" :from-end t) ==> 3
+(mismatch "foobar" "bar" :from-end t) ==> 3
 \end{myverb}
 
 \section{Предикаты для последовательностей}
@@ -622,19 +622,19 @@
 последовательности:
 
 \begin{myverb}
-  (every #'evenp #(1 2 3 4 5))    ==> NIL
-  (some #'evenp #(1 2 3 4 5))     ==> T
-  (notany #'evenp #(1 2 3 4 5))   ==> NIL
-  (notevery #'evenp #(1 2 3 4 5)) ==> T
+(every #'evenp #(1 2 3 4 5))    ==> NIL
+(some #'evenp #(1 2 3 4 5))     ==> T
+(notany #'evenp #(1 2 3 4 5))   ==> NIL
+(notevery #'evenp #(1 2 3 4 5)) ==> T
 \end{myverb}
 
 А эти вызовы выполняют попарное сравнение последовательностей:
 
 \begin{myverb}
-  (every #'> #(1 2 3 4) #(5 4 3 2))    ==> NIL
-  (some #'> #(1 2 3 4) #(5 4 3 2))     ==> T
-  (notany #'> #(1 2 3 4) #(5 4 3 2))   ==> NIL
-  (notevery #'> #(1 2 3 4) #(5 4 3 2)) ==> T
+(every #'> #(1 2 3 4) #(5 4 3 2))    ==> NIL
+(some #'> #(1 2 3 4) #(5 4 3 2))     ==> T
+(notany #'> #(1 2 3 4) #(5 4 3 2))   ==> NIL
+(notevery #'> #(1 2 3 4) #(5 4 3 2)) ==> T
 \end{myverb}
 
 \section{Функции отображения последовательностей}
@@ -648,7 +648,7 @@
 необходимо сообщить тип создаваемой последовательности.
 
 \begin{myverb}
-  (map 'vector #'* #(1 2 3 4 5) #(10 9 8 7 6)) ==> #(10 18 24 28 30)
+(map 'vector #'* #(1 2 3 4 5) #(10 9 8 7 6)) ==> #(10 18 24 28 30)
 \end{myverb}
 
 Функция \lstinline{MAP-INTO} похожа на \lstinline{MAP}, за исключением того, что вместо создания
@@ -659,7 +659,7 @@
 написать:
 
 \begin{myverb}
-  (map-into a #'+ a b c)
+(map-into a #'+ a b c)
 \end{myverb}
 
 Если последовательности имеют разную длину, то \lstinline{MAP-INTO} изменяет столько элементов,
@@ -678,7 +678,7 @@
 единицы до десяти:
 
 \begin{myverb}
-  (reduce #'+ #(1 2 3 4 5 6 7 8 9 10)) ==> 55
+(reduce #'+ #(1 2 3 4 5 6 7 8 9 10)) ==> 55
 \end{myverb}
 
 \lstinline{REDUCE}~-- удивительно полезная функция: если вам нужно создать из
@@ -728,10 +728,10 @@
   ключ~-- первым, а коллекцию~-- вторым.}.  Например:
 
 \begin{myverb}
-  (defparameter *h* (make-hash-table))
-  (gethash 'foo *h*) ==> NIL
-  (setf (gethash 'foo *h*) 'quux)
-  (gethash 'foo *h*) ==> QUUX
+(defparameter *h* (make-hash-table))
+(gethash 'foo *h*) ==> NIL
+(setf (gethash 'foo *h*) 'quux)
+(gethash 'foo *h*) ==> QUUX
 \end{myverb}
 
 Поскольку \lstinline{GETHASH} возвращает \lstinline{NIL}, если ключ не присутствует в таблице, то нет
@@ -754,17 +754,17 @@
 связываемые переменные содержат значение и признак его наличия в таблице:
 
 \begin{myverb}  
-  (defun show-value (key hash-table)
-    (multiple-value-bind (value present) (gethash key hash-table)
-      (if present
-        (format nil "Значение ~a присутствует в таблице." value)
-        (format nil "Значение равно ~a, поскольку ключ не найден." value))))
+(defun show-value (key hash-table)
+  (multiple-value-bind (value present) (gethash key hash-table)
+    (if present
+      (format nil "Значение ~a присутствует в таблице." value)
+      (format nil "Значение равно ~a, поскольку ключ не найден." value))))
 
-  (setf (gethash 'bar *h*) nil) ; создаёт ключ со значением NIL
+(setf (gethash 'bar *h*) nil) ; создаёт ключ со значением NIL
 
-  (show-value 'foo *h*) ==> "Значение QUUX присутствует в таблице."
-  (show-value 'bar *h*) ==> "Значение NIL присутствует в таблице."
-  (show-value 'baz *h*) ==> "Значение равно NIL , поскольку ключ не найден."
+(show-value 'foo *h*) ==> "Значение QUUX присутствует в таблице."
+(show-value 'bar *h*) ==> "Значение NIL присутствует в таблице."
+(show-value 'baz *h*) ==> "Значение равно NIL , поскольку ключ не найден."
 \end{myverb}
 
 Поскольку установка значения в \lstinline{NIL} оставляет ключ в таблице, вам понадобится другая
@@ -782,7 +782,7 @@ Common Lisp предоставляет разные способы для раб
 распечатки всех пар ключ/значение вы можете использовать такой вызов \lstinline{MAPHASH}:
 
 \begin{myverb}
-  (maphash #'(lambda (k v) (format t "~a => ~a~%" k v)) *h*)
+(maphash #'(lambda (k v) (format t "~a => ~a~%" k v)) *h*)
 \end{myverb}
 
 Последствия добавления или удаления записей в хэш-таблице во время прохода по её записям
@@ -793,7 +793,7 @@ Common Lisp предоставляет разные способы для раб
 вот так:
 
 \begin{myverb}
-  (maphash #'(lambda (k v) (when (< v 10) (remhash k *h*))) *h*)
+(maphash #'(lambda (k v) (when (< v 10) (remhash k *h*))) *h*)
 \end{myverb}
 
 Еще один способ итерации по элементам хэш-таблицы~-- использование макроса
@@ -806,8 +806,8 @@ Common Lisp предоставляет разные способы для раб
 пример с \lstinline{MAPHASH}, будет выглядеть вот так:
 
 \begin{myverb}  
-  (loop for k being the hash-keys in *h* using (hash-value v)
-    do (format t "~a => ~a~%" k v))
+(loop for k being the hash-keys in *h* using (hash-value v)
+   do (format t "~a => ~a~%" k v))
 \end{myverb}
 
 Я мог бы рассказать еще очень многое о коллекциях, не являющихся списками, в Common

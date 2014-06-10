@@ -110,9 +110,12 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 }
 \lstdefinestyle{lisp}{language=Lisp,keywordstyle=\bfseries}
 
-% TODO: decrease space before/after myverb...
+\usepackage{parskip}
+\setlength{\parskip}{0.0pt plus 1.0pt}
+\setlength{\parindent}{15pt}
+
 \usepackage{alltt}
-\newenvironment{myverb}[0]{\begin{alltt}\footnotesize}{\end{alltt}}
+\newenvironment{myverb}[0]{\setlength{\topsep}{-\parskip}\setlength{\partopsep}{4pt}\begin{alltt}\setlength{\leftskip}{20pt}\footnotesize}{\end{alltt}}
 \newcommand\bslash{\symbol{`\\}}
 
 \lstdefinestyle{lisprepl}{keywords={}}
@@ -121,8 +124,6 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \spaceskip\codespaceskip\relax}{}% \spaceskip3bp plus 1.5bp minus1bp\relax 
 #1}}
 \def\codespaceskip{\the\spaceskip}
-\newcommand{\stdcode}[1]{\code{#1}}
-\newcommand{\keyword}[1]{\code{\textbf{#1}}}
 
 %% proper captions for figures, etc
 \usepackage{caption}
@@ -131,8 +132,9 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 
 % Добавляем точку после номера раздела
 \usepackage{titlesec}
-\titlelabel{\thetitle.\quad}
+\titlelabel{\thetitle.\enskip}
 \usepackage[dotinlabels]{titletoc}
+\titlespacing\section{0pt}{8pt plus 1pt minus 1pt}{5pt plus 1pt minus 1pt}
 
 % settings for floating objects
 \renewcommand{\topfraction}{.9}
@@ -175,6 +177,7 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \makeatother
 
 \begin{document}
+\thispagestyle{empty}
 % Don't remove! used for tikz nodes align!
 \newlength{\tikztextheight}\settoheight{\tikztextheight}{!}
 
@@ -187,7 +190,9 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 %% TODO: remove...
 \sloppy
 
-\frontmatter
+%\thispagestyle{empty}
+%\frontmatter
+\thispagestyle{empty}
 
 \makeatletter
 \@nameuse{ttl@ps@\string\chapter}

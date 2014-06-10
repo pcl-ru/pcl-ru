@@ -36,16 +36,16 @@ AllegroServe, которые позволят нам в главе~\ref{ch:29} �
 выглядит вот так:
 
 \begin{lstlisting}[language=HTML]
-  <html>
-    <head>
-    <title>Hello</title>
-    </head>
-    <body>
-    <p>Hello, world!</p>
-    <p>This is a picture: <img src="some-image.gif"></p>
-    <p>This is a <a href="another-page.html">link</a> to another page.</p>
-    </body>
-  </html>
+<html>
+  <head>
+  <title>Hello</title>
+  </head>
+  <body>
+  <p>Hello, world!</p>
+  <p>This is a picture: <img src="some-image.gif"></p>
+  <p>This is a <a href="another-page.html">link</a> to another page.</p>
+  </body>
+</html>
 \end{lstlisting}
 
 Рис.~\ref{fig:26-1}, показывает как браузер отображает эту страницу.
@@ -53,8 +53,8 @@ AllegroServe, которые позволят нам в главе~\ref{ch:29} �
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=0.7]{images/new-sample.jpg}
-  \label{fig:26-1}
   \caption{Пример веб-страницы}
+  \label{fig:26-1}
 \end{figure}
 
 Браузер и сервер общаются между собой, используя протокол, называемый Hypertext Transfer
@@ -175,16 +175,16 @@ AllegroServe создаст три новых пакета: \lstinline{NET.ASERV
 также остальных частей Common Lisp, нам нужно создать новый пакет:
 
 \begin{myverb}
-  CL-USER> (defpackage :com.gigamonkeys.web
-              (:use :cl :net.aserve :com.gigamonkeys.html))
-  #<The COM.GIGAMONKEYS.WEB package>
+CL-USER> (defpackage :com.gigamonkeys.web
+            (:use :cl :net.aserve :com.gigamonkeys.html))
+#<The COM.GIGAMONKEYS.WEB package>
 \end{myverb}
 
 Теперь переключитесь на этот пакет с помощью следующего выражения \lstinline{IN-PACKAGE}:
 
 \begin{myverb}
-  CL-USER> (in-package :com.gigamonkeys.web)
-  #<The COM.GIGAMONKEYS.WEB package>
+CL-USER> (in-package :com.gigamonkeys.web)
+#<The COM.GIGAMONKEYS.WEB package>
 WEB>
 \end{myverb} 
 
@@ -201,8 +201,8 @@ Unix-подобных операционных системах только а�
 следующей команды:
 
 \begin{myverb}
-  WEB> (start :port 2001)
-  #<WSERVER port 2001 @ #x72511c72>
+WEB> (start :port 2001)
+#<WSERVER port 2001 @ #x72511c72>
 \end{myverb}
 
 Теперь сервер выполняется в вашей среде Lisp. Возможно, что при попытке запуска сервера вы
@@ -230,21 +230,21 @@ refused when attempting to contact localhost:2001>>, то это означае�
 каталоге \lstinline{/tmp/html} со следующим содержимым:
 
 \begin{lstlisting}[language=HTML]
-  <html>
-    <head>
-    <title>Hello</title>
-    </head>
-    <body>
-    <p>Hello, world!</p>
-    </body>
-  </html>
+<html>
+  <head>
+  <title>Hello</title>
+  </head>
+  <body>
+  <p>Hello, world!</p>
+  </body>
+</html>
 \end{lstlisting}
 
 Вы можете опубликовать его с помощью функции \lstinline{publish-file}.
 
 \begin{myverb}
-  WEB> (publish-file :path "/hello.html" :file "/tmp/html/hello.html")
-  #<NET.ASERVE::FILE-ENTITY @ #x725eddea>
+WEB> (publish-file :path "/hello.html" :file "/tmp/html/hello.html")
+#<NET.ASERVE::FILE-ENTITY @ #x725eddea>
 \end{myverb}
 
 Аргумент \lstinline{:path} задаёт путь, который будет использоваться в URL, запрашиваемом
@@ -256,8 +256,8 @@ refused when attempting to contact localhost:2001>>, то это означае�
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=0.7]{images/hello-world.jpg}
-  \label{fig:26-2}
   \caption{\url{http://localhost:2001/hello.html}}
+  \label{fig:26-2}
 \end{figure}
 
 Вы также можете опубликовать целый каталог с помощью функции \lstinline{publish-directory}. Но
@@ -265,16 +265,16 @@ refused when attempting to contact localhost:2001>>, то это означае�
 \lstinline{publish-file}:
 
 \begin{myverb}
-  WEB> (publish-file :path "/hello.html" :remove t)
-  NIL
+WEB> (publish-file :path "/hello.html" :remove t)
+NIL
 \end{myverb}
 
 Теперь вы можете опубликовать каталог \lstinline{/tmp/html/} целиком (включая его подкаталоги)
 с помощью функции \lstinline{publish-directory}.
 
 \begin{myverb}
-  WEB> (publish-directory :prefix "/" :destination "/tmp/html/")
-  #<NET.ASERVE::DIRECTORY-ENTITY @ #x72625AA2>
+WEB> (publish-directory :prefix "/" :destination "/tmp/html/")
+#<NET.ASERVE::DIRECTORY-ENTITY @ #x72625AA2>
 \end{myverb}
 
 В данном случае аргумент \lstinline{:prefix} указывает начало пути адресов URL, которые будут
@@ -304,19 +304,19 @@ refused when attempting to contact localhost:2001>>, то это означае�
 случайными числами при каждом обращении к ней.
 
 \begin{myverb}
-  (defun random-number (request entity)
-    (with-http-response (request entity :content-type "text/html")
-      (with-http-body (request entity)
-        (format 
-         (request-reply-stream request)
-         "<html>~@
-          <head><title>Random</title></head>~@
-          <body>~@
-          <p>Random number: ~d</p>~@
-          </body>~@
-          </html>~@
-         "
-         (random 1000)))))
+(defun random-number (request entity)
+  (with-http-response (request entity :content-type "text/html")
+    (with-http-body (request entity)
+      (format 
+       (request-reply-stream request)
+       "<html>~@
+        <head><title>Random</title></head>~@
+        <body>~@
+        <p>Random number: ~d</p>~@
+        </body>~@
+        </html>~@
+       "
+       (random 1000)))))
 \end{myverb}
 
 Макросы \lstinline{with-http-response} и \lstinline{with-http-body} являются частью
@@ -343,8 +343,8 @@ AllegroServe и возвращает поток, в который вы долж
 Теперь мы готовы к публикации данной функции.
 
 \begin{myverb}
-  WEB> (publish :path "/random-number" :function 'random-number)
-  #<COMPUTED-ENTITY @ #x7262bab2>
+WEB> (publish :path "/random-number" :function 'random-number)
+#<COMPUTED-ENTITY @ #x7262bab2>
 \end{myverb}
 
 Так же как и в функции \lstinline{publish-file}, аргумент \lstinline{:path} указывает <<путевую
@@ -359,8 +359,8 @@ AllegroServe и возвращает поток, в который вы долж
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=0.7]{images/random-number.jpg}
-  \label{fig:26-3}
   \caption{\url{http://localhost:2001/random-number}}
+  \label{fig:26-3}
 \end{figure}
 
 \section{Генерация HTML}
@@ -384,22 +384,22 @@ HTML, так же как и списки в s-выражениях, могут �
 и на более сложный HTML. Для примера вот такой HTML:
 
 \begin{lstlisting}[language=HTML]
-  <html>
-    <head>
-    <title>Hello</title>
-    </head>
-    <body>
-    <p>Hello, world!</p>
-    </body>
-  </html>
+<html>
+  <head>
+  <title>Hello</title>
+  </head>
+  <body>
+  <p>Hello, world!</p>
+  </body>
+</html>
 \end{lstlisting}
 
 \noindent{}может быть представлен в виде следующего s-выражения:
 
 \begin{myverb}
-  (:html
-    (:head (:title "Hello"))
-    (:body (:p "Hello, world!")))
+(:html
+  (:head (:title "Hello"))
+  (:body (:p "Hello, world!")))
 \end{myverb}
 
 Элементы HTML с атрибутами несколько усложняют дело, но не создают непреодолимых
@@ -409,20 +409,20 @@ HTML, так же как и списки в s-выражениях, могут �
 обозначает начало содержимого элемента. Таким образом, такой HTML:
 
 \begin{lstlisting}[language=HTML]
-  <a href="foo.html">This is a link</a>
+<a href="foo.html">This is a link</a>
 \end{lstlisting}
 
 \noindent{}будет представляться следующим s-выражением:
 
 \begin{myverb}
-  (:a :href "foo.html" "This is a link")
+(:a :href "foo.html" "This is a link")
 \end{myverb}
 
 Другой предоставляемый FOO синтаксис заключается в группировке имени тега и его
 атрибутов в отдельный список следующим образом:
 
 \begin{myverb}
-  ((:a :href "foo.html") "This is link.")
+((:a :href "foo.html") "This is link.")
 \end{myverb}
 
 FOO может использовать представление HTML в виде s-выражений двумя
@@ -430,16 +430,16 @@ FOO может использовать представление HTML в ви�
 соответствующий HTML.
 
 \begin{myverb}
-  WEB> (emit-html '(:html (:head (:title "Hello")) (:body (:p "Hello, world!"))))
-  <html>
-    <head>
-      <title>Hello</title>
-    </head>
-    <body>
-      <p>Hello, world!</p>
-    </body>
-  </html>
-  T
+WEB> (emit-html '(:html (:head (:title "Hello")) (:body (:p "Hello, world!"))))
+<html>
+  <head>
+    <title>Hello</title>
+  </head>
+  <body>
+    <p>Hello, world!</p>
+  </body>
+</html>
+T
 \end{myverb}
 
 Однако \lstinline{emit-html} не всегда является наиболее эффективным способом генерации
@@ -451,13 +451,13 @@ s-выражение, используя шаблон квазицитирова
 \lstinline{emit-html}:
 
 \begin{myverb}
-  (emit-html
-    `(:html
-       (:head
-         (:title "Random numbers"))
-       (:body 
-         (:h1 "Random numbers")
-         (:p ,@(loop repeat 10000 collect (random 1000) collect " ")))))
+(emit-html
+  `(:html
+     (:head
+       (:title "Random numbers"))
+     (:body 
+       (:h1 "Random numbers")
+       (:p ,@(loop repeat 10000 collect (random 1000) collect " ")))))
 \end{myverb}
 
 Однако этот код должен построить дерево, содержащее 10000-элементный список, перед тем как
@@ -472,15 +472,15 @@ HTML будет сгенерирован. Для избежания такой �
 оба следующих выражения:
 
 \begin{myverb}
-  (html (:p "foo"))
+(html (:p "foo"))
 
-  (let ((x "foo")) (html (:p x)))
+(let ((x "foo")) (html (:p x)))
 \end{myverb}
 
 \noindent{}сгенерируют следующее:
 
 \begin{lstlisting}[language=HTML]
-  <p>foo</p>
+<p>foo</p>
 \end{lstlisting}
 
 Формы списков, которые не начинаются с ключевых символов, рассматриваются как код и
@@ -490,36 +490,36 @@ HTML будет сгенерирован. Для избежания такой �
 следующее:
 
 \begin{myverb}
-  (html (:ul (dolist (item (list 1 2 3)) (html (:li item)))))
+(html (:ul (dolist (item (list 1 2 3)) (html (:li item)))))
 \end{myverb}
 
 \noindent{}что сгенерирует следующий HTML:
 
 \begin{lstlisting}[language=HTML]
-  <ul>
-    <li>1</li>
-    <li>2</li>
-    <li>3</li>
-  </ul>
+<ul>
+  <li>1</li>
+  <li>2</li>
+  <li>3</li>
+</ul>
 \end{lstlisting}
 
 Если вы захотите выдать значение формы, вы должны обернуть его в псевдотег
 \lstinline{:print}. Таким образом, выражение
 
 \begin{myverb}
-  (html (:p (+ 1 2)))
+(html (:p (+ 1 2)))
 \end{myverb}
 
 \noindent{}сгенерирует такой HTML после вычисления и отбрасывания значения \lstinline{3}:
 
 \begin{lstlisting}[language=HTML]
-  <p></p>
+<p></p>
 \end{lstlisting}
 
 Для выдачи \lstinline{3} вы должны написать такой код:
 
 \begin{myverb}
-  (html (:p (:print (+ 1 2))))
+(html (:p (:print (+ 1 2))))
 \end{myverb}
 
 Или же вы можете вычислить значение и сохранить его в переменной вне вызова \lstinline{html}
@@ -533,13 +533,13 @@ HTML будет сгенерирован. Для избежания такой �
 чисел следующим образом:
 
 \begin{myverb}
-  (html
-    (:html
-      (:head
-        (:title "Random numbers"))
-      (:body 
-        (:h1 "Random numbers")
-        (:p (loop repeat 10 do (html (:print (random 1000)) " "))))))
+(html
+  (:html
+    (:head
+      (:title "Random numbers"))
+    (:body 
+      (:h1 "Random numbers")
+      (:p (loop repeat 10 do (html (:print (random 1000)) " "))))))
 \end{myverb}
 
 Версия, использующая макрос \lstinline{html}, будет эффективнее, чем использующая
@@ -554,15 +554,15 @@ FOO. Вы можете использовать макросы \lstinline{with-h
 переписывания \lstinline{random-number} следущим образом:
 
 \begin{myverb}
-  (defun random-number (request entity)
-    (with-http-response (request entity :content-type "text/html")
-      (with-http-body (request entity)
-        (with-html-output ((request-reply-stream request))
-          (html
-            (:html
-              (:head (:title "Random"))
-              (:body
-                (:p "Random number: " (:print (random 1000))))))))))
+(defun random-number (request entity)
+  (with-http-response (request entity :content-type "text/html")
+    (with-http-body (request entity)
+      (with-html-output ((request-reply-stream request))
+        (html
+          (:html
+            (:head (:title "Random"))
+            (:body
+              (:p "Random number: " (:print (random 1000))))))))))
 \end{myverb}
 
 \section{Макросы HTML}
@@ -573,22 +573,22 @@ HTML, которые могут преобразовывать произвол�
 создаёте страницы следующего вида:
 
 \begin{myverb}
-  (:html
-    (:head (:title "Some title"))
-    (:body
-      (:h1 "Some title")
-      ... stuff ...))
+(:html
+  (:head (:title "Some title"))
+  (:body
+    (:h1 "Some title")
+    ... stuff ...))
 \end{myverb}
 
 Вы можете определить макрос HTML, представляющий этот образец, следующим образом:
 
 \begin{myverb}
-  (define-html-macro :standard-page ((&key title) &body body)
-    `(:html
-       (:head (:title ,title))
-       (:body
-        (:h1 ,title)
-        ,@body)))
+(define-html-macro :standard-page ((&key title) &body body)
+  `(:html
+     (:head (:title ,title))
+     (:body
+      (:h1 ,title)
+      ,@body)))
 \end{myverb}
 
 Теперь вы можете использовать <<тег>> \lstinline{:standard-page} в ваших представляющих HTML
@@ -596,21 +596,21 @@ s-выражениях, и он будет раскрыт перед интер�
 Например, следующий код:
 
 \begin{myverb}
-  (html (:standard-page (:title "Hello") (:p "Hello, world.")))
+(html (:standard-page (:title "Hello") (:p "Hello, world.")))
 \end{myverb}
 
 \noindent{}сгенерирует такой HTML:
 
 \begin{lstlisting}[language=HTML]
-  <html>
-    <head>
-      <title>Hello</title>
-    </head>
-    <body>
-      <h1>Hello</h1>
-      <p>Hello, world.</p>
-    </body>
-  </html>
+<html>
+  <head>
+    <title>Hello</title>
+  </head>
+  <body>
+    <h1>Hello</h1>
+    <p>Hello, world.</p>
+  </body>
+</html>
 \end{lstlisting}
 
 \section{Параметры запроса}
@@ -630,27 +630,27 @@ AllegroServe, как и большинство других каркасов web
 страницу, отображающую все полученные ею параметры запроса:
 
 \begin{myverb}
-  (defun show-query-params (request entity)
-    (with-http-response (request entity :content-type "text/html")
-      (with-http-body (request entity)
-        (with-html-output ((request-reply-stream request))
-          (html
-            (:standard-page
-             (:title "Query Parameters")
-             (if (request-query request)
-               (html 
-                 (:table :border 1
-                         (loop for (k . v) in (request-query request)
-                            do (html (:tr (:td k) (:td v))))))
-               (html (:p "No query parameters.")))))))))
+(defun show-query-params (request entity)
+  (with-http-response (request entity :content-type "text/html")
+    (with-http-body (request entity)
+      (with-html-output ((request-reply-stream request))
+        (html
+          (:standard-page
+           (:title "Query Parameters")
+           (if (request-query request)
+             (html 
+               (:table :border 1
+                       (loop for (k . v) in (request-query request)
+                          do (html (:tr (:td k) (:td v))))))
+             (html (:p "No query parameters.")))))))))
 
-  (publish :path "/show-query-params" :function 'show-query-params)
+(publish :path "/show-query-params" :function 'show-query-params)
 \end{myverb}
 
 Если вы укажете своему браузеру URL со строкой запроса, подобной такой:
 
 \begin{myverb}
-  http://localhost:2001/show-query-params?foo=bar&baz=10
+http://localhost:2001/show-query-params?foo=bar&baz=10
 \end{myverb}
 
 \noindent{}вы получите страницу, подобную показанной на рис.~\ref{fig:26-4}.
@@ -658,32 +658,32 @@ AllegroServe, как и большинство других каркасов web
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=0.7]{images/show-query-params-1a.jpg}
-  \label{fig:26-4}
   \caption{\url{http://localhost:2001/show-query-params?foo=bar&baz=10}}
+  \label{fig:26-4}
 \end{figure}
 
 Для генерации POST-данных нам нужна форма HTML. Следующая функция генерирует простую
 форму, которая посылает свои данные show-query-params:
 
 \begin{myverb}
-  (defun simple-form (request entity)
-    (with-http-response (request entity :content-type "text/html")
-      (with-http-body (request entity)
-        (let ((*html-output* (request-reply-stream request)))
-          (html
-            (:html
-              (:head (:title "Simple Form"))
-              (:body
-               (:form :method "POST" :action "/show-query-params"
-                 (:table
-                  (:tr (:td "Foo")
-                       (:td (:input :name "foo" :size 20)))
-                  (:tr (:td "Password")
-                       (:td (:input :name "password" :type "password" :size 20))))
-                 (:p (:input :name "submit" :type "submit" :value "Okay")
-                     (:input ::type "reset" :value "Reset"))))))))))
+(defun simple-form (request entity)
+  (with-http-response (request entity :content-type "text/html")
+    (with-http-body (request entity)
+      (let ((*html-output* (request-reply-stream request)))
+        (html
+          (:html
+            (:head (:title "Simple Form"))
+            (:body
+             (:form :method "POST" :action "/show-query-params"
+               (:table
+                (:tr (:td "Foo")
+                     (:td (:input :name "foo" :size 20)))
+                (:tr (:td "Password")
+                     (:td (:input :name "password" :type "password" :size 20))))
+               (:p (:input :name "submit" :type "submit" :value "Okay")
+                   (:input ::type "reset" :value "Reset"))))))))))
 
-  (publish :path "/simple-form" :function 'simple-form)
+(publish :path "/simple-form" :function 'simple-form)
 \end{myverb}
 
 Перейдите в вашем браузере по адресу \url{http://localhost:2001/simple-form}~-- вы должны
@@ -692,8 +692,8 @@ AllegroServe, как и большинство других каркасов web
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=0.7]{images/simple-form.jpg}
-  \label{fig:26-5}
   \caption{\url{http://localhost:2001/simple-form}}
+  \label{fig:26-5}
 \end{figure}
 
 Если вы заполните форму значениями <<abc>> и <<def>>, щёлкните на кнопку \texttt{Okay}, то
@@ -702,8 +702,8 @@ AllegroServe, как и большинство других каркасов web
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=0.7]{images/show-query-params-2.jpg}
-  \label{fig:26-6}
   \caption{Результат посылки простой формы}
+  \label{fig:26-6}
 \end{figure}
 
 Однако чаще всего вам не нужно проходить по всем параметрам запроса: обычно вам нужно
@@ -716,17 +716,17 @@ AllegroServe, как и большинство других каркасов web
 \lstinline{random-number} может выглядеть следующим образом:
 
 \begin{myverb}
-  (defun random-number (request entity)
-    (with-http-response (request entity :content-type "text/html")
-      (with-http-body (request entity)
-        (let* ((*html-output* (request-reply-stream request))
-               (limit-string (or (request-query-value "limit" request) ""))
-               (limit (or (parse-integer limit-string :junk-allowed t) 1000)))
-          (html
-            (:html
-              (:head (:title "Random"))
-              (:body
-                (:p "Random number: " (:print (random limit))))))))))
+(defun random-number (request entity)
+  (with-http-response (request entity :content-type "text/html")
+    (with-http-body (request entity)
+      (let* ((*html-output* (request-reply-stream request))
+             (limit-string (or (request-query-value "limit" request) ""))
+             (limit (or (parse-integer limit-string :junk-allowed t) 1000)))
+        (html
+          (:html
+            (:head (:title "Random"))
+            (:body
+              (:p "Random number: " (:print (random limit))))))))))
 \end{myverb}
 
 Так как \lstinline{request-query-value} может возвращать как \lstinline{NIL}, так и пустую
@@ -769,21 +769,21 @@ cookie: \lstinline{:expires}, \lstinline{:path}, \lstinline{:domain} и \lstinli
 Следующая функция отображает имена и значения всех cookie, посланных браузером:
 
 \begin{myverb}
-  (defun show-cookies (request entity)
-    (with-http-response (request entity :content-type "text/html")
-      (with-http-body (request entity)
-        (with-html-output ((request-reply-stream request))
-          (html
-            (:standard-page
-             (:title "Cookies")
-             (if (null (get-cookie-values request))
-               (html (:p "No cookies."))
-               (html 
-                 (:table
-                   (loop for (key . value) in (get-cookie-values request)
-                      do (html (:tr (:td key) (:td value)))))))))))))
+(defun show-cookies (request entity)
+  (with-http-response (request entity :content-type "text/html")
+    (with-http-body (request entity)
+      (with-html-output ((request-reply-stream request))
+        (html
+          (:standard-page
+           (:title "Cookies")
+           (if (null (get-cookie-values request))
+             (html (:p "No cookies."))
+             (html 
+               (:table
+                 (loop for (key . value) in (get-cookie-values request)
+                    do (html (:tr (:td key) (:td value)))))))))))))
 
-  (publish :path "/show-cookies" :function 'show-cookies)
+(publish :path "/show-cookies" :function 'show-cookies)
 \end{myverb}
 
 При первой загрузке страницы \lstinline{http://localhost:2001/show-cookies} она должна
@@ -793,25 +793,25 @@ cookie: \lstinline{:expires}, \lstinline{:path}, \lstinline{:domain} и \lstinli
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=0.7]{images/show-cookies-no-cookies.jpg}
-  \label{fig:26-7}
   \caption{\url{http://localhost:2001/show-cookies} без установленных cookie}
+  \label{fig:26-7}
 \end{figure}
 
 Для установки cookie нам понадобится другая функция, такая как эта:
 
 \begin{myverb}
-  (defun set-cookie (request entity)
-    (with-http-response (request entity :content-type "text/html")
-      (set-cookie-header request :name "MyCookie" :value "A cookie value")
-      (with-http-body (request entity)
-        (with-html-output ((request-reply-stream request))
-          (html 
-            (:standard-page
-             (:title "Set Cookie")
-             (:p "Cookie set.")
-             (:p (:a :href "/show-cookies" "Look at cookie jar."))))))))
+(defun set-cookie (request entity)
+  (with-http-response (request entity :content-type "text/html")
+    (set-cookie-header request :name "MyCookie" :value "A cookie value")
+    (with-http-body (request entity)
+      (with-html-output ((request-reply-stream request))
+        (html 
+          (:standard-page
+           (:title "Set Cookie")
+           (:p "Cookie set.")
+           (:p (:a :href "/show-cookies" "Look at cookie jar."))))))))
 
-  (publish :path "/set-cookie" :function 'set-cookie)
+(publish :path "/set-cookie" :function 'set-cookie)
 \end{myverb}
 
 Если вы откроете в браузере \url{http://localhost:2001/set-cookie}, он должен отобразить
@@ -825,15 +825,15 @@ cookie: \lstinline{:expires}, \lstinline{:path}, \lstinline{:domain} и \lstinli
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=0.7]{images/set-cookie.jpg}
-  \label{fig:26-8}
   \caption{\url{http://localhost:2001/set-cookie}}
+  \label{fig:26-8}
 \end{figure}
 
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=0.7]{images/show-cookies-one-cookie.jpg}
-  \label{fig:26-9}
   \caption{\url{http://localhost:2001/show-cookies} после установки cookie}
+  \label{fig:26-9}
 \end{figure}
 
 \section{Небольшой каркас приложений}
@@ -866,8 +866,8 @@ cookie: \lstinline{:expires}, \lstinline{:path}, \lstinline{:domain} и \lstinli
 будет такая:
 
 \begin{myverb}
-  (define-url-function name (request query-parameter*)
-    body)
+(define-url-function name (request query-parameter*)
+  body)
 \end{myverb}
 
 \noindent{}где \lstinline{body} будет кодом, выдающим код HTML-страницы. Он будет обернут в вызов макроса
@@ -882,7 +882,7 @@ cookie: \lstinline{:expires}, \lstinline{:path}, \lstinline{:domain} и \lstinli
 в cookie. Полный синтаксис для параметра запроса выглядит так:
 
 \begin{myverb}
-  name | (name type [default-value] [stickiness])
+name | (name type [default-value] [stickiness])
 \end{myverb}
 
 \lstinline{type} должен быть именем, распознаваемым \lstinline{define-url-function}. Мы скоро
@@ -908,11 +908,11 @@ cookie будет иметь то же имя, что и параметр. Та�
 11-строчного определения \lstinline{random-page} 5-строчной версией:
 
 \begin{myverb}
-  (define-url-function random-number (request (limit integer 1000))
-    (:html
-      (:head (:title "Random"))
-      (:body
-        (:p "Random number: " (:print (random limit))))))
+(define-url-function random-number (request (limit integer 1000))
+  (:html
+    (:head (:title "Random"))
+    (:body
+      (:p "Random number: " (:print (random limit))))))
 \end{myverb}
 
 Если вы хотите, чтобы аргумент \lstinline{limit} сохранялся, то должны изменить объявление
@@ -924,26 +924,26 @@ cookie будет иметь то же имя, что и параметр. Та�
 следующим образом:
 
 \begin{myverb}
-  (defmacro define-url-function (name (request &rest params) &body body)
-    (with-gensyms (entity)
-      (let ((params (mapcar #'normalize-param params)))
-        `(progn
-           (defun ,name (,request ,entity)
-             (with-http-response (,request ,entity :content-type "text/html")
-               (let* (,@(param-bindings name request params))
-                 ,@(set-cookies-code name request params)
-                 (with-http-body (,request ,entity)
-                   (with-html-output ((request-reply-stream ,request))
-                     (html ,@body))))))
-           (publish :path ,(format nil "/~(~a~)" name) :function ',name)))))
+(defmacro define-url-function (name (request &rest params) &body body)
+  (with-gensyms (entity)
+    (let ((params (mapcar #'normalize-param params)))
+      `(progn
+         (defun ,name (,request ,entity)
+           (with-http-response (,request ,entity :content-type "text/html")
+             (let* (,@(param-bindings name request params))
+               ,@(set-cookies-code name request params)
+               (with-http-body (,request ,entity)
+                 (with-html-output ((request-reply-stream ,request))
+                   (html ,@body))))))
+         (publish :path ,(format nil "/~(~a~)" name) :function ',name)))))
 \end{myverb}
 
 Давайте рассмотрим её по шагам, начиная с первых строк.
 
 \begin{myverb}
-  (defmacro define-url-function (name (request &rest params) &body body)
-    (with-gensyms (entity)
-      (let ((params (mapcar #'normalize-param params)))
+(defmacro define-url-function (name (request &rest params) &body body)
+  (with-gensyms (entity)
+    (let ((params (mapcar #'normalize-param params)))
 \end{myverb}
 
 До настоящего момента мы только готовились к генерации кода. Мы генерируем с помощью
@@ -952,10 +952,10 @@ cookie будет иметь то же имя, что и параметр. Та�
 форму с помощью следующей функции:
 
 \begin{myverb}
-  (defun normalize-param (param)
-    (etypecase param
-      (list param)
-      (symbol `(,param string nil nil))))
+(defun normalize-param (param)
+  (etypecase param
+    (list param)
+    (symbol `(,param string nil nil))))
 \end{myverb}
 
 Другими словами, объявления параметра как просто символа~-- это то же самое, что и
@@ -968,8 +968,8 @@ cookie будет иметь то же имя, что и параметр. Та�
 \lstinline{DEFUN} являются уже привычным нам шаблонным кодом:
 
 \begin{myverb}
-  (defun ,name (,request ,entity)
-    (with-http-response (,request ,entity :content-type "text/html")))
+(defun ,name (,request ,entity)
+  (with-http-response (,request ,entity :content-type "text/html")))
 \end{myverb}
 
 Теперь мы можем приступить к настоящей работе. Следующие две строки генерируют привязки
@@ -981,14 +981,14 @@ cookie будет иметь то же имя, что и параметр. Та�
   можете написать такое:
 
 \begin{myverb}
-  (define-url-function (request (x integer 10) (y integer (* 2 x))) ...)
+(define-url-function (request (x integer 10) (y integer (* 2 x))) ...)
 \end{myverb}
 
 \noindent{}и значение \lstinline{y}, не будучи предоставлено, будет удвоенным значением \lstinline{x}.}.
 
 \begin{myverb}
-  (let* (,@(param-bindings name request params))
-    ,@(set-cookies-code name request params)
+(let* (,@(param-bindings name request params))
+  ,@(set-cookies-code name request params)
 \end{myverb}
 
 Оставшаяся часть кода более шаблонна: мы помещаем тело из определения
@@ -996,7 +996,7 @@ cookie будет иметь то же имя, что и параметр. Та�
 \lstinline{with-html-output} и макроса \lstinline{html}. Затем идёт вызов \lstinline{publish}.
 
 \begin{myverb}
-  (publish :path ,(format nil "/~(~a~)" name) :function ',name)
+(publish :path ,(format nil "/~(~a~)" name) :function ',name)
 \end{myverb}
 
 Выражение \lstinline!(format nil "/~(~a~)" name)! вычисляется во время раскрытия макросов,
@@ -1014,19 +1014,19 @@ cookie будет иметь то же имя, что и параметр. Та�
 разбора в \lstinline{param-binding}.
 
 \begin{myverb}
-  (defun param-bindings (function-name request params)
-    (loop for param in params
-       collect (param-binding function-name request param)))
+(defun param-bindings (function-name request params)
+  (loop for param in params
+     collect (param-binding function-name request param)))
 
-  (defun param-binding (function-name request param)
-    (destructuring-bind (name type &optional default sticky) param
-      (let ((query-name (symbol->query-name name))
-            (cookie-name (symbol->cookie-name function-name name sticky)))
-        `(,name (or 
-                 (string->type ',type (request-query-value ,query-name ,request))
-                 ,@(if cookie-name
-                       (list `(string->type ',type (get-cookie-value ,request ,cookie-name))))
-                 ,default)))))
+(defun param-binding (function-name request param)
+  (destructuring-bind (name type &optional default sticky) param
+    (let ((query-name (symbol->query-name name))
+          (cookie-name (symbol->cookie-name function-name name sticky)))
+      `(,name (or 
+               (string->type ',type (request-query-value ,query-name ,request))
+               ,@(if cookie-name
+                     (list `(string->type ',type (get-cookie-value ,request ,cookie-name))))
+               ,default)))))
 \end{myverb}
 
 Функция \lstinline!string->type!, используемая для преобразования к желаемым типам
@@ -1034,7 +1034,7 @@ cookie будет иметь то же имя, что и параметр. Та�
 следующей сигнатурой:
 
 \begin{myverb}
-  (defgeneric string->type (type value))
+(defgeneric string->type (type value))
 \end{myverb}
 
 Для того чтобы иметь возможность использования определённого имени в качестве имени типа
@@ -1045,8 +1045,8 @@ cookie будет иметь то же имя, что и параметр. Та�
 \lstinline{NIL}, как и делает следующий метод:
 
 \begin{myverb}
-  (defmethod string->type ((type (eql 'string)) value)
-    (and (plusp (length value)) value))
+(defmethod string->type ((type (eql 'string)) value)
+  (and (plusp (length value)) value))
 \end{myverb}
 
 Мы можем добавить преобразования для других типов, нужных нашему приложению. Например,
@@ -1055,8 +1055,8 @@ cookie будет иметь то же имя, что и параметр. Та�
 можем определить следующий метод:
 
 \begin{myverb}
-  (defmethod string->type ((type (eql 'integer)) value)
-    (parse-integer (or value "") :junk-allowed t))
+(defmethod string->type ((type (eql 'integer)) value)
+  (parse-integer (or value "") :junk-allowed t))
 \end{myverb}
 
 Еще одной вспомогательной функцией, используемой кодом, генерируемым \lstinline{param-binding},
@@ -1065,26 +1065,26 @@ cookie будет иметь то же имя, что и параметр. Та�
 образом:
 
 \begin{myverb}
-  (defun get-cookie-value (request name)
-    (cdr (assoc name (get-cookie-values request) :test #'string=)))
+(defun get-cookie-value (request name)
+  (cdr (assoc name (get-cookie-values request) :test #'string=)))
 \end{myverb}
 
 Функции, вычисляющие имена параметров запроса и cookies, довольно прямолинейны:
 
 \begin{myverb}
-  (defun symbol->query-name (sym)
-    (string-downcase sym))
+(defun symbol->query-name (sym)
+  (string-downcase sym))
 
-  (defun symbol->cookie-name (function-name sym sticky)
-    (let ((package-name (package-name (symbol-package function-name))))
-      (when sticky
-        (ecase sticky
-          (:global
-           (string-downcase sym))
-          (:package
-           (format nil "~(~a:~a~)" package-name sym))
-          (:local 
-           (format nil "~(~a:~a:~a~)" package-name function-name sym))))))
+(defun symbol->cookie-name (function-name sym sticky)
+  (let ((package-name (package-name (symbol-package function-name))))
+    (when sticky
+      (ecase sticky
+        (:global
+         (string-downcase sym))
+        (:package
+         (format nil "~(~a:~a~)" package-name sym))
+        (:local 
+         (format nil "~(~a:~a:~a~)" package-name function-name sym))))))
 \end{myverb}
 
 Для генерации кода, устанавливающего cookies для сохраняемых параметров, нам снова нужно
@@ -1093,19 +1093,19 @@ cookie будет иметь то же имя, что и параметр. Та�
 собирания только не \lstinline{NIL}-значений, возвращённых \lstinline{set-cookie-code}.
 
 \begin{myverb}
-  (defun set-cookies-code (function-name request params)
-    (loop for param in params
-         when (set-cookie-code function-name request param) collect it))
+(defun set-cookies-code (function-name request params)
+  (loop for param in params
+       when (set-cookie-code function-name request param) collect it))
 
-  (defun set-cookie-code (function-name request param)
-    (destructuring-bind (name type &optional default sticky) param
-      (declare (ignore type default))
-      (if sticky
-        `(when ,name 
-           (set-cookie-header 
-            ,request
-            :name ,(symbol->cookie-name function-name name sticky)
-            :value (princ-to-string ,name))))))
+(defun set-cookie-code (function-name request param)
+  (destructuring-bind (name type &optional default sticky) param
+    (declare (ignore type default))
+    (if sticky
+      `(when ,name 
+         (set-cookie-header 
+          ,request
+          :name ,(symbol->cookie-name function-name name sticky)
+          :value (princ-to-string ,name))))))
 \end{myverb}
 
 Одним из преимуществ определения макросов в терминах вспомогательных функций, как здесь,
@@ -1113,7 +1113,7 @@ cookie будет иметь то же имя, что и параметр. Та�
 выглядят правильно. Например, вы можете проверить, что такой вызов \lstinline{set-cookie-code}:
 
 \begin{myverb}
-  (set-cookie-code 'foo 'request '(x integer 20 :local))
+(set-cookie-code 'foo 'request '(x integer 20 :local))
 \end{myverb}
 
 \noindent{}генерирует такой код:
