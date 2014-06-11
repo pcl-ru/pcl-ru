@@ -25,17 +25,6 @@
 \usepackage[nottoc]{tocbibind}
 \usepackage{emptypage}
 
-\usepackage{makeidx}
-\makeindex
-
-%\usepackage{fancybox}
-%% Я хотел использовать fancybox ради \ovalbox, но он определяет свой
-%% собственный Verbatim, который конфликтует с fancyvrb.
-%% В конце концов нужно будет либо выдернуть оттуда определение
-%% \ovalbox, либо отказаться от fancyvrb. Пока что я просто не делаю
-%% круглых углов.
-\newcommand{\ovalbox}[1]{\fbox{#1}}
-
 %\usepackage[unicode,colorlinks=true]{hyperref}
 \usepackage[unicode,]{hyperref}
 %\usepackage{hyperref}
@@ -131,10 +120,11 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \captionsetup{labelsep=Period,justification=centering}
 
 % Добавляем точку после номера раздела
-\usepackage{titlesec}
-\titlelabel{\thetitle.\enskip}
+\usepackage[raggedright]{titlesec}
+\titlelabel{\thetitle.\:}
 \usepackage[dotinlabels]{titletoc}
 \titlespacing\section{0pt}{8pt plus 1pt minus 1pt}{5pt plus 1pt minus 1pt}
+\titlespacing\chapter{0pt}{20pt plus 1pt minus 1pt}{20pt plus 1pt minus 1pt}
 
 % settings for floating objects
 \renewcommand{\topfraction}{.9}
@@ -155,8 +145,9 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 
 \newcommand\nextpage{\emph{См. след. страницу}}
 
+% TODO: doesn't work correctly with listings...
 \newcommand{\textintable}[2]{
-  \begin{table}[htb]%
+  \begin{table}[tbh]%
     \centering%
     \begin{longtable}{|p{0.95\textwidth}|}
         \hline
@@ -184,6 +175,9 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \VerbatimFootnotes
 
 \selectlanguage{russian}%
+\hyphenation{уйму}
+
+
 \frenchspacing
 \righthyphenmin=2
 
