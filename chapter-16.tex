@@ -654,69 +654,11 @@ Signal an error if the current balance is less than amount."))
 тогда, когда эта функция вызывается с аргументами, которые соответствуют всем
 специализированным параметрам.
 
-\textintable{Мультиметоды против перегрузки методов}{Программисты, использовавшие статически типизованные языки с системами передачи сообщений,
-такие как Java и C++, могут подумать, что мультиметоды похожи на такую возможность этих
-языков, как перегрузка методов.  Однако эти две возможности языка в достаточной мере
-отличаются, поскольку перегруженные методы выбираются во время компиляции, основываясь на
-информации об аргументах, полученной во время компиляции, а не во время исполнения.  Чтобы
-посмотреть, как это работает, рассмотрим два следующих класса на языке Java:
-
-\begin{myverb}[language=java]
-public class A {
-  public void foo(A a) { System.out.println("A/A"); }
-  public void foo(B b) { System.out.println("A/B"); }
-}
-
-public class B extends A {
-  public void foo(A a) { System.out.println("B/A"); }
-  public void foo(B b) { System.out.println("B/B"); }
-}
-\end{myverb}
-
-Теперь посмотрим, что случится, когда вы запустите метод \lstinline{main} из этого класса.
-
-\begin{myverb}[language=java]
-public class Main {
-  public static void main(String[] argv) {
-    A obj = argv[0].equals("A") ? new A() : new B();
-    obj.foo(obj);
-  }
-}
-\end{myverb}
-
-Когда вы заставляете \lstinline{main} создать экземпляр \lstinline{A}, она выдаст \lstinline{A/A}, как вы и
-ожидали.
-
-\begin{myverb}
-bash\$ java com.gigamonkeys.Main A
-A/A
-\end{myverb}
-
-Однако если вы заставите \lstinline{main} создать экземпляр \lstinline{B}, то настоящий тип объекта
-\lstinline{obj} будет принят во внимание не полностью.
-
-\begin{myverb}
-bash\$ java com.gigamonkeys.Main B
-B/A
-\end{myverb}
-
-Если бы перегруженные методы работали так же, как и мультиметоды в Common Lisp, то программа
-бы выдала ожидаемый результат: \lstinline{B/B}.  Существует возможность реа\-ли\-за\-ции
-множественной диспатчеризации для систем с передачей сообщений вручную, но это будет
-противоречить модели системы с передачей сообщений, поскольку метод с множественной
-диспатчеризацией не должен относиться ни к одному из классов.}
-
 Мультиметоды полезны в ситуациях, когда вы не знаете, к какому классу определённое
 поведение должно относиться (в языках с передачей сообщений).  Звук, который издаёт
 барабан, когда вы стучите по нему палочкой, является функцией барабана или функцией
 палочки?  Конечно, он принадлежит обоим предметам.  Для моделирования такой ситуации в
 Common Lisp вы просто определяете функцию \lstinline{beat}, которая принимает два аргумента.
-
-\begin{myverb}
-(defgeneric beat (drum stick)
-  (:documentation
-   "Produce a sound by hitting the given drum with the given stick."))
-\end{myverb}
 
 Затем вы можете определять разные мультиметоды для реализации \lstinline{beat} для комбинаций,
 которые вам нужны. Например:
@@ -744,6 +686,90 @@ Common Lisp вы просто определяете функцию \lstinline{b
   классов знал о других.  Паттерн <<Визитор>> также вязнет в комбинаторном росте
   дис\-пат\-че\-ри\-зуе\-мых методов, если он используется для диспатчеризации более чем двух
   объектов.}.
+
+\begin{lrbox}{\chonesixone}
+  \begin{minipage}{\linewidth}
+\begin{myverb}
+public class A {
+  public void foo(A a) { System.out.println("A/A"); }
+  public void foo(B b) { System.out.println("A/B"); }
+}
+
+public class B extends A {
+  public void foo(A a) { System.out.println("B/A"); }
+  public void foo(B b) { System.out.println("B/B"); }
+}
+\end{myverb}
+  \end{minipage}
+\end{lrbox}
+
+\begin{lrbox}{\chonesixtwo}
+  \begin{minipage}{\linewidth}
+\begin{myverb}
+public class Main {
+  public static void main(String[] argv) {
+    A obj = argv[0].equals("A") ? new A() : new B();
+    obj.foo(obj);
+  }
+}
+\end{myverb}
+  \end{minipage}
+\end{lrbox}
+
+\begin{lrbox}{\chonesixthree}
+  \begin{minipage}{\linewidth}
+\begin{myverb}
+bash\$ java com.gigamonkeys.Main A
+A/A
+\end{myverb}
+  \end{minipage}
+\end{lrbox}
+
+\begin{lrbox}{\chonesixfour}
+  \begin{minipage}{\linewidth}
+\begin{myverb}
+bash\$ java com.gigamonkeys.Main B
+B/A
+\end{myverb}
+  \end{minipage}
+\end{lrbox}
+
+
+\textintable{Мультиметоды против перегрузки методов}{Программисты, использовавшие статически типизованные языки с системами передачи сообщений,
+такие как Java и C++, могут подумать, что мультиметоды похожи на такую возможность этих
+языков, как перегрузка методов.  Однако эти две возможности языка в достаточной мере
+отличаются, поскольку перегруженные методы выбираются во время компиляции, основываясь на
+информации об аргументах, полученной во время компиляции, а не во время исполнения.  Чтобы
+посмотреть, как это работает, рассмотрим два следующих класса на языке Java:\\[-3pt]
+
+\noindent{}\usebox{\chonesixone}\\
+
+Теперь посмотрим, что случится, когда вы запустите метод \lstinline{main} из этого класса.\\[-3pt]
+
+\noindent{}\usebox{\chonesixtwo}\\
+
+Когда вы заставляете \lstinline{main} создать экземпляр \lstinline{A}, она выдаст \lstinline{A/A}, как вы и
+ожидали.\\[-3pt]
+
+\noindent{}\usebox{\chonesixthree}\\
+
+Однако если вы заставите \lstinline{main} создать экземпляр \lstinline{B}, то настоящий тип объекта
+\lstinline{obj} будет принят во внимание не полностью.\\[-3pt]
+
+\noindent{}\usebox{\chonesixfour}\\
+
+Если бы перегруженные методы работали так же, как и мультиметоды в Common Lisp, то программа
+бы выдала ожидаемый результат: \lstinline{B/B}.  Существует возможность реа\-ли\-за\-ции
+множественной диспатчеризации для систем с передачей сообщений вручную, но это будет
+противоречить модели системы с передачей сообщений, поскольку метод с множественной
+диспатчеризацией не должен относиться ни к одному из классов.}
+
+\begin{myverb}
+(defgeneric beat (drum stick)
+  (:documentation
+   "Produce a sound by hitting the given drum with the given stick."))
+\end{myverb}
+
 
 Мультиметоды также спасают вас от требования, чтобы один набор классов был тесно связан с
 другим набором. В нашем примере барабанов/палочек не требуется, чтобы класс,

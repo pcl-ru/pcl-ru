@@ -123,6 +123,7 @@ HTML программно, то вы обычно не сильно заботи
 самовычисляющихся значений будут выведены.
 
 \begin{table}[tb]
+\centering{}
 \begin{tabular}{|c|c|}
 \hline
   Форма FOO & Сгенерированный HTML \\
@@ -130,7 +131,7 @@ HTML программно, то вы обычно не сильно заботи
   \lstinline!"foo"! &\lstinline!foo! \\
   \lstinline!10! & \lstinline!10! \\
   \lstinline!:foo! & \lstinline!FOO! \\
-  \lstinline!"foo & bar"! & \lstinline!foo &amp; bar!\\
+  \lstinline!"foo & bar"! & \lstinline!foo &amp;  bar!\\
 \hline
 \end{tabular}
   \caption{Вывод FOO для самовычисляющихся объектов} 
@@ -260,13 +261,8 @@ NIL
 счисления, за которым следует точка с запятой. Эти числовые экранирования иногда
 используются для формирования не ASCII-знаков в HTML.
 
-\textintable{Пакет}{Так как FOO~-- это низкоуровневая библиотека, пакет, в котором вы её
-  разрабатываете, не зависит от внешнего кода, за исключением стандартных имён из пакета
-  \lstinline{COMMON-LISP} и почти стандартных имён вспомогательных макросов из пакета
-  \lstinline{COM.GIGAMONKEYS.MACRO-UTILITIES}. С другой стороны, пакет нуждается в
-  экспорте всех имён, необходимых коду, который использует FOO. Вот \lstinline{DEFPACKAGE}
-  из исходных текстов, которые вы можете скачать с веб-сайта книги:
-
+\begin{lrbox}{\chthreezeroone}
+  \begin{minipage}{\linewidth}
 \begin{myverb}
 (defpackage :com.gigamonkeys.html
   (:use :common-lisp :com.gigamonkeys.macro-utilities)
@@ -277,6 +273,18 @@ NIL
            :emit-html
            :\&attributes))
 \end{myverb}
+  \end{minipage}
+\end{lrbox}
+
+
+\textintable{Пакет}{Так как FOO~-- это низкоуровневая библиотека, пакет, в котором вы её
+  разрабатываете, не зависит от внешнего кода, за исключением стандартных имён из пакета
+  \lstinline{COMMON-LISP} и почти стандартных имён вспомогательных макросов из пакета
+  \lstinline{COM.GIGAMONKEYS.MACRO-UTILITIES}. С другой стороны, пакет нуждается в
+  экспорте всех имён, необходимых коду, который использует FOO. Вот \lstinline{DEFPACKAGE}
+  из исходных текстов, которые вы можете скачать с веб-сайта книги:\\[-3pt]
+
+\noindent{}\usebox{\chthreezeroone}
 }
 
 Следующая функция принимает один знак и возвращает строку, которая содержит
@@ -539,29 +547,30 @@ HTML> (escape "foo & 'bar'" *attribute-escapes*)
   (error "Can't embed code when interpreting. Code: ~s" code))
 \end{myverb}
 
-% TODO: \textintable doesn't work here
+% я не смог сверстать это в виде таблицы с заголовком :-((((
 
-Использование условий. И невинность соблюсти, и капитал приобрести.\translationnote{В
-  оригинале: <<To have your cake and eat it too>>~-- известная английская пословица, смысл
-  которой в том, что нельзя одновременно делать две взаимоисключающие вещи. Почти
-  дословный русский аналог~-- Один пирог два раза не съешь. Видимо, автор хотел
-  подчеркнуть гибкость механизма условий Common Lisp.}
+\subsection[Использование условий. И невинность соблюсти, и капитал приобрести]{Использование условий. И невинность соблюсти, и капитал приобрести\protect{\translationnote{В оригинале: <<To have your cake and eat it too>>~--
+    известная английская пословица, смысл которой в том, что нельзя одновременно делать
+    две взаимоисключающие вещи. Почти дословный русский аналог~-- Один пирог два раза не
+    съешь. Видимо, автор хотел подчеркнуть гибкость механизма условий Common
+    Lisp.}}}
 
-Альтернативным подходом является использование \lstinline{EVAL} для вычисления выражений
-Lisp в интерпретаторе. Проблема, связанная с данным подходом, заключается в том, что
-\lstinline{EVAL} не имеет доступа к лексическому окружению. Таким образом, не существует
-способа выполнить что-то, подобное следующему:
+\small
+Альтернативным подходом является использование \lstinline{EVAL} для вычисления
+  выражений Lisp в интерпретаторе. Проблема, связанная с данным подходом, заключается в
+  том, что \lstinline{EVAL} не имеет доступа к лексическому окружению. Таким образом, не
+  существует способа выполнить что-то, подобное следующему:
 
 \begin{myverb}
 (let ((x 10)) (emit-html '(:p x)))
 \end{myverb}
 
-\noindent{}\lstinline{х}~-- это лексическая переменная. Символ \lstinline{х}, который передаётся
-\lstinline{emit-html} во время выполнения, не связан с лексической переменной, названной
-этим же символом.  Компилятор Lisp создаёт ссылки на \lstinline{х} в коде для обращения к
+\noindent{}\lstinline!х!~-- это лексическая переменная. Символ \lstinline!х!, который передаётся
+\lstinline!emit-html! во время выполнения, не связан с лексической переменной, названной
+этим же символом.  Компилятор Lisp создаёт ссылки на \lstinline!х! в коде для обращения к
 переменной, но после того, как код скомпилирован, больше нет необходимости в связи между
-именем \lstinline{х} и этой переменной. Это главная причина, по которой, когда вы думаете,
-что \lstinline{EVAL}~-- это решение вашей проблемы, вы, вероятно, ошибаетесь.
+именем \lstinline!х! и этой переменной. Это главная причина, по которой, когда вы думаете,
+что \lstinline!EVAL!~-- это решение вашей проблемы, вы, вероятно, ошибаетесь.
 
 Как бы то ни было, если бы \lstinline{х} был динамической переменной, объявленной с помощью
 \lstinline{DEFFVAR} или \lstinline{DEFPARAMETER} (и назван \lstinline{*х*} вместо \lstinline{х}), то
@@ -640,15 +649,15 @@ Restarts:
 условии является динамической переменной или потенциальным кодом.
 
 \begin{myverb}
-(defun evaluate (&optional condition)
+(defun evaluate (\&{}optional condition)
   (declare (ignore condition))
   (invoke-restart 'evaluate))
 
-(defun eval-dynamic-variables (&optional condition)
+(defun eval-dynamic-variables (\&{}optional condition)
   (when (and (symbolp (form condition)) (boundp (form condition)))
     (evaluate)))
 
-(defun eval-code (&optional condition)
+(defun eval-code (\&{}optional condition)
   (when (consp (form condition))
     (evaluate)))
 \end{myverb}
@@ -657,7 +666,7 @@ Restarts:
 автоматического вызова \lstinline{evaluate} перезапуска для вас.
 
 \begin{myverb}
-HTML> (handler-bind ((value-in-interpreter #'evaluate)) (emit-html '(:p *x*)))
+HTML> (handler-bind ((value-in-interpreter \#{}'evaluate)) (emit-html '(:p *x*)))
 <p>10</p>
 T
 \end{myverb}
@@ -666,10 +675,10 @@ T
 связывания обработчиков для двух видов ошибок.
 
 \begin{myverb}
-(defmacro with-dynamic-evaluation ((&key values code) &body body)
+(defmacro with-dynamic-evaluation ((\&{}key values code) \&{}body body)
   `(handler-bind (
-       ,@(if values `((value-in-interpreter #'evaluate)))
-       ,@(if code `((code-in-interpreter #'evaluate))))
+       ,@(if values `((value-in-interpreter \#{}'evaluate)))
+       ,@(if code `((code-in-interpreter \#'evaluate))))
      ,@))
 \end{myverb}
 
@@ -681,7 +690,7 @@ HTML> (with-dynamic-evaluation (:values t) (emit-html '(:p *x*)))
 T
 \end{myverb}
 
-% TODO end of table...}
+\normalsize
 
 \section{Базовое правило вычисления}
 

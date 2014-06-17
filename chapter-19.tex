@@ -230,40 +230,6 @@ Python вы бы выбросили или возбудили исключени
 \lstinline{parse-log-entry} сигнализирует ошибку \lstinline{malformed-log-entry-error}, то
 обработчик ошибки вернёт \lstinline{NIL}, который не будет сохранён.
 
-\textintable{Обработка исключений в стиле языка Java}{\lstinline{HANDLER-CASE} в языке
-  Common Lisp является ближайшим аналогом стиля обработки исключений в языках Java и
-  Python. То, что вы можете записать на языке Java как
-
-\begin{myverb}
-try {
-  doStuff();
-  doMoreStuff();
-} catch (SomeException se) {
-  recover(se);
-}
-\end{myverb} 
-
-\noindent{}или на языке Python как 
-
-\begin{myverb}
-try:
-  doStuff()
-  doMoreStuff()
-except SomeException, se:
-  recover(se)
-\end{myverb} 
-
-\noindent{}в языке Common Lisp вы пишете так: 
-
-\begin{myverb}
-(handler-case
-    (progn
-      (do-stuff)
-      (do-more-stuff))
-  (some-exception (se) (recover se)))
-\end{myverb} 
-}
-
 Эта версия \lstinline{parse-log-file} имеет один серьёзный недостаток: она делает слишком много
 всего. Как предполагает её имя, работа \lstinline{parse-log-file} заключается в разборе файла и
 выдаче списка объектов \lstinline{log-entry}; если это невозможно, не её дело~-- решать, что
@@ -279,6 +245,60 @@ except SomeException, se:
 высшего уровня, разбор журнального файла будет вообще покинут. Что вам надо, так это
 способ предоставить текущую стратегию восстановления без требования всегда её
 использовать.
+
+\begin{lrbox}{\chonenineone}
+  \begin{minipage}{\linewidth}
+\begin{myverb}
+try {
+  doStuff();
+  doMoreStuff();
+} catch (SomeException se) {
+  recover(se);
+}
+\end{myverb} 
+  \end{minipage}
+\end{lrbox}
+
+\begin{lrbox}{\choneninetwo}
+  \begin{minipage}{\linewidth}
+\begin{myverb}
+try:
+  doStuff()
+  doMoreStuff()
+except SomeException, se:
+  recover(se)
+\end{myverb} 
+  \end{minipage}
+\end{lrbox}
+
+\begin{lrbox}{\choneninethree}
+  \begin{minipage}{\linewidth}
+\begin{myverb}
+(handler-case
+    (progn
+      (do-stuff)
+      (do-more-stuff))
+  (some-exception (se) (recover se)))
+\end{myverb} 
+  \end{minipage}
+\end{lrbox}
+
+
+\textintable{Обработка исключений в стиле языка Java}{\lstinline{HANDLER-CASE} в языке
+  Common Lisp является ближайшим аналогом стиля обработки исключений в языках Java и
+  Python. То, что вы можете записать на языке Java как\\[-3pt]
+
+\noindent{}\usebox{\chonenineone}\\
+
+\noindent{}или на языке Python как\\[-3pt]
+
+\noindent{}\usebox{\choneninetwo}\\
+
+\noindent{}в языке Common Lisp вы пишете так:\\[-3pt]
+
+\noindent{}\usebox{\choneninethree}\\
+}
+
 
 \section{Перезапуск}
 
@@ -355,7 +375,7 @@ except SomeException, se:
 
 \begin{figure}[h]
   \centering
-  \includegraphics[scale=0.7]{images/restart-call-stack.png}
+  \includegraphics[scale=0.6]{images/restart-call-stack.png}
 \end{figure}
 
 Предполагая, что вы всегда хотите пропускать неправильно сформированные записи, вы можете

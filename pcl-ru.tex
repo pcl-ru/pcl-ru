@@ -9,7 +9,7 @@
 \usepackage[T2A]{fontenc}
 \usepackage[russian]{babel}
 \usepackage{fancyvrb}
-\usepackage[dvips]{color}
+\usepackage{color}
 \usepackage{stmaryrd}
 \usepackage{tabularx,mdwtab}
 %\usepackage{needspace}
@@ -24,6 +24,7 @@
 \usepackage{colonequals}
 \usepackage[nottoc]{tocbibind}
 \usepackage{emptypage}
+\usepackage{verbatim}
 
 %\usepackage[unicode,colorlinks=true]{hyperref}
 \usepackage[unicode,]{hyperref}
@@ -123,8 +124,8 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \usepackage[raggedright]{titlesec}
 \titlelabel{\thetitle.\:}
 \usepackage[dotinlabels]{titletoc}
-\titlespacing\section{0pt}{8pt plus 1pt minus 1pt}{5pt plus 1pt minus 1pt}
-\titlespacing\chapter{0pt}{20pt plus 1pt minus 1pt}{20pt plus 1pt minus 1pt}
+\titlespacing\section{0pt}{8pt plus 1pt minus 1pt}{4pt plus 1pt minus 1pt}
+\titlespacing\chapter{0pt}{19pt plus 1pt minus 1pt}{19pt plus 1pt minus 1pt}
 
 % settings for floating objects
 \renewcommand{\topfraction}{.9}
@@ -143,20 +144,12 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \newcommand{\unmarkednote}[1]{{\renewcommand{\@makefnmark}{}\footnotemark{}\footnotetext{#1}}\addtocounter{footnote}{-1}}
 \makeatother
 
-\newcommand\nextpage{\emph{См. след. страницу}}
-
-% TODO: doesn't work correctly with listings...
+\usepackage[framemethod=default]{mdframed}
+\mdfsetup{skipbelow=\topskip{}}
 \newcommand{\textintable}[2]{
-  \begin{table}[tbh]%
-    \centering%
-    \begin{longtable}{|p{0.95\textwidth}|}
-        \hline
-        \multicolumn{1}{|c|}{\textbf{#1}}\\
-        \hline
-        {\small #2} \\
-        \hline
-    \end{longtable}%
-\end{table}}
+\begin{mdframed}[frametitle={#1},frametitlerule=true,linewidth=1pt,frametitlealignment=\centering,font=\small]
+#2
+\end{mdframed}}
 
 \title{Practical Common Lisp}
 \author{Peter Seibel}
@@ -166,6 +159,21 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \makeatletter
 \renewcommand\@makefnmark{\mbox{\textsuperscript{\normalfont\@thefnmark}\hspace{1mm}}}
 \makeatother
+
+
+\newsavebox\chonefiveone
+\newsavebox\chonesixone
+\newsavebox\chonesixtwo
+\newsavebox\chonesixthree
+\newsavebox\chonesixfour
+\newsavebox\chonenineone
+\newsavebox\choneninetwo
+\newsavebox\choneninethree
+\newsavebox\chtwosevenone
+\newsavebox\chtwoeightone
+\newsavebox\chtwonineone
+\newsavebox\chthreezeroone
+\newsavebox\chthreezerotwo
 
 \begin{document}
 \thispagestyle{empty}
@@ -193,7 +201,6 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \makeatother
 
 \input{all-chapters}
-%\include{chapter-30}
 
 \end{document}
 
