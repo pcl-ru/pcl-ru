@@ -406,7 +406,7 @@ HTML> (escape "foo & 'bar'" *attribute-escapes*)
 
 Последние две функции в API \lstinline{indenting-printer}~-- это \lstinline{emit-newline} и
 \lstinline{emit-freshline}, которые используются для вывода знака новой строки и похожи на
-\lstinline!~\%! и \lstinline!~&! директивы функции \lstinline{FORMAT}. Единственное различие в
+\lstinline!~%! и \lstinline!~&! директивы функции \lstinline{FORMAT}. Единственное различие в
 том, что \lstinline{emit-newline} всегда выводит перевод строки, в то время как
 \lstinline{emit-freshline} делает это только тогда, когда \lstinline{beginning-of-line-p}
 установлено в ложное значение. Таким образом, множественные вызовы \lstinline{emit-freshline}

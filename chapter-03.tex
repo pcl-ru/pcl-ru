@@ -269,9 +269,9 @@ NIL
     \lstinline!~}! и используя столько элементов списка, сколько нужно для вывода согласно
   этим командам. В~функции \lstinline{dump-db} \lstinline{FORMAT} будет циклично просматривать
   список и на каждой итерации принимать одно ключевое слово и одно значение
-  списка. Команда \lstinline!~\%! не принимает аргументов, но заставляет \lstinline{FORMAT}
+  списка. Команда \lstinline!~%! не принимает аргументов, но заставляет \lstinline{FORMAT}
   выполнять переход на новую строку. После выполнения команды \lstinline!~}! итерация
-заканчивается, и последняя \lstinline!~\%! заставляет \lstinline{FORMAT} сделать ещё один
+заканчивается, и последняя \lstinline!~%! заставляет \lstinline{FORMAT} сделать ещё один
 переход на новую строку, чтобы записи, соответствующие каждому CD, были разделены.
 Формально вы также можете использовать \lstinline{FORMAT} для вывода именно базы данных,
 сократив тело функции \lstinline{dump-db} до одной строки.
@@ -686,7 +686,7 @@ CL-USER> (select (artist-selector "Dixie Chicks"))
 
 Единственное отличие~-- элемент \lstinline!&key! в начале списка аргументов. Однако вызовы
 новой функции \lstinline{foo} выглядят немного по-другому. Все нижеперечисленные варианты
-вызова \lstinline{foo} допустимы, результат вызова помещён справа от \lstinline!%%==>%%!.
+вызова \lstinline{foo} допустимы, результат вызова помещён справа от \lstinline!==>!.
 
 \begin{myverb}
 (foo :a 1 :b 2 :c 3)  ==> (1 2 3)
@@ -761,13 +761,13 @@ CL-USER> (select (artist-selector "Dixie Chicks"))
   больше напоминает тернарный оператор \lstinline{(?:)} в Perl, Java и C, поскольку вполне
   допустимо такое выражение в этих языках:
 
-\begin{myverb}[language=c]
+\begin{myverb}
 some_var = some_boolean ? value1 : value2;
 \end{myverb}
 
 \noindent{}А такое~-- нет:
 
-\begin{myverb}[language=C]
+\begin{myverb}
 some_var = if (some_boolean) value1; else value2;
 \end{myverb}
 
