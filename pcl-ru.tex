@@ -83,7 +83,7 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \definecolor{listingcomment}{gray}{0.3}
 \lstset{%
   language=Lisp,
-  basicstyle=\footnotesize\upshape,%\ttfamily,
+  basicstyle=\footnotesize\upshape\ttfamily,
   keywordstyle=\color{black},
   showtabs=false, 
   showspaces=false, 
@@ -91,8 +91,7 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
   tabsize=2,
   commentstyle=\color{listingcomment},
   extendedchars=\true{},
-  mathescape=\true{},% allows to use math symbols in listings - may be
-                     % dangerous
+  %mathescape=\true{},% allows to use math symbols in listings - may be dangerous
   basewidth={.5em,.5em},% columns=fullflexible
   xleftmargin=.943em, morekeywords={IF, QUOTE, EQ, EQL, EQUAL, EQUALP, NIL, T, FORMAT, if,
     LOAD, DOLIST, PRINT, LIST, DEFUN, DEFMACRO, DO ACONS ADJOIN ADJUST-ARRAY AND APPEND
@@ -141,7 +140,7 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
     WITH-HASH-TABLE-ITERATOR WITH-OPEN-FILE WITH-OUTPUT-TO-STRING WITH-SLOTS
     WITH-STANDARD-IO-SYNTAX WRITE-BYTE WRITE-CHAR WRITE-LINE WRITE-SEQUENCE WRITE-STRING
     WRITE-TO-STRING СDR СHAR-CODE REMOVE-IF-NOT WHEN REVERSE Y-OR-N-P} }
-\lstdefinestyle{lisp}{language=Lisp,keywordstyle=\bfseries}
+\lstdefinestyle{lisp}{language=Lisp}
 
 \usepackage{parskip}
 \setlength{\parskip}{0.0pt plus 1.0pt}
@@ -174,6 +173,8 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \renewcommand{\topfraction}{.9}
 \renewcommand{\textfraction}{.1}
 \renewcommand{\bottomfraction}{.9}
+\setlength{\textfloatsep}{5pt plus 1.5pt minus 1pt}
+\setlength{\intextsep}{5pt plus 1.5pt minus 1pt}
 \setcounter{totalnumber}{2}
 
 \fboxsep.25em
@@ -221,6 +222,12 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \newsavebox\chthreezeroone
 \newsavebox\chthreezerotwo
 
+%\usepackage[punct-after=true]{fnpct}
+
+\newlength{\footnotenegspace}
+\setlength{\footnotenegspace}{-0.25em}
+\newcommand{\pclfootnote}[1]{\footnote{#1}\hspace{\footnotenegspace}}
+
 \begin{document}
 \thispagestyle{empty}
 % Don't remove! used for tikz nodes align!
@@ -245,6 +252,16 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \makeatletter
 \@nameuse{ttl@ps@\string\chapter}
 \makeatother
+
+
+% \setfnpct{punct-after=true}
+% \setfnpct{add-punct-marks={:.,!?}[-0.8em][-0.8em]}
+% \setfnpct{before-punct-space=-0.08em}
+% \setfnpct{before-dot-space=-0.5em}
+% \setfnpct{before-comma-space=-0.5em}
+% \setfnpct{after-punct-space=-0.08em}
+% \setfnpct{after-dot-space=-0.5em}
+% \setfnpct{after-comma-space=-0.5em}
 
 \input{all-chapters}
 
