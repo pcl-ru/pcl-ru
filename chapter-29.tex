@@ -319,7 +319,6 @@ Shoutcast.  Но текущая песня также может быть изм
    :id3-size (if (id3-p file) (size (read-id3 file)) 0)))
 
 (defparameter *empty-playlist-song* (make-silent-song "Playlist empty."))
-
 (defparameter *end-of-playlist-song* (make-silent-song "At end of playlist."))
 \end{myverb}
 
@@ -574,12 +573,11 @@ Shoutcast.  Но текущая песня также может быть изм
 запроса в объекты Lisp. В~этом приложении вам нужны будут методы для преобразования строк
 в целые числа, ключевые символы и списки значений.
 
-Первые два достаточно просты.
+Первые два достаточно просты:
 
 \begin{myverb}
 (defmethod string->type ((type (eql 'integer)) value)
   (parse-integer (or value "") :junk-allowed t))
-
 (defmethod string->type ((type (eql 'keyword)) value)
   (and (plusp (length value)) (intern (string-upcase value) :keyword)))
 \end{myverb}
@@ -627,7 +625,6 @@ Shoutcast.  Но текущая песня также может быть изм
 \begin{myverb}
 (defun obj->base64 (obj)
   (base64-encode (with-safe-io-syntax (write-to-string obj))))
-
 (defun base64->obj (string)
   (ignore-errors
     (with-safe-io-syntax (read-from-string (base64-decode string)))))
@@ -972,9 +969,7 @@ MP3-клиенты, если мы позволим изменить это зн�
 \begin{myverb}
 (case action
   (:add-songs      (add-songs playlist what (or values (list file))))
-  (:delete-songs   (delete-songs 
-                    playlist 
-                    :file file :genre genre
+  (:delete-songs   (delete-songs playlist :file file :genre genre
                     :artist artist :album album))
   (:clear          (clear-playlist playlist))
   (:sort           (sort-playlist playlist order-by))
@@ -1102,7 +1097,6 @@ MP3-клиенты, если мы позволим изменить это зн�
 
 \begin{myverb}
 (defparameter *mp3-dir* ...)
-
 (defparameter *mp3-css* ...)
 
 (defun start-mp3-browser ()

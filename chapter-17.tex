@@ -88,9 +88,7 @@ Lisp являются экземплярами какого-то из класс
 
 \begin{myverb}
 (defclass bank-account () ...)
-
 (defclass checking-account (bank-account) ...)
-
 (defclass savings-account (bank-account) ...)
 \end{myverb}
 
@@ -200,9 +198,8 @@ Lisp являются экземплярами какого-то из класс
 \begin{myverb}
 (defparameter *account*
   (make-instance 'bank-account :customer-name "John Doe" :balance 1000))
-
-  (slot-value *account* 'customer-name) ==> "John Doe"
-  (slot-value *account* 'balance)       ==> 1000
+(slot-value *account* 'customer-name) ==> "John Doe"
+(slot-value *account* 'balance)       ==> 1000
 \end{myverb}
 
 Если вы не передадите аргумент \lstinline{:balance} при вызове \lstinline{MAKE-INSTANCE}, то вызов
@@ -227,7 +224,6 @@ Lisp являются экземплярами какого-то из класс
 
 \begin{myverb}
 (defvar *account-numbers* 0)
-
 (defclass bank-account ()
   ((customer-name
     :initarg :customer-name
@@ -389,7 +385,6 @@ CL-USER> (slot-value *acct* 'balance)
 
 \begin{myverb}
 (defgeneric balance (account))
-
 (defmethod balance ((account bank-account))
   (slot-value account 'balance))
 \end{myverb}
@@ -442,7 +437,6 @@ CL-USER> (slot-value *acct* 'balance)
 
 \begin{myverb}
 (defgeneric customer-name (account))
-
 (defmethod customer-name ((account bank-account))
   (slot-value account 'customer-name))
 \end{myverb}
@@ -451,7 +445,6 @@ CL-USER> (slot-value *acct* 'balance)
 
 \begin{myverb}
   (setf (customer-name *account*) "Sally Sue") ==> "Sally Sue"
-
   (customer-name *account*)                    ==> "Sally Sue"
 \end{myverb}
 
@@ -723,7 +716,6 @@ Common Lisp решает эту проблему путём слияния вс�
 (defclass foo ()
   ((a :initarg :a :initform "A" :accessor a)
    (b :initarg :b :initform "B" :accessor b)))
-
 (defclass bar (foo)
   ((a :initform (error "Must supply a value for a"))
    (b :initarg :the-b :accessor the-b :allocation :class)))

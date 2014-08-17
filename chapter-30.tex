@@ -8,7 +8,7 @@
 программированию, вполне обычного для Common Lisp, но сравнительно редкого для не
 Lisp-языков, а именно~-- языкоориентированного программирования. Вместо того чтобы
 определять API, базирующиеся преимущественно на функциях, классах и макросах, FOO
-реализует обработчики для DSL\translationnote{Domain specific language~--
+реализует обработчики для DSL\translationnote{Domain Specific Language~--
   предметно-ориентированный язык программирования, мини-язык, созданный специально для
   некоторых задач.}, которые вы можете встроить в ваши программы на Common Lisp.
 
@@ -286,8 +286,7 @@ NIL
   экспорте всех имён, необходимых коду, который использует FOO. Вот \lstinline{DEFPACKAGE}
   из исходных текстов, которые вы можете скачать с веб-сайта книги:\\[-3pt]
 
-\noindent{}\usebox{\chthreezeroone}
-}
+\noindent{}\usebox{\chthreezeroone}}
 
 Следующая функция принимает один знак и возвращает строку, которая содержит
 соответствующую данному знаку символьную сущность:
@@ -442,19 +441,12 @@ HTML> (escape "foo & 'bar'" *attribute-escapes*)
 
 \begin{myverb}
 (defgeneric raw-string (processor string &optional newlines-p))
-
 (defgeneric newline (processor))
-
 (defgeneric freshline (processor))
-
 (defgeneric indent (processor))
-
 (defgeneric unindent (processor))
-
 (defgeneric toggle-indenting (processor))
-
 (defgeneric embed-value (processor value))
-
 (defgeneric embed-code (processor code))
 \end{myverb}
 
@@ -481,7 +473,7 @@ HTML> (escape "foo & 'bar'" *attribute-escapes*)
 \end{myverb}
 
 Теперь вы можете реализовать методы, специализированные для \lstinline{html-pretty-printer}, в
-виде 8 обобщённых функций, которые составляют интерфейс выходного буфера.
+виде~8 обобщённых функций, которые составляют интерфейс выходного буфера.
 
 Обработчики FOO используют функцию \lstinline{raw-string} для вывода строк, которые не
 нуждаются в экранировании знаков, либо потому, что вы действительно хотите вы\-вес\-ти
@@ -498,36 +490,33 @@ HTML> (escape "foo & 'bar'" *attribute-escapes*)
     (emit/no-newlines (printer pp) string)))
 \end{myverb}
 
-Функции \lstinline{newline}, \lstinline{freshline}, \lstinline{indent}, \lstinline{unindent} и
-\lstinline{toggle-indenting} реализуют достаточно простые манипуляции нижележащего
-\lstinline{indenting-printer}. Единственная загвоздка заключается в том, что принтер HTML
-формирует аккуратный вывод, только когда динамическая переменная \lstinline{*pretty*} имеет
-истинное значение. Когда она равна \lstinline{NIL}, то формируется компактный HTML, без лишних
-пробелов. Поэтому все эти методы, за исключением \lstinline{newline}, проверяют значение
-переменной \lstinline{*pretty*}, перед тем как что-то сделать\footnote{С другой стороны,
-  применяя более чистый объектно-ориентированный подход, мы могли бы определить два
-  класса, скажем \lstinline{html-pretty-printer} и \lstinline{html-raw-printer}, а затем определить
-  на основе \lstinline{html-raw-printer} холостую реализацию для методов, которые должны делать
-  что-то, только если *pretty* истинно. Однако в таком случае после определения всех
-  холостых методов вы, в конце концов, получите большее количество кода, и вскоре вам
-  надоест проверять, создали ли вы экземпляр нужного класса в нужное время. Но, в общем,
-  замена условных выражений полиморфизмом~-- это оптимальная стратегия.}\hspace{\footnotenegspace}:
+Функции \lstinline{newline}, \lstinline{freshline}, \lstinline{indent},
+\lstinline{unindent} и \lstinline{toggle-indenting} реализуют достаточно простые операции
+с~\lstinline{indenting-printer}. Единственная загвоздка заключается в том, что принтер
+HTML формирует аккуратный вывод, только когда динамическая переменная \lstinline{*pretty*}
+имеет истинное значение. Когда она равна \lstinline{NIL}, то формируется компактный HTML,
+без лишних пробелов. Поэтому все эти методы, за исключением \lstinline{newline}, проверяют
+значение переменной \lstinline{*pretty*}, перед тем как что-то сделать\footnote{С другой
+  стороны, применяя более чистый объектно-ориентированный подход, мы могли бы определить
+  два класса, скажем \lstinline{html-pretty-printer} и \lstinline{html-raw-printer}, а
+  затем определить на основе \lstinline{html-raw-printer} холостую реализацию для методов,
+  которые должны делать что-то, только если *pretty* истинно. Однако в таком случае после
+  определения всех холостых методов вы, в конце концов, получите большее количество кода,
+  и вскоре вам надоест проверять, создали ли вы экземпляр нужного класса в нужное
+  время. Но, в общем, замена условных выражений полиморфизмом~-- это оптимальная
+  стратегия.}\hspace{\footnotenegspace}:
 
 \begin{myverb}
 (defmethod newline ((pp html-pretty-printer))
   (emit-newline (printer pp)))
-
 (defmethod freshline ((pp html-pretty-printer))
   (when *pretty* (emit-freshline (printer pp))))
-
 (defmethod indent ((pp html-pretty-printer))
   (when *pretty* 
     (incf (indentation (printer pp)) (tab-width pp))))
-
 (defmethod unindent ((pp html-pretty-printer))
   (when *pretty* 
     (decf (indentation (printer pp)) (tab-width pp))))
-
 (defmethod toggle-indenting ((pp html-pretty-printer))
   (when *pretty* 
     (with-slots (indenting-p) (printer pp)
@@ -544,7 +533,6 @@ HTML> (escape "foo & 'bar'" *attribute-escapes*)
 \begin{myverb}
 (defmethod embed-value ((pp html-pretty-printer) value)
   (error "Can't embed values when  interpreting. Value: ~s" value))
-
 (defmethod embed-code ((pp html-pretty-printer) code)
   (error "Can't embed code when interpreting. Code: ~s" code))
 \end{myverb}
@@ -587,12 +575,10 @@ HTML> (escape "foo & 'bar'" *attribute-escapes*)
 \begin{myverb}
 (define-condition embedded-lisp-in-interpreter (error)
   ((form :initarg :form :reader form)))
-
 (define-condition value-in-interpreter (embedded-lisp-in-interpreter) ()
   (:report
    (lambda (c s) 
      (format s "Can't embed values when interpreting. Value: ~s" (form c)))))
-
 (define-condition code-in-interpreter (embedded-lisp-in-interpreter) ()
   (:report
    (lambda (c s) 
@@ -765,12 +751,10 @@ HTML вам нужно выводить дополнительные линии 
   '(:body :colgroup :dl :fieldset :form :head :html :map :noscript :object
     :ol :optgroup :pre :script :select :style :table :tbody :tfoot :thead
     :tr :ul))
-
 (defparameter *paragraph-elements*
   '(:area :base :blockquote :br :button :caption :col :dd :div :dt :h1
     :h2 :h3 :h4 :h5 :h6 :hr :input :li :link :meta :option :p :param
     :td :textarea :th :title))
-
 (defparameter *inline-elements*
   '(:a :abbr :acronym :address :b :bdo :big :cite :code :del :dfn :em
     :i :img :ins :kbd :label :legend :q :samp :small :span :strong :sub

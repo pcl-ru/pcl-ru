@@ -1,4 +1,4 @@
-\documentclass{book}
+\documentclass[oneside,openany]{book}
 
 %\overfullrule=4bp
 
@@ -200,9 +200,12 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 
 \usepackage{tocloft}
 \setlength{\cftchapnumwidth}{2em}
+\setlength{\cftsecnumwidth}{2.7em}
 \renewcommand\cftchapaftersnum{.\enspace}
 \renewcommand\cftchapdotsep{\cftdotsep}
 \renewcommand{\cftchappresnum}{\hfill{}}
+\renewcommand\cftsecdotsep{\cftdotsep}
+\renewcommand\cftsecaftersnum{.\enspace}
 
 \makeatletter
 \renewcommand\@makefnmark{\mbox{\textsuperscript{\normalfont\@thefnmark}\hspace{1mm}}}
@@ -227,6 +230,11 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \newlength{\footnotenegspace}
 \setlength{\footnotenegspace}{-0.25em}
 \newcommand{\pclfootnote}[1]{\footnote{#1}\hspace{\footnotenegspace}}
+
+\interfootnotelinepenalty=10000
+
+\widowpenalty=5000
+\clubpenalty=5000
 
 \begin{document}
 \thispagestyle{empty}
