@@ -79,11 +79,12 @@ T
   (format t "~:[FAIL~;pass~] ... ~a~%" (= (+ -1 -3) -4) '(= (+ -1 -3) -4)))
 \end{myverb}
 
-Теперь каждый тест будет сообщать результат отдельно. Часть \lstinline!~:[FAIL~;pass~]!
-форматной строки \lstinline{FORMAT} печатает \lstinline{FAIL} если первый аргумент ложен, и
-\lstinline{pass}~-- если истинен\footnote{Более подробно и эта, и другие управляющие команды
-  \lstinline{FORMAT} будут обсуждаться в главе~\ref{ch:18}.}\hspace{\footnotenegspace}. Теперь запуск \lstinline{test-+}
-покажет подробности происходящего.
+Теперь каждый тест будет сообщать результат отдельно. Код \lstinline!~:[FAIL~;pass~]! в
+строке \lstinline{FORMAT} выводит \lstinline{FAIL} если первый аргумент ложен, и
+\lstinline{pass}~-- если истинен\footnote{Более подробно и эта, и другие управляющие
+  команды \lstinline{FORMAT} будут обсуждаться в
+  главе~\ref{ch:18}.}\hspace{\footnotenegspace}.  Теперь запуск \lstinline{test-+} покажет
+подробности происходящего.
 
 \begin{myverb}
 CL-USER> (test-+)

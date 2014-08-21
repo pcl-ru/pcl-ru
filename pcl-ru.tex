@@ -231,6 +231,8 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \setlength{\footnotenegspace}{-0.25em}
 \newcommand{\pclfootnote}[1]{\footnote{#1}\hspace{\footnotenegspace}}
 
+\usepackage[bottom,marginal]{footmisc}
+
 \interfootnotelinepenalty=10000
 
 \widowpenalty=5000
@@ -246,30 +248,16 @@ hmargin={1cm,1cm},vmargin={1cm,1cm},includehead,ignorefoot,heightrounded,headsep
 \selectlanguage{russian}%
 \hyphenation{уйму}
 
-
 \frenchspacing
 \righthyphenmin=2
 
-%% TODO: remove...
 \sloppy
 
-%\thispagestyle{empty}
-%\frontmatter
 \thispagestyle{empty}
 
 \makeatletter
 \@nameuse{ttl@ps@\string\chapter}
 \makeatother
-
-
-% \setfnpct{punct-after=true}
-% \setfnpct{add-punct-marks={:.,!?}[-0.8em][-0.8em]}
-% \setfnpct{before-punct-space=-0.08em}
-% \setfnpct{before-dot-space=-0.5em}
-% \setfnpct{before-comma-space=-0.5em}
-% \setfnpct{after-punct-space=-0.08em}
-% \setfnpct{after-dot-space=-0.5em}
-% \setfnpct{after-comma-space=-0.5em}
 
 \input{all-chapters}
 

@@ -49,7 +49,7 @@
 
 Для начала вы можете остановиться на простом варианте и использовать список. Вы можете
 создать его с помощью функции \lstinline{LIST}, которая, соответственно, возвращает
-\textbf{список} \translationnote{\lstinline{LIST}~-- по английски \textbf{СПИСОК}. Кстати, последние
+\textbf{список}\translationnote{\lstinline{LIST}~-- по английски \textbf{СПИСОК}. Кстати, последние
   реализации Common Lisp позволяют писать и на родном для вас языке. Например, на русском
   можно создать макрос \code{список}, который будет вызывать \lstinline{LIST}, например так:
   \lstinline!(defmacro list (&body body) `(list ,@body))!.} из
@@ -220,7 +220,8 @@ Perl или оператор \lstinline{%} из Python. В~главе~\ref{ch:18
 интерпретировать остальные аргументы. Команды, управляющие форматом вывода, начинаются со
 знака тильды (\lstinline!~!) (так же, как управляющие команды \textit{printf} начинаются с
 \lstinline{%}). \lstinline{FORMAT} может принимать довольно много таких команд, каждую со
-своим набором параметров\footnote{Одна из наиболее <<классных>> управляющих команд
+своим набором параметров\footnote{\begin{minipage}[t]{\linewidth}
+Одна из наиболее <<классных>> управляющих команд
   \lstinline{FORMAT}~-- команда \lstinline{~R}. Всегда хотели знать, как по-английски произносится
   \textit{действительно большое} число? Lisp знает. Сделайте так:
 
@@ -231,7 +232,8 @@ Perl или оператор \lstinline{%} из Python. В~главе~\ref{ch:18
 \noindent{}и вы получите (разбито на строки для удобочитаемости): <<one octillion six hundred six
 septillion nine hundred thirty-eight sextillion forty-four quintillion two hundred
 fifty-eight quadrillion nine hundred ninety trillion two hundred seventy-five billion five
-hundred forty-one million nine hundred sixty-two thousand ninety-two>>.}\hspace{\footnotenegspace}. Однако сейчас я
+hundred forty-one million nine hundred sixty-two thousand ninety-two>>.    
+  \end{minipage}}\hspace{\footnotenegspace}. Однако сейчас я
 сфокусируюсь только на тех управляющих командах, которые необходимы для написания функции
 \lstinline{dump-db}.
 
