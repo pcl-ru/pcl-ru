@@ -1,10 +1,11 @@
 \pagenumbering{arabic}
 \setcounter{page}{5}
-\thispagestyle{empty}
 %\pagenumbering{gobble}
 \setcounter{tocdepth}{1}
-\tableofcontents
-\thispagestyle{empty}
+\begingroup
+  \makeatletter \let\ps@plain\ps@empty \makeatother
+  \tableofcontents
+\endgroup
 \cleardoublepage{}
 
 %\pagenumbering{arabic}
