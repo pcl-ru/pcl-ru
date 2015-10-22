@@ -200,7 +200,7 @@ CL-USER> *db*
 \begin{myverb}
 (defun dump-db ()
   (dolist (cd *db*)
-    (format t "~{~a:~10t~a~%~}~%" cd)))
+    (format t "~\{~a:~10t~a~%~\}~%" cd)))
 \end{myverb}
 
 Работа функции заключается в циклическом обходе всех элементов \lstinline{*db*} с помощью макроса
