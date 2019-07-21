@@ -696,7 +696,7 @@ Lisp. Таким образом, \lstinline{EQ} может считать два
 
 \begin{myverb}
 (defun foo ()
-  (if (test)
+  (if (test
     (do-one-thing)
     (do-another-thing))))
 \end{myverb}
@@ -706,7 +706,7 @@ Lisp. Таким образом, \lstinline{EQ} может считать два
 
 \begin{myverb}
 (defun foo ()
-  (if (test)
+  (if (test
        (do-one-thing)
        (do-another-thing))))
 \end{myverb}
