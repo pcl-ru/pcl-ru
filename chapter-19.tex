@@ -213,7 +213,7 @@ Python вы бы выбросили или возбудили исключени
 сигнализируемого из функции \lstinline{parse-log-entry} в вызывающую её функцию
 \lstinline{parse-log-file}, был бы пропуск неправильной записи. В~следующей функции выражение
 \lstinline{HANDLER-CASE} вернёт либо имя, возвращаемое \lstinline{parse-log-entry}, либо \lstinline{NIL},
-если \lstinline{malformed-log-entry-error} сигнализируется. Слово \lstinline{it} во фразе
+если \lstinline{malformed-log-entry-error} сигнализируется. (Слово \lstinline{it} во фразе
 \lstinline{collect it} цикла \lstinline{LOOP} является ещё одним ключевым словом \lstinline{LOOP},
 которое ссылается на значение последнего выполненного условия, в данном случае~-- на
 переменную \lstinline{entry}).
