@@ -467,7 +467,7 @@ step 3, go back to step 2;
   (format t "Leaving foo~%"))
 \end{myverb}
 
-Анонимная функция, переданная \lstinline{bar}б использует \lstinline{RETURN-FROM} для выхода из
+Анонимная функция, переданная \lstinline{bar} использует \lstinline{RETURN-FROM} для выхода из
 \lstinline{BLOCK}. Но это выражение \lstinline{RETURN-FROM} не будет вычислено до тех пор, пока
 анонимная функция не будет выполнена с помощью \lstinline{FUNCALL} или \lstinline{APPLY}. Теперь
 предположим, что \lstinline{bar} выглядит следующим образом:
