@@ -669,7 +669,7 @@ BINARY-DATA> (slot->read-value '(identifier (iso-8859-1-string :length 3)) 'stre
 
 Со всеми этими функциями мы уже готовы добавить \lstinline{read-value} в
 \lstinline{define-binary-class}. Если мы возьмём вручную написанный метод \lstinline{read-value} и
-удалим из него все то, что касается определённого класса, у нас останется следующий
+удалим из него всё то, что касается определённого класса, у нас останется следующий
 каркас:
 
 \begin{myverb}
@@ -680,13 +680,13 @@ BINARY-DATA> (slot->read-value '(identifier (iso-8859-1-string :length 3)) 'stre
     object)))
 \end{myverb}
 
-Все, что нам нужно сделать,~--- это добавить этот каркас в шаблон \lstinline{define-binary-class},
+Всё, что нам нужно сделать,~--- это добавить этот каркас в шаблон \lstinline{define-binary-class},
 заменив многоточия кодом, который заполнит этот каркас подходящими именами и кодом. Мы
 также захотим заменить переменные \lstinline{type}, \lstinline{stream} и \lstinline{object}
 сгенерированными \lstinline{GENSYM} именами для избежания потенциальных конфликтов с именами
 слотов\footnote{Технически для \lstinline{type} или \lstinline{object} не существует возможности
   конфликтования с именами слотов: в худшем случае они будут скрыты внутри формы
-  \lstinline{WITH-SLOTS}. Но все же не будет ничего плохого в том, чтобы просто
+  \lstinline{WITH-SLOTS}. Но всё же не будет ничего плохого в том, чтобы просто
   сгенерировать с помощью \lstinline{GENSYM} все локальные переменные, используемые внутри
   шаблона макроса.}\hspace{\footnotenegspace}, что мы можем сделать с помощью макроса \lstinline{with-gensyms},
 рассмотренного в главе~\ref{ch:08}.
