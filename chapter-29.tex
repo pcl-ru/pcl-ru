@@ -607,10 +607,10 @@ Shoutcast.  Но текущая песня также может быть изм
 который заставляет выполнение s-выражения, идущего за ним во время чтения кода. Это иногда
 полезно в исходном коде, но явно открывает большую дыру в безопасности, когда вы считываете
 ненадежные данные. Тем не менее вы можете выключить этот синтаксис, установив значение
-\lstinline{*READ-EVAL} в \lstinline{NIL}, что заставит процедуру чтения сгенерировать ошибку, когда он
+\lstinline{*READ-EVAL*} в \lstinline{NIL}, что заставит процедуру чтения сгенерировать ошибку, когда он
 встретит \lstinline!#.!.}\hspace{\footnotenegspace}! Вы можете определить собственный макрос
 \lstinline{with-safe-io-syntax}, который обернет формы тела макроса в
-\lstinline{WITH-STANDARD-IO-SYNTAX} внутри кода \lstinline{LET}, который привяжет \lstinline{*READ-EVAL} к
+\lstinline{WITH-STANDARD-IO-SYNTAX} внутри кода \lstinline{LET}, который привяжет \lstinline{*READ-EVAL*} к
 значению \lstinline{NIL}.
 
 \begin{myverb}
