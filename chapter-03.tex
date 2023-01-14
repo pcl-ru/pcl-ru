@@ -52,7 +52,7 @@
 \textbf{список}\translationnote{\lstinline{LIST}~-- по английски \textbf{СПИСОК}. Кстати, последние
   реализации Common Lisp позволяют писать и на родном для вас языке. Например, на русском
   можно создать макрос \code{список}, который будет вызывать \lstinline{LIST}, например так:
-  \lstinline!(defmacro list (&body body) `(list ,@body))!.} из
+  \lstinline!(defmacro список (&body body) `(list ,@body))!.} из
 переданных аргументов.
 
 \begin{myverb}
@@ -108,7 +108,7 @@ CL-USER> (getf (list :a 1 :b 2 :c 3) :c)
 список параметров. Функция содержит четыре параметра~-- \lstinline{title}, \lstinline{artist},
 \lstinline{rating} и \lstinline{ripped}. Всё, что следует за списком параметров,~-- тело функции. В
 данном случае \textit{тело}~-- лишь форма, просто вызов функции \lstinline{LIST}. При вызове
-\lstinline{make-сd} параметры, переданные при вызове, будут связаны с переменными в списке
+\lstinline{make-cd} параметры, переданные при вызове, будут связаны с переменными в списке
 параметров из объявления функции. Например, для создания записи о CD \textit{Roses} от
 Kathy Mattea вы можете вызвать \lstinline{make-cd} примерно так:
 
